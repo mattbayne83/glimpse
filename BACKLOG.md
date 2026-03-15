@@ -4,15 +4,11 @@
 - [ ] Project documentation (README, CHANGELOG)
 
 ## Next Up (Priority)
-- [ ] **Example dataset button** - Pre-loaded sample CSV for instant demos
-- [ ] **Export analysis as JSON** - Download results for later use
-- [ ] **Copy stats to clipboard** - Quick sharing of column stats
-- [ ] **Correlation matrix** - Heatmap showing relationships between numeric columns
-
-## Polish & UX
 - [ ] Better error handling for malformed CSVs
 - [ ] Pyodide load failure recovery with retry
 - [ ] User-friendly error messages with suggestions
+
+## Polish & UX
 - [ ] Keyboard shortcuts (Esc to clear, etc.)
 - [ ] Dark mode support
 - [ ] Responsive design improvements for mobile
@@ -58,3 +54,7 @@
 - [x] **Comprehensive missing data table** - Sortable table showing all columns with missing data
 - [x] **Matrix animated background** - Subtle falling characters effect in header/footer
 - [x] **Clear confirmation modal** - Prevent accidental data loss
+- [x] **Example dataset button** - Pre-loaded iris dataset (150 rows, 4 numeric columns) for instant demos
+- [x] **Export analysis as JSON** - Download complete analysis results for later use
+- [x] **Copy stats to clipboard** - Copy overview or individual column stats as markdown
+- [x] **Correlation matrix** - Interactive heatmap showing relationships between numeric columns (conditional tab)

@@ -130,12 +130,26 @@ quality = {
     "highCardinalityColumns": high_cardinality_cols
 }
 
+# Correlation matrix (only for numeric columns with 2+ columns)
+correlation = None
+numeric_df = df.select_dtypes(include=[np.number])
+if numeric_df.shape[1] >= 2:
+    corr_matrix = numeric_df.corr()
+    correlation = {
+        "columns": list(corr_matrix.columns),
+        "matrix": [[float(val) if not pd.isna(val) else 0 for val in row] for row in corr_matrix.values]
+    }
+
 # Combine results
 result = {
     "overview": overview,
     "columns": columns_analysis,
     "quality": quality
 }
+
+# Only add correlation if it exists
+if correlation is not None:
+    result["correlation"] = correlation
 
 json.dumps(result)
 `;

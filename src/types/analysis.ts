@@ -61,8 +61,14 @@ export interface DataQuality {
   highCardinalityColumns: string[]; // >100 unique values
 }
 
+export interface CorrelationMatrix {
+  columns: string[]; // column names
+  matrix: number[][]; // correlation values (-1 to 1)
+}
+
 export interface AnalysisResult {
   overview: DatasetOverview;
   columns: ColumnAnalysis[];
   quality: DataQuality;
+  correlation?: CorrelationMatrix; // only present if 2+ numeric columns
 }

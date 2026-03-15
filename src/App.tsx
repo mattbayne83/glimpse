@@ -5,6 +5,7 @@ import { MatrixBackground } from './components/MatrixBackground';
 import { useAppStore } from './store/useAppStore';
 import { getPyodide } from './utils/pyodide';
 import { analyzeData } from './utils/analyzeData';
+import { IRIS_DATASET } from './data/sampleDatasets';
 
 function App() {
   const {
@@ -28,9 +29,25 @@ function App() {
     try {
       // Read file as text
       const text = await file.text();
+      await runAnalysis(file.name, text);
+    } catch (error) {
+      console.error('File read failed:', error);
+      setAnalysisError(
+        error instanceof Error ? error.message : 'Failed to read file'
+      );
+    }
+  };
 
+  // Handle example dataset
+  const handleExampleClick = async () => {
+    await runAnalysis(IRIS_DATASET.name, IRIS_DATASET.csv);
+  };
+
+  // Shared analysis logic
+  const runAnalysis = async (name: string, csvText: string) => {
+    try {
       // Store in state
-      setDataset(file.name, text);
+      setDataset(name, csvText);
 
       // Initialize Pyodide if not ready
       if (!isPyodideReady) {
@@ -41,7 +58,7 @@ function App() {
 
       // Run analysis
       setAnalyzing(true);
-      const result = await analyzeData(text);
+      const result = await analyzeData(csvText);
       setAnalysisResult(result);
     } catch (error) {
       console.error('Analysis failed:', error);
@@ -101,6 +118,7 @@ function App() {
 
             <FileUpload
               onFileSelect={handleFileSelect}
+              onExampleClick={handleExampleClick}
               isLoading={isAnalyzing || isPyodideLoading}
             />
 

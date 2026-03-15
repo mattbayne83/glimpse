@@ -1,0 +1,30 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .bg { fill: none; }
+    .neutral { fill: #475569; }
+    .primary { fill: #0066CC; }
+    .shutter-blade { fill: #0066CC; }
+    
+    @media (prefers-color-scheme: dark) {
+      .neutral { fill: #F1F5F9; }
+      .primary { fill: #3B9EFF; }
+      .shutter-blade { fill: #3B9EFF; }
+    }
+  </style>
+  
+  <!-- Outer Frame (Stylized G) -->
+  <path class="neutral" d="M26.5 16C26.5 21.799 21.799 26.5 16 26.5C10.201 26.5 5.5 21.799 5.5 16C5.5 10.201 10.201 5.5 16 5.5C18.8995 5.5 21.5245 6.67513 23.4246 8.57521L26.2531 5.74676C23.6496 3.14328 20.0121 1.53125 16 1.53125C8.00914 1.53125 1.53125 8.00914 1.53125 16C1.53125 23.9909 8.00914 30.4688 16 30.4688C23.9909 30.4688 30.4688 23.9909 30.4688 16H26.5Z" />
+  
+  <!-- Inner Shutter Ring -->
+  <circle cx="16" cy="16" r="8" stroke-width="1.5" stroke="currentColor" style="color: inherit;" class="primary-stroke" />
+  
+  <!-- Shutter Blades -->
+  <g class="shutter-blade">
+    <path d="M16 10C12.6863 10 10 12.6863 10 16L16 16V10Z" opacity="0.9" />
+    <path d="M16 16L21.1962 19L22.1962 17.268L16 16Z" opacity="0.7" />
+    <path d="M16 16L10.8038 19L9.80385 17.268L16 16Z" opacity="0.8" />
+  </g>
+  
+  <!-- Focus Point -->
+  <circle cx="16" cy="16" r="2.5" class="neutral" />
+</svg>

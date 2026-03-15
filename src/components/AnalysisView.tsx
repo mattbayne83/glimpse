@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Download, Copy, Check } from 'lucide-react';
 import type { AnalysisResult, ColumnAnalysis } from '../types/analysis';
 import { TabNavigation } from './TabNavigation';
 import { Histogram } from './Histogram';
 import { ColumnMap } from './ColumnMap';
 import { MissingDataTable } from './MissingDataTable';
 import { ConfirmModal } from './ConfirmModal';
+import { CorrelationMatrix } from './CorrelationMatrix';
 
 interface AnalysisViewProps {
   datasetName: string;
@@ -13,7 +14,7 @@ interface AnalysisViewProps {
   onClear: () => void;
 }
 
-type TabId = 'overview' | 'columns' | 'quality';
+type TabId = 'overview' | 'columns' | 'quality' | 'correlation';
 type ColumnFilter = 'all' | 'numeric' | 'categorical' | 'datetime';
 
 export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps) {
@@ -21,6 +22,32 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [columnFilter, setColumnFilter] = useState<ColumnFilter>('all');
   const [showClearModal, setShowClearModal] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Export analysis as JSON
+  const handleExportJSON = () => {
+    const json = JSON.stringify(result, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${datasetName.replace(/\.[^/.]+$/, '')}_analysis.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Copy to clipboard with feedback
+  const copyToClipboard = async (text: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   // Filter columns by type
   const filteredColumns = columns.filter((col) => {
@@ -34,10 +61,14 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
     quality.highMissingColumns.length +
     quality.highCardinalityColumns.length;
 
+  // Build tabs array (conditionally include Correlation)
   const tabs = [
     { id: 'overview' as const, label: 'Overview' },
     { id: 'columns' as const, label: 'Columns', count: columns.length },
     { id: 'quality' as const, label: 'Quality', count: qualityIssueCount },
+    ...(result.correlation
+      ? [{ id: 'correlation' as const, label: 'Correlation', count: result.correlation.columns.length }]
+      : []),
   ];
 
   return (
@@ -50,13 +81,22 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
             {overview.rows.toLocaleString()} rows × {overview.columns} columns
           </p>
         </div>
-        <button
-          onClick={() => setShowClearModal(true)}
-          className="flex items-center gap-2 px-4 py-2 text-[#334155] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-md transition-colors duration-150"
-        >
-          <X className="w-4 h-4" />
-          Clear
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportJSON}
+            className="flex items-center gap-2 px-4 py-2 text-[#334155] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-md transition-colors duration-150"
+          >
+            <Download className="w-4 h-4" />
+            Export JSON
+          </button>
+          <button
+            onClick={() => setShowClearModal(true)}
+            className="flex items-center gap-2 px-4 py-2 text-[#334155] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-md transition-colors duration-150"
+          >
+            <X className="w-4 h-4" />
+            Clear
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -68,16 +108,29 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
 
       {/* Tab Content */}
       <div className="mt-6">
-        {activeTab === 'overview' && <OverviewTab overview={overview} columns={columns} />}
+        {activeTab === 'overview' && (
+          <OverviewTab
+            overview={overview}
+            columns={columns}
+            datasetName={datasetName}
+            onCopy={copyToClipboard}
+            copiedId={copiedId}
+          />
+        )}
         {activeTab === 'columns' && (
           <ColumnsTab
             columns={filteredColumns}
             filter={columnFilter}
             onFilterChange={setColumnFilter}
+            onCopy={copyToClipboard}
+            copiedId={copiedId}
           />
         )}
         {activeTab === 'quality' && (
           <QualityTab quality={quality} columns={columns} totalRows={overview.rows} />
+        )}
+        {activeTab === 'correlation' && result.correlation && (
+          <CorrelationTab correlation={result.correlation} />
         )}
       </div>
 
@@ -102,11 +155,49 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
 interface OverviewTabProps {
   overview: AnalysisResult['overview'];
   columns: ColumnAnalysis[];
+  datasetName: string;
+  onCopy: (text: string, id: string) => void;
+  copiedId: string | null;
 }
 
-function OverviewTab({ overview, columns }: OverviewTabProps) {
+function OverviewTab({ overview, columns, datasetName, onCopy, copiedId }: OverviewTabProps) {
+  // Format overview as markdown
+  const formatOverviewMarkdown = () => {
+    return `# ${datasetName} - Dataset Overview
+
+## Statistics
+- **Rows:** ${overview.rows.toLocaleString()}
+- **Columns:** ${overview.columns}
+- **Memory:** ${(overview.memoryBytes / 1024 / 1024).toFixed(2)} MB
+- **Missing Values:** ${overview.missingPercentage.toFixed(1)}%
+
+## Column Types
+- **Numeric:** ${overview.columnTypes.numeric}
+- **Categorical:** ${overview.columnTypes.categorical}
+- **DateTime:** ${overview.columnTypes.datetime}`;
+  };
+
   return (
     <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-[#0F172A]">Dataset Statistics</h2>
+        <button
+          onClick={() => onCopy(formatOverviewMarkdown(), 'overview')}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm text-[#334155] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-md transition-colors duration-150"
+        >
+          {copiedId === 'overview' ? (
+            <>
+              <Check className="w-4 h-4 text-[#10B981]" />
+              Copied!
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4" />
+              Copy Stats
+            </>
+          )}
+        </button>
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard label="Rows" value={overview.rows.toLocaleString()} />
         <StatCard label="Columns" value={overview.columns} />
@@ -150,9 +241,43 @@ interface ColumnsTabProps {
   columns: ColumnAnalysis[];
   filter: ColumnFilter;
   onFilterChange: (filter: ColumnFilter) => void;
+  onCopy: (text: string, id: string) => void;
+  copiedId: string | null;
 }
 
-function ColumnsTab({ columns, filter, onFilterChange }: ColumnsTabProps) {
+function ColumnsTab({ columns, filter, onFilterChange, onCopy, copiedId }: ColumnsTabProps) {
+  // Format column stats as markdown
+  const formatColumnMarkdown = (col: ColumnAnalysis) => {
+    let markdown = `## ${col.name} (${col.analysis.type})\n\n`;
+
+    if (col.analysis.type === 'numeric') {
+      const stats = col.analysis.stats;
+      markdown += `- **Count:** ${stats.count}\n`;
+      markdown += `- **Mean:** ${stats.mean.toFixed(2)}\n`;
+      markdown += `- **Std:** ${stats.std.toFixed(2)}\n`;
+      markdown += `- **Min:** ${stats.min.toFixed(2)}\n`;
+      markdown += `- **Q25:** ${stats.q25.toFixed(2)}\n`;
+      markdown += `- **Median:** ${stats.q50.toFixed(2)}\n`;
+      markdown += `- **Q75:** ${stats.q75.toFixed(2)}\n`;
+      markdown += `- **Max:** ${stats.max.toFixed(2)}\n`;
+      markdown += `- **Missing:** ${stats.missing}`;
+    } else if (col.analysis.type === 'categorical') {
+      const stats = col.analysis.stats;
+      markdown += `- **Unique Values:** ${stats.uniqueCount}\n`;
+      markdown += `- **Missing:** ${stats.missing}\n\n`;
+      markdown += `### Top Values:\n`;
+      stats.topValues.slice(0, 10).forEach((item) => {
+        markdown += `- ${item.value}: ${item.count} (${item.percentage.toFixed(1)}%)\n`;
+      });
+    } else if (col.analysis.type === 'datetime') {
+      const stats = col.analysis.stats;
+      markdown += `- **Range:** ${stats.minDate} → ${stats.maxDate}\n`;
+      markdown += `- **Unique:** ${stats.uniqueCount}\n`;
+      markdown += `- **Missing:** ${stats.missing}`;
+    }
+
+    return markdown;
+  };
   const filters: { value: ColumnFilter; label: string }[] = [
     { value: 'all', label: 'All' },
     { value: 'numeric', label: 'Numeric' },
@@ -186,20 +311,38 @@ function ColumnsTab({ columns, filter, onFilterChange }: ColumnsTabProps) {
       <div className="space-y-4">
         {columns.map((col) => (
           <div key={col.name} className="p-4 bg-white border border-[#E2E8F0] rounded-lg shadow-sm">
-            <h3 className="font-semibold text-[#334155] mb-3 flex items-center gap-2">
-              <span className="font-mono">{col.name}</span>
-              <span
-                className={`text-xs px-2 py-1 rounded font-medium ${
-                  col.analysis.type === 'numeric'
-                    ? 'bg-[#CCFBF1] text-[#0D9488]'
-                    : col.analysis.type === 'categorical'
-                    ? 'bg-[#E6F2FF] text-[#0066CC]'
-                    : 'bg-[#F1F5F9] text-[#475569]'
-                }`}
+            <div className="flex items-start justify-between mb-3">
+              <h3 className="font-semibold text-[#334155] flex items-center gap-2">
+                <span className="font-mono">{col.name}</span>
+                <span
+                  className={`text-xs px-2 py-1 rounded font-medium ${
+                    col.analysis.type === 'numeric'
+                      ? 'bg-[#CCFBF1] text-[#0D9488]'
+                      : col.analysis.type === 'categorical'
+                      ? 'bg-[#E6F2FF] text-[#0066CC]'
+                      : 'bg-[#F1F5F9] text-[#475569]'
+                  }`}
+                >
+                  {col.analysis.type}
+                </span>
+              </h3>
+              <button
+                onClick={() => onCopy(formatColumnMarkdown(col), `col-${col.name}`)}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded transition-colors duration-150"
               >
-                {col.analysis.type}
-              </span>
-            </h3>
+                {copiedId === `col-${col.name}` ? (
+                  <>
+                    <Check className="w-3 h-3 text-[#10B981]" />
+                    <span className="text-[#10B981]">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3 h-3" />
+                    Copy
+                  </>
+                )}
+              </button>
+            </div>
 
             {col.analysis.type === 'numeric' && (
               <div>
@@ -398,6 +541,27 @@ function QualityTab({ quality, columns, totalRows }: QualityTabProps) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Correlation Tab
+interface CorrelationTabProps {
+  correlation: AnalysisResult['correlation'];
+}
+
+function CorrelationTab({ correlation }: CorrelationTabProps) {
+  if (!correlation) return null;
+
+  return (
+    <div>
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-[#0F172A]">Correlation Matrix</h2>
+        <p className="text-sm text-[#64748B] mt-1">
+          Shows relationships between {correlation.columns.length} numeric columns
+        </p>
+      </div>
+      <CorrelationMatrix data={correlation} />
     </div>
   );
 }

@@ -1,14 +1,15 @@
-import { Upload, FileSpreadsheet } from 'lucide-react';
+import { Upload, FileSpreadsheet, Sparkles } from 'lucide-react';
 import { useState, useRef } from 'react';
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
+  onExampleClick?: () => void;
   isLoading?: boolean;
 }
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
-export function FileUpload({ onFileSelect, isLoading = false }: FileUploadProps) {
+export function FileUpload({ onFileSelect, onExampleClick, isLoading = false }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -121,6 +122,21 @@ export function FileUpload({ onFileSelect, isLoading = false }: FileUploadProps)
       {error && (
         <div className="mt-4 p-3 bg-[#FEE2E2] border border-[#FCA5A5] rounded-lg text-sm text-[#991B1B]">
           {error}
+        </div>
+      )}
+
+      {onExampleClick && !isLoading && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onExampleClick();
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm text-[#0066CC] hover:text-[#0052A3] hover:bg-[#E6F2FF] rounded-md transition-colors duration-150"
+          >
+            <Sparkles className="w-4 h-4" />
+            Try Example Dataset
+          </button>
         </div>
       )}
     </div>
