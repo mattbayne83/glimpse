@@ -4,6 +4,8 @@ import type { AnalysisResult, ColumnAnalysis } from '../types/analysis';
 import { TabNavigation } from './TabNavigation';
 import { Histogram } from './Histogram';
 import { ColumnMap } from './ColumnMap';
+import { MissingDataTable } from './MissingDataTable';
+import { ConfirmModal } from './ConfirmModal';
 
 interface AnalysisViewProps {
   datasetName: string;
@@ -18,6 +20,7 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
   const { overview, columns, quality } = result;
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [columnFilter, setColumnFilter] = useState<ColumnFilter>('all');
+  const [showClearModal, setShowClearModal] = useState(false);
 
   // Filter columns by type
   const filteredColumns = columns.filter((col) => {
@@ -48,7 +51,7 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
           </p>
         </div>
         <button
-          onClick={onClear}
+          onClick={() => setShowClearModal(true)}
           className="flex items-center gap-2 px-4 py-2 text-[#334155] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-md transition-colors duration-150"
         >
           <X className="w-4 h-4" />
@@ -73,8 +76,24 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
             onFilterChange={setColumnFilter}
           />
         )}
-        {activeTab === 'quality' && <QualityTab quality={quality} />}
+        {activeTab === 'quality' && (
+          <QualityTab quality={quality} columns={columns} totalRows={overview.rows} />
+        )}
       </div>
+
+      {/* Clear Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showClearModal}
+        title="Clear Analysis?"
+        message="This will remove all analysis results. You'll need to upload your CSV file again to see the analysis."
+        confirmLabel="Clear"
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          setShowClearModal(false);
+          onClear();
+        }}
+        onCancel={() => setShowClearModal(false)}
+      />
     </div>
   );
 }
@@ -291,7 +310,13 @@ function ColumnsTab({ columns, filter, onFilterChange }: ColumnsTabProps) {
 }
 
 // Quality Tab
-function QualityTab({ quality }: { quality: AnalysisResult['quality'] }) {
+interface QualityTabProps {
+  quality: AnalysisResult['quality'];
+  columns: ColumnAnalysis[];
+  totalRows: number;
+}
+
+function QualityTab({ quality, columns, totalRows }: QualityTabProps) {
   const hasIssues =
     quality.duplicateRows > 0 ||
     quality.highMissingColumns.length > 0 ||
@@ -312,78 +337,63 @@ function QualityTab({ quality }: { quality: AnalysisResult['quality'] }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Missing Data Section */}
+      <div>
+        <h2 className="text-lg font-semibold text-[#0F172A] mb-3">Missing Data Analysis</h2>
+        <MissingDataTable columns={columns} totalRows={totalRows} />
+      </div>
+
+      {/* Duplicate Rows */}
       {quality.duplicateRows > 0 && (
-        <div className="p-4 bg-[#FEF3C7] border border-[#FDE68A] rounded-lg">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">⚠️</span>
-            <div className="flex-1">
-              <h3 className="font-medium text-[#92400E] mb-1">Duplicate Rows</h3>
-              <p className="text-sm text-[#B45309]">
-                Found {quality.duplicateRows.toLocaleString()} duplicate rows (
-                {quality.duplicatePercentage.toFixed(1)}% of dataset)
-              </p>
-              <p className="text-xs text-[#92400E] mt-2">
-                Consider removing duplicates if they're unintentional.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {quality.highMissingColumns.length > 0 && (
-        <div className="p-4 bg-[#FEE2E2] border border-[#FCA5A5] rounded-lg">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">❌</span>
-            <div className="flex-1">
-              <h3 className="font-medium text-[#991B1B] mb-1">
-                High Missing Data ({quality.highMissingColumns.length} columns)
-              </h3>
-              <p className="text-sm text-[#DC2626] mb-2">
-                These columns have more than 50% missing values:
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {quality.highMissingColumns.map((col) => (
-                  <span
-                    key={col}
-                    className="px-2 py-1 bg-[#FCA5A5] text-[#991B1B] text-xs rounded font-mono"
-                  >
-                    {col}
-                  </span>
-                ))}
+        <div>
+          <h2 className="text-lg font-semibold text-[#0F172A] mb-3">Duplicate Rows</h2>
+          <div className="p-4 bg-[#FEF3C7] border border-[#FDE68A] rounded-lg">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div className="flex-1">
+                <h3 className="font-medium text-[#92400E] mb-1">Found Duplicate Rows</h3>
+                <p className="text-sm text-[#B45309]">
+                  {quality.duplicateRows.toLocaleString()} duplicate rows (
+                  {quality.duplicatePercentage.toFixed(1)}% of dataset)
+                </p>
+                <p className="text-xs text-[#92400E] mt-2">
+                  Consider removing duplicates if they're unintentional.
+                </p>
               </div>
-              <p className="text-xs text-[#991B1B] mt-2">
-                Consider dropping these columns or investigating why data is missing.
-              </p>
             </div>
           </div>
         </div>
       )}
 
+      {/* High Cardinality */}
       {quality.highCardinalityColumns.length > 0 && (
-        <div className="p-4 bg-[#DBEAFE] border border-[#93C5FD] rounded-lg">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">ℹ️</span>
-            <div className="flex-1">
-              <h3 className="font-medium text-[#1E40AF] mb-1">
-                High Cardinality ({quality.highCardinalityColumns.length} columns)
-              </h3>
-              <p className="text-sm text-[#2563EB] mb-2">
-                These categorical columns have more than 100 unique values:
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {quality.highCardinalityColumns.map((col) => (
-                  <span
-                    key={col}
-                    className="px-2 py-1 bg-[#93C5FD] text-[#1E40AF] text-xs rounded font-mono"
-                  >
-                    {col}
-                  </span>
-                ))}
+        <div>
+          <h2 className="text-lg font-semibold text-[#0F172A] mb-3">High Cardinality Columns</h2>
+          <div className="p-4 bg-[#DBEAFE] border border-[#93C5FD] rounded-lg">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">ℹ️</span>
+              <div className="flex-1">
+                <h3 className="font-medium text-[#1E40AF] mb-1">
+                  {quality.highCardinalityColumns.length} columns with &gt;100 unique values
+                </h3>
+                <p className="text-sm text-[#2563EB] mb-2">
+                  These categorical columns have high cardinality:
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {quality.highCardinalityColumns.map((col) => (
+                    <span
+                      key={col}
+                      className="px-2 py-1 bg-[#93C5FD] text-[#1E40AF] text-xs rounded font-mono"
+                    >
+                      {col}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-xs text-[#1E40AF] mt-2">
+                  High cardinality may indicate these should be treated as IDs, not categories.
+                </p>
               </div>
-              <p className="text-xs text-[#1E40AF] mt-2">
-                High cardinality may indicate these should be treated as IDs, not categories.
-              </p>
             </div>
           </div>
         </div>

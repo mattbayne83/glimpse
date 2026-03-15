@@ -22,12 +22,15 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - **Zero config**: Drop a CSV, get insights immediately
 
 ### Component Structure
-- **App.tsx** - Main application, file upload orchestration, Pyodide initialization
+- **App.tsx** - Main application, file upload orchestration, Pyodide initialization, Matrix background in header/footer
 - **FileUpload** - Drag-and-drop CSV uploader with validation (max 50MB)
-- **AnalysisView** - Results container with tabbed interface
+- **AnalysisView** - Results container with tabbed interface + clear confirmation modal
   - **OverviewTab** - Dataset summary + visual column map
   - **ColumnsTab** - Per-column analysis with type filtering
-  - **QualityTab** - Data quality warnings and recommendations
+  - **QualityTab** - Comprehensive missing data table + duplicate/cardinality warnings
+- **MatrixBackground** - Subtle animated background effect (falling characters, canvas-based)
+- **MissingDataTable** - Sortable table showing completeness for all columns with missing data
+- **ConfirmModal** - Reusable confirmation dialog (used for clear action)
 - **ColumnMap** - Visual bar chart showing dataset structure (color = type, height = completeness)
 - **Histogram** - SVG histogram for numeric column distributions
 - **TabNavigation** - Reusable tab switcher with counts
@@ -48,12 +51,15 @@ Upload CSV files and get instant statistical insights — all processed locally 
 ## Key Files
 
 ### Core Application
-- `src/App.tsx` (~130 lines) - Main app logic, file handling, Pyodide orchestration
+- `src/App.tsx` (~150 lines) - Main app logic, file handling, Pyodide orchestration, Matrix backgrounds
 - `src/main.tsx` - React entry point
 - `src/index.css` - Tailwind imports + theme config
 
 ### Components
-- `src/components/AnalysisView.tsx` (~380 lines) - Tabbed results view with Overview/Columns/Quality
+- `src/components/AnalysisView.tsx` (~415 lines) - Tabbed results view with Overview/Columns/Quality + clear modal
+- `src/components/MissingDataTable.tsx` (~230 lines) - Comprehensive sortable missing data analysis table
+- `src/components/ConfirmModal.tsx` (~60 lines) - Reusable confirmation dialog with backdrop
+- `src/components/MatrixBackground.tsx` (~90 lines) - Animated falling characters background (canvas-based)
 - `src/components/FileUpload.tsx` (~120 lines) - Drag-and-drop uploader with validation
 - `src/components/ColumnMap.tsx` (~80 lines) - Visual column structure chart
 - `src/components/Histogram.tsx` (~40 lines) - Simple SVG histogram renderer
@@ -133,6 +139,20 @@ Overview / Columns / Quality Tabs
 
 ### Unused Components
 - `DataBlock3D.tsx` and `DataCube3D.tsx` exist but not currently used (3D visualizations disabled due to layout issues)
+
+### UI/UX Enhancements
+- **MatrixBackground**: Subtle animated effect (8-18% opacity, blue #0066CC on white)
+  - Falling characters with random Greek/math/currency symbols
+  - Canvas-based animation (80ms speed, 10px font size)
+  - Used in header and footer with white text-shadow for legibility
+- **Clear Confirmation**: Modal prevents accidental data loss
+  - Yellow warning icon + destructive red button
+  - Backdrop dismissal supported
+- **Missing Data Table**: Complete replacement for basic warning box
+  - Shows ALL columns with missing data (not just >50%)
+  - Sortable by column name, populated count, missing count
+  - Color-coded completeness bars (green→yellow→orange→red)
+  - Summary stats: total columns affected, avg completeness, most/least complete
 
 ## Development
 

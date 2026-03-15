@@ -55,3 +55,6 @@
 - [x] Visual column map representation
 - [x] Histogram generation for numeric columns
 - [x] Data quality warnings (duplicates, high missing, high cardinality)
+- [x] **Comprehensive missing data table** - Sortable table showing all columns with missing data
+- [x] **Matrix animated background** - Subtle falling characters effect in header/footer
+- [x] **Clear confirmation modal** - Prevent accidental data loss

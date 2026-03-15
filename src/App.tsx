@@ -142,6 +142,15 @@ function App() {
             >
               Pyodide
             </a>
+            {' • Built by '}
+            <a
+              href="https://mattbayne.dev/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#0066CC] hover:underline transition-colors duration-150"
+            >
+              Matt Bayne
+            </a>
           </p>
         </div>
       </footer>
