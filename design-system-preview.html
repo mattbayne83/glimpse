@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glimpse Design System Preview</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .color-swatch {
+      width: 100%;
+      height: 80px;
+      border-radius: 8px;
+      display: flex;
+      align-items: flex-end;
+      padding: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body class="bg-[#F8FAFC]">
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- Header -->
+    <div class="mb-12">
+      <h1 class="text-5xl font-bold leading-tight tracking-tight text-[#0F172A] mb-2">Glimpse Design System</h1>
+      <p class="text-[#64748B]">Analytical clarity meets trustworthy restraint — March 15, 2026</p>
+    </div>
+
+    <!-- Color Palette -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#334155] mb-6">Color Palette</h2>
+
+      <!-- Primary Colors -->
+      <div class="mb-8">
+        <h3 class="text-xl font-semibold text-[#475569] mb-4">Primary Colors</h3>
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <div class="color-swatch" style="background: #0066CC;">
+              <span>Insight Blue<br>#0066CC</span>
+            </div>
+            <p class="text-sm text-[#64748B] mt-2">Primary CTAs, key highlights</p>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #E6F2FF; color: #0066CC; text-shadow: none;">
+              <span>Sky Wash<br>#E6F2FF</span>
+            </div>
+            <p class="text-sm text-[#64748B] mt-2">Hover backgrounds, selected rows</p>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #004C99;">
+              <span>Data Navy<br>#004C99</span>
+            </div>
+            <p class="text-sm text-[#64748B] mt-2">Active states, emphasis</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secondary Colors -->
+      <div class="mb-8">
+        <h3 class="text-xl font-semibold text-[#475569] mb-4">Secondary Colors</h3>
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <div class="color-swatch" style="background: #0D9488;">
+              <span>Analysis Teal<br>#0D9488</span>
+            </div>
+            <p class="text-sm text-[#64748B] mt-2">Numeric insights, histograms</p>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #CCFBF1; color: #0D9488; text-shadow: none;">
+              <span>Mint Frost<br>#CCFBF1</span>
+            </div>
+            <p class="text-sm text-[#64748B] mt-2">Stat card backgrounds</p>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #475569;">
+              <span>Privacy Slate<br>#475569</span>
+            </div>
+            <p class="text-sm text-[#64748B] mt-2">Secondary actions</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Neutral Scale -->
+      <div class="mb-8">
+        <h3 class="text-xl font-semibold text-[#475569] mb-4">Neutral Scale</h3>
+        <div class="grid grid-cols-5 gap-2">
+          <div>
+            <div class="color-swatch" style="background: #F8FAFC; color: #334155; text-shadow: none; border: 1px solid #E2E8F0;">
+              <span style="font-size: 10px;">50<br>#F8FAFC</span>
+            </div>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #F1F5F9; color: #334155; text-shadow: none;">
+              <span style="font-size: 10px;">100<br>#F1F5F9</span>
+            </div>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #E2E8F0; color: #334155; text-shadow: none;">
+              <span style="font-size: 10px;">200<br>#E2E8F0</span>
+            </div>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #CBD5E1; color: #0F172A; text-shadow: none;">
+              <span style="font-size: 10px;">300<br>#CBD5E1</span>
+            </div>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #94A3B8;">
+              <span style="font-size: 10px;">400<br>#94A3B8</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-5 gap-2 mt-2">
+          <div>
+            <div class="color-swatch" style="background: #64748B;">
+              <span style="font-size: 10px;">500<br>#64748B</span>
+            </div>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #475569;">
+              <span style="font-size: 10px;">600<br>#475569</span>
+            </div>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #334155;">
+              <span style="font-size: 10px;">700<br>#334155</span>
+            </div>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #1E293B;">
+              <span style="font-size: 10px;">800<br>#1E293B</span>
+            </div>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #0F172A;">
+              <span style="font-size: 10px;">900<br>#0F172A</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Semantic Colors -->
+      <div class="mb-8">
+        <h3 class="text-xl font-semibold text-[#475569] mb-4">Semantic Colors</h3>
+        <div class="grid grid-cols-4 gap-4">
+          <div>
+            <div class="color-swatch" style="background: #10B981;">
+              <span>Success<br>#10B981</span>
+            </div>
+            <p class="text-sm text-[#64748B] mt-2">No issues found ✅</p>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #F59E0B;">
+              <span>Warning<br>#F59E0B</span>
+            </div>
+            <p class="text-sm text-[#64748B] mt-2">Duplicate rows ⚠️</p>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #EF4444;">
+              <span>Error<br>#EF4444</span>
+            </div>
+            <p class="text-sm text-[#64748B] mt-2">Missing data ❌</p>
+          </div>
+          <div>
+            <div class="color-swatch" style="background: #3B82F6;">
+              <span>Info<br>#3B82F6</span>
+            </div>
+            <p class="text-sm text-[#64748B] mt-2">High cardinality ℹ️</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Typography -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#334155] mb-6">Typography</h2>
+
+      <div class="bg-white border border-[#E2E8F0] rounded-lg p-6 space-y-4">
+        <div>
+          <p class="text-xs text-[#64748B] mb-1">Display · 48px · Bold</p>
+          <h1 class="text-5xl font-bold leading-tight tracking-tight text-[#0F172A]">The quick brown fox</h1>
+        </div>
+        <div>
+          <p class="text-xs text-[#64748B] mb-1">H1 · 36px · Bold</p>
+          <h1 class="text-4xl font-bold leading-snug text-[#0F172A]">The quick brown fox</h1>
+        </div>
+        <div>
+          <p class="text-xs text-[#64748B] mb-1">H2 · 24px · Semibold</p>
+          <h2 class="text-2xl font-semibold text-[#334155]">The quick brown fox</h2>
+        </div>
+        <div>
+          <p class="text-xs text-[#64748B] mb-1">H3 · 20px · Semibold</p>
+          <h3 class="text-xl font-semibold text-[#475569]">The quick brown fox</h3>
+        </div>
+        <div>
+          <p class="text-xs text-[#64748B] mb-1">Body · 16px · Regular</p>
+          <p class="text-base text-[#475569]">The quick brown fox jumps over the lazy dog. This is body text used for paragraphs and general content.</p>
+        </div>
+        <div>
+          <p class="text-xs text-[#64748B] mb-1">Body Small · 14px · Regular</p>
+          <p class="text-sm text-[#64748B]">The quick brown fox jumps over the lazy dog. This is smaller body text for secondary content.</p>
+        </div>
+        <div>
+          <p class="text-xs text-[#64748B] mb-1">Caption · 12px · Medium</p>
+          <p class="text-xs font-medium tracking-wide text-[#94A3B8]">THE QUICK BROWN FOX</p>
+        </div>
+        <div>
+          <p class="text-xs text-[#64748B] mb-1">Mono Data · JetBrains Mono · 14px</p>
+          <p class="font-mono text-sm text-[#0F172A]">{"column_name": 12345.67, "avg": 98.2}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Buttons -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#334155] mb-6">Buttons</h2>
+
+      <div class="flex flex-wrap gap-4">
+        <button class="bg-[#0066CC] text-white font-medium px-4 py-2 rounded-md hover:bg-[#004C99] transition-colors duration-150 shadow-sm">
+          Primary Button
+        </button>
+        <button class="bg-transparent border border-[#CBD5E1] text-[#334155] px-4 py-2 rounded-md hover:bg-[#F1F5F9] transition-colors duration-150">
+          Secondary Button
+        </button>
+        <button class="bg-transparent text-[#0066CC] px-4 py-2 rounded-md hover:bg-[#E6F2FF] transition-colors duration-150">
+          Ghost Button
+        </button>
+        <button class="bg-[#EF4444] text-white font-medium px-4 py-2 rounded-md hover:bg-[#DC2626] transition-colors duration-150 shadow-sm">
+          Danger Button
+        </button>
+      </div>
+    </section>
+
+    <!-- Cards -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#334155] mb-6">Cards</h2>
+
+      <div class="grid grid-cols-3 gap-4">
+        <div class="bg-white border border-[#E2E8F0] rounded-lg shadow-sm p-6">
+          <h3 class="font-semibold text-[#334155] mb-2">Default Card</h3>
+          <p class="text-sm text-[#64748B]">Border + subtle shadow</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h3 class="font-semibold text-[#334155] mb-2">Elevated Card</h3>
+          <p class="text-sm text-[#64748B]">No border, medium shadow</p>
+        </div>
+        <div class="bg-white border border-[#E2E8F0] rounded-lg shadow-sm p-6 hover:shadow-md hover:border-[#CBD5E1] transition-all duration-200 cursor-pointer">
+          <h3 class="font-semibold text-[#334155] mb-2">Interactive Card</h3>
+          <p class="text-sm text-[#64748B]">Hover to see effect</p>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="grid grid-cols-4 gap-4 mt-6">
+        <div class="bg-white border border-[#E2E8F0] rounded-lg p-4 shadow-sm">
+          <p class="text-sm text-[#64748B] mb-1">Rows</p>
+          <p class="text-2xl font-bold text-[#0F172A]">1,234</p>
+        </div>
+        <div class="bg-white border border-[#E2E8F0] rounded-lg p-4 shadow-sm">
+          <p class="text-sm text-[#64748B] mb-1">Columns</p>
+          <p class="text-2xl font-bold text-[#0F172A]">42</p>
+        </div>
+        <div class="bg-white border border-[#E2E8F0] rounded-lg p-4 shadow-sm">
+          <p class="text-sm text-[#64748B] mb-1">Memory</p>
+          <p class="text-2xl font-bold text-[#0F172A]">2.4 MB</p>
+        </div>
+        <div class="bg-white border border-[#E2E8F0] rounded-lg p-4 shadow-sm">
+          <p class="text-sm text-[#64748B] mb-1">Missing</p>
+          <p class="text-2xl font-bold text-[#EF4444]">3.2%</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Inputs -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#334155] mb-6">Form Inputs</h2>
+
+      <div class="space-y-4 max-w-md">
+        <div>
+          <label class="block text-sm font-medium text-[#334155] mb-1">Default Input</label>
+          <input
+            type="text"
+            placeholder="Enter dataset name..."
+            class="w-full border border-[#CBD5E1] rounded-md px-3 py-2 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:ring-2 focus:ring-[#0066CC]/20 focus:border-[#0066CC] outline-none transition-all duration-150"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[#334155] mb-1">Error State</label>
+          <input
+            type="text"
+            placeholder="Invalid input"
+            class="w-full border border-[#EF4444] ring-2 ring-[#EF4444]/20 rounded-md px-3 py-2 text-sm text-[#0F172A]"
+          />
+          <p class="text-xs text-[#EF4444] mt-1">This field is required</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[#334155] mb-1">Disabled Input</label>
+          <input
+            type="text"
+            placeholder="Disabled"
+            disabled
+            class="w-full border border-[#E2E8F0] bg-[#F8FAFC] text-[#94A3B8] rounded-md px-3 py-2 text-sm cursor-not-allowed"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Badges -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#334155] mb-6">Badges & Labels</h2>
+
+      <div class="flex flex-wrap gap-3">
+        <span class="px-2 py-1 bg-[#CCFBF1] text-[#0D9488] text-xs rounded font-medium">numeric</span>
+        <span class="px-2 py-1 bg-[#E6F2FF] text-[#0066CC] text-xs rounded font-medium">categorical</span>
+        <span class="px-2 py-1 bg-[#F1F5F9] text-[#475569] text-xs rounded font-medium">datetime</span>
+        <span class="px-2 py-1 bg-[#FEF3C7] text-[#92400E] text-xs rounded-full font-medium">Quality Issue</span>
+      </div>
+    </section>
+
+    <!-- Quality Warning Cards -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#334155] mb-6">Quality Warning Cards</h2>
+
+      <div class="space-y-4">
+        <div class="p-4 bg-[#D1FAE5] border border-[#6EE7B7] rounded-lg">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">✅</span>
+            <div>
+              <h3 class="font-medium text-[#065F46] mb-1">No issues found!</h3>
+              <p class="text-sm text-[#047857]">Your dataset looks clean and ready to use.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 bg-[#FEF3C7] border border-[#FDE68A] rounded-lg">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">⚠️</span>
+            <div>
+              <h3 class="font-medium text-[#92400E] mb-1">Duplicate Rows</h3>
+              <p class="text-sm text-[#B45309]">Found 127 duplicate rows (2.3% of dataset)</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 bg-[#FEE2E2] border border-[#FCA5A5] rounded-lg">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">❌</span>
+            <div>
+              <h3 class="font-medium text-[#991B1B] mb-1">High Missing Data</h3>
+              <p class="text-sm text-[#DC2626]">These columns have more than 50% missing values</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 bg-[#DBEAFE] border border-[#93C5FD] rounded-lg">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">ℹ️</span>
+            <div>
+              <h3 class="font-medium text-[#1E40AF] mb-1">High Cardinality</h3>
+              <p class="text-sm text-[#2563EB]">These categorical columns have more than 100 unique values</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#334155] mb-6">Tabs</h2>
+
+      <div class="border-b border-[#E2E8F0] flex gap-2 mb-4">
+        <button class="px-4 py-2 text-sm font-medium text-[#0066CC] border-b-2 border-[#0066CC]">
+          Overview
+        </button>
+        <button class="px-4 py-2 text-sm font-medium text-[#64748B] hover:text-[#334155] transition-colors duration-150">
+          Columns <span class="ml-1 px-1.5 py-0.5 bg-[#F1F5F9] text-[#475569] text-xs rounded">42</span>
+        </button>
+        <button class="px-4 py-2 text-sm font-medium text-[#64748B] hover:text-[#334155] transition-colors duration-150">
+          Quality <span class="ml-1 px-1.5 py-0.5 bg-[#FEE2E2] text-[#991B1B] text-xs rounded">3</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Spacing Scale -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#334155] mb-6">Spacing Scale</h2>
+
+      <div class="bg-white border border-[#E2E8F0] rounded-lg p-6">
+        <div class="space-y-3">
+          <div class="flex items-center gap-4">
+            <div class="w-20 text-sm text-[#64748B]">1 · 4px</div>
+            <div class="h-4 bg-[#0066CC]" style="width: 4px;"></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-20 text-sm text-[#64748B]">2 · 8px</div>
+            <div class="h-4 bg-[#0066CC]" style="width: 8px;"></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-20 text-sm text-[#64748B]">3 · 12px</div>
+            <div class="h-4 bg-[#0066CC]" style="width: 12px;"></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-20 text-sm text-[#64748B]">4 · 16px</div>
+            <div class="h-4 bg-[#0066CC]" style="width: 16px;"></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-20 text-sm text-[#64748B]">6 · 24px</div>
+            <div class="h-4 bg-[#0066CC]" style="width: 24px;"></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-20 text-sm text-[#64748B]">8 · 32px</div>
+            <div class="h-4 bg-[#0066CC]" style="width: 32px;"></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-20 text-sm text-[#64748B]">12 · 48px</div>
+            <div class="h-4 bg-[#0066CC]" style="width: 48px;"></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-20 text-sm text-[#64748B]">16 · 64px</div>
+            <div class="h-4 bg-[#0066CC]" style="width: 64px;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Border Radius -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#334155] mb-6">Border Radius</h2>
+
+      <div class="flex gap-4">
+        <div class="text-center">
+          <div class="w-24 h-24 bg-[#0066CC] rounded-md mb-2"></div>
+          <p class="text-sm text-[#64748B]">Buttons/Inputs<br>6px</p>
+        </div>
+        <div class="text-center">
+          <div class="w-24 h-24 bg-[#0D9488] rounded-lg mb-2"></div>
+          <p class="text-sm text-[#64748B]">Cards<br>8px</p>
+        </div>
+        <div class="text-center">
+          <div class="w-24 h-24 bg-[#475569] rounded-xl mb-2"></div>
+          <p class="text-sm text-[#64748B]">Modals<br>12px</p>
+        </div>
+        <div class="text-center">
+          <div class="w-24 h-24 bg-[#F59E0B] rounded-full mb-2"></div>
+          <p class="text-sm text-[#64748B]">Badges<br>Full</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shadows -->
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#334155] mb-6">Elevation & Shadows</h2>
+
+      <div class="grid grid-cols-4 gap-4">
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+          <p class="text-sm font-medium text-[#334155]">Subtle</p>
+          <p class="text-xs text-[#64748B] mt-1">shadow-sm</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <p class="text-sm font-medium text-[#334155]">Default</p>
+          <p class="text-xs text-[#64748B] mt-1">shadow</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <p class="text-sm font-medium text-[#334155]">Medium</p>
+          <p class="text-xs text-[#64748B] mt-1">shadow-md</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+          <p class="text-sm font-medium text-[#334155]">Large</p>
+          <p class="text-xs text-[#64748B] mt-1">shadow-lg</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-[#E2E8F0] pt-8 mt-16 text-center">
+      <p class="text-sm text-[#64748B]">
+        Glimpse Design System · Privacy-first exploratory data analysis ·
+        <a href="design-system.md" class="text-[#0066CC] hover:underline">View Full Documentation</a>
+      </p>
+    </footer>
+
+  </div>
+
+</body>
+</html>

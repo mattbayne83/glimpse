@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { FileUpload } from './components/FileUpload';
 import { AnalysisView } from './components/AnalysisView';
+import { MatrixBackground } from './components/MatrixBackground';
 import { useAppStore } from './store/useAppStore';
 import { getPyodide } from './utils/pyodide';
 import { analyzeData } from './utils/analyzeData';
@@ -57,19 +58,30 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900">Glimpse</h1>
-          <p className="text-sm text-gray-600 mt-1">
+      <header className="relative bg-white border-b border-[#E2E8F0] px-6 py-4 overflow-hidden">
+        {/* Subtle animated background */}
+        <MatrixBackground
+          color="#0066CC"
+          backgroundColor="#FFFFFF"
+          fontSize={10}
+          speed={80}
+        />
+
+        {/* Content - positioned above background */}
+        <div className="relative z-10 max-w-6xl mx-auto">
+          <h1 className="text-2xl font-bold text-[#0F172A]" style={{ textShadow: '0 0 8px rgba(255, 255, 255, 0.5), 0 0 16px rgba(255, 255, 255, 0.3)' }}>
+            Glimpse
+          </h1>
+          <p className="text-sm text-[#64748B] mt-1" style={{ textShadow: '0 0 8px rgba(255, 255, 255, 0.5), 0 0 16px rgba(255, 255, 255, 0.3)' }}>
             Privacy-first data analysis • All processing runs locally
           </p>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="px-6 py-12">
+      <main className="flex-1 px-6 py-12">
         {analysisResult && datasetName ? (
           <AnalysisView
             datasetName={datasetName}
@@ -79,10 +91,10 @@ function App() {
         ) : (
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <div className="mb-8 text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              <h2 className="text-4xl font-bold leading-snug text-[#0F172A] mb-2">
                 Get instant insights from your data
               </h2>
-              <p className="text-gray-600">
+              <p className="text-[#64748B]">
                 Upload a CSV file to see statistics, distributions, and quality checks
               </p>
             </div>
@@ -93,15 +105,15 @@ function App() {
             />
 
             {isPyodideLoading && (
-              <p className="mt-4 text-sm text-gray-600 animate-pulse">
+              <p className="mt-4 text-sm text-[#64748B] animate-pulse">
                 Loading Python runtime... (first time only)
               </p>
             )}
 
             {analysisError && (
-              <div className="mt-6 p-4 max-w-2xl bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm font-medium text-red-900">Analysis Error</p>
-                <p className="text-sm text-red-700 mt-1">{analysisError}</p>
+              <div className="mt-6 p-4 max-w-2xl bg-[#FEE2E2] border border-[#FCA5A5] rounded-lg">
+                <p className="text-sm font-medium text-[#991B1B]">Analysis Error</p>
+                <p className="text-sm text-[#DC2626] mt-1">{analysisError}</p>
               </div>
             )}
           </div>
@@ -109,15 +121,24 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 px-6 py-4 mt-12">
-        <div className="max-w-6xl mx-auto text-center text-sm text-gray-500">
+      <footer className="relative border-t border-[#E2E8F0] px-6 py-4 bg-white overflow-hidden">
+        {/* Subtle animated background */}
+        <MatrixBackground
+          color="#0066CC"
+          backgroundColor="#FFFFFF"
+          fontSize={10}
+          speed={80}
+        />
+
+        {/* Content - positioned above background */}
+        <div className="relative z-10 max-w-6xl mx-auto text-center text-sm text-[#64748B]" style={{ textShadow: '0 0 8px rgba(255, 255, 255, 0.5), 0 0 16px rgba(255, 255, 255, 0.3)' }}>
           <p>
             No data ever leaves your machine • Powered by{' '}
             <a
               href="https://pyodide.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-[#0066CC] hover:underline transition-colors duration-150"
             >
               Pyodide
             </a>

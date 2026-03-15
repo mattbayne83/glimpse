@@ -71,8 +71,8 @@ export function FileUpload({ onFileSelect, isLoading = false }: FileUploadProps)
       <div
         className={`
           relative border-2 border-dashed rounded-lg p-12
-          transition-all duration-200 cursor-pointer
-          ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'}
+          transition-all duration-200 cursor-pointer shadow
+          ${isDragging ? 'border-[#0066CC] bg-[#E6F2FF]' : 'border-[#CBD5E1] bg-white hover:border-[#94A3B8]'}
           ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
         `}
         onDragOver={handleDragOver}
@@ -92,26 +92,26 @@ export function FileUpload({ onFileSelect, isLoading = false }: FileUploadProps)
         <div className="flex flex-col items-center gap-4 text-center">
           {isLoading ? (
             <>
-              <FileSpreadsheet className="w-16 h-16 text-blue-500 animate-pulse" />
+              <FileSpreadsheet className="w-16 h-16 text-[#0066CC] animate-pulse" />
               <div>
-                <p className="text-lg font-medium text-gray-700">Analyzing your data...</p>
-                <p className="text-sm text-gray-500 mt-1">This may take a moment</p>
+                <p className="text-lg font-medium text-[#334155]">Analyzing your data...</p>
+                <p className="text-sm text-[#64748B] mt-1">This may take a moment</p>
               </div>
             </>
           ) : (
             <>
-              <Upload className="w-16 h-16 text-gray-400" />
+              <Upload className="w-16 h-16 text-[#94A3B8]" />
               <div>
-                <p className="text-lg font-medium text-gray-700">
+                <p className="text-lg font-medium text-[#334155]">
                   Drop your CSV file here
                 </p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-[#64748B] mt-1">
                   or click to browse (max 50MB)
                 </p>
               </div>
-              <div className="mt-2 px-4 py-2 bg-gray-100 rounded text-xs text-gray-600">
+              <div className="mt-2 px-4 py-2 bg-[#F1F5F9] rounded text-xs text-[#475569]">
                 <p className="font-medium">🔒 Privacy First</p>
-                <p className="mt-1">All analysis runs locally in your browser</p>
+                <p className="mt-1 text-[#64748B]">All analysis runs locally in your browser</p>
               </div>
             </>
           )}
@@ -119,7 +119,7 @@ export function FileUpload({ onFileSelect, isLoading = false }: FileUploadProps)
       </div>
 
       {error && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="mt-4 p-3 bg-[#FEE2E2] border border-[#FCA5A5] rounded-lg text-sm text-[#991B1B]">
           {error}
         </div>
       )}

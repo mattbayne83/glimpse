@@ -2,4 +2,21 @@
 
 @theme {
   --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Primary Colors */
+  --color-primary: #0066CC;
+  --color-primary-light: #E6F2FF;
+  --color-primary-dark: #004C99;
+
+  /* Secondary Colors */
+  --color-secondary: #0D9488;
+  --color-secondary-light: #CCFBF1;
+  --color-accent: #475569;
+
+  /* Semantic Colors */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
 }
