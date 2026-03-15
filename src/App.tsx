@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { FileUpload } from './components/FileUpload';
 import { AnalysisView } from './components/AnalysisView';
+import { ErrorDisplay } from './components/ErrorDisplay';
 import { MatrixBackground } from './components/MatrixBackground';
 import { useAppStore } from './store/useAppStore';
 import { getPyodide } from './utils/pyodide';
 import { analyzeData } from './utils/analyzeData';
 import { IRIS_DATASET } from './data/sampleDatasets';
+import { categorizeError } from './utils/errorHandler';
 
 function App() {
   const {
@@ -19,27 +21,14 @@ function App() {
   // Local state for loading/errors (main thread fallback)
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isPyodideLoading, setIsPyodideLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Handle file upload
-  const handleFileSelect = async (file: File) => {
-    try {
-      const text = await file.text();
-      await runAnalysis(file.name, text);
-    } catch (error) {
-      console.error('File read failed:', error);
-    }
-  };
-
-  // Handle example dataset
-  const handleExampleClick = async () => {
-    await runAnalysis(IRIS_DATASET.name, IRIS_DATASET.csv);
-  };
+  const [error, setError] = useState<unknown | null>(null);
+  const [lastFailedFile, setLastFailedFile] = useState<{ name: string; text: string } | null>(null);
 
   // Shared analysis logic (main thread fallback)
-  const runAnalysis = async (name: string, csvText: string) => {
+  const runAnalysis = useCallback(async (name: string, csvText: string) => {
     try {
       setError(null);
+      setLastFailedFile(null);
       setDataset(name, csvText);
 
       // Initialize Pyodide (first time only)
@@ -55,11 +44,34 @@ function App() {
     } catch (err) {
       setIsAnalyzing(false);
       setIsPyodideLoading(false);
-      const message = err instanceof Error ? err.message : 'Analysis failed';
-      setError(message);
+      setError(err);
+      setLastFailedFile({ name, text: csvText });
       console.error('Analysis failed:', err);
     }
-  };
+  }, [setDataset, setAnalysisResult]);
+
+  // Handle file upload
+  const handleFileSelect = useCallback(async (file: File) => {
+    try {
+      const text = await file.text();
+      await runAnalysis(file.name, text);
+    } catch (error) {
+      console.error('File read failed:', error);
+      setError(new Error('Failed to read file. The file may be corrupted or inaccessible.'));
+    }
+  }, [runAnalysis]);
+
+  // Handle example dataset
+  const handleExampleClick = useCallback(async () => {
+    await runAnalysis(IRIS_DATASET.name, IRIS_DATASET.csv);
+  }, [runAnalysis]);
+
+  // Handle retry after error
+  const handleRetry = useCallback(async () => {
+    if (lastFailedFile) {
+      await runAnalysis(lastFailedFile.name, lastFailedFile.text);
+    }
+  }, [lastFailedFile, runAnalysis]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col">
@@ -124,11 +136,11 @@ function App() {
             )}
 
             {/* Error Display */}
-            {error && (
-              <div className="mt-6 p-4 max-w-2xl bg-[#FEE2E2] border border-[#FCA5A5] rounded-lg">
-                <p className="text-sm font-medium text-[#991B1B]">Analysis Error</p>
-                <p className="text-sm text-[#DC2626] mt-1">{error}</p>
-              </div>
+            {Boolean(error) && (
+              <ErrorDisplay
+                error={error!}
+                onRetry={categorizeError(error!).canRetry ? handleRetry : undefined}
+              />
             )}
           </div>
         )}

@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 // Use type-only imports to avoid bundling issues
 import type { AnalysisResult } from '../types/analysis';
 

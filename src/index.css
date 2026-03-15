@@ -20,3 +20,17 @@
   --color-error: #EF4444;
   --color-info: #3B82F6;
 }
+
+/* Column Detail Modal Animations */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.2s ease-out;
+}

@@ -4,12 +4,17 @@
 _None - ready for next feature!_
 
 ## Next Up (Priority)
-- [ ] **Unified Markdown Export** - Replace JSON export + copy buttons with comprehensive markdown report
-- [ ] Better error handling for malformed CSVs
-- [ ] Pyodide load failure recovery with retry
-- [ ] User-friendly error messages with suggestions
+_None - ready for next feature!_
+
+## Recently Added ✨
+- [x] **Column Detail Side Modal** (March 2026) - Click any column card to see comprehensive details
+  - Slide-in panel from right (480px width)
+  - All statistics, histogram, quality metrics, correlations in one place
+  - ESC key + backdrop click to dismiss
+  - Phase 1: Triggered from Columns tab cards only
 
 ## Polish & UX
+- [ ] **Unified Markdown Export** - Replace JSON export + copy buttons with comprehensive markdown report (deferred)
 - [ ] Keyboard shortcuts (Esc to clear, etc.)
 - [ ] Dark mode support
 - [ ] Responsive design improvements for mobile
@@ -62,3 +67,9 @@ _None - ready for next feature!_
   - Reduced file limit from 50MB → 10MB with better error messages
   - Merged Correlation tab into Overview (4 tabs → 3 tabs)
   - Attempted Web Worker implementation but blocked by browser CSP - reverted to main-thread execution
+- [x] **Error Handling Overhaul** (March 2026) - Comprehensive error detection and recovery:
+  - Smart error categorization with actionable suggestions
+  - Pyodide load retry with exponential backoff (3 attempts)
+  - Better CSV parsing error detection (encoding, delimiters, empty files)
+  - Retry button for recoverable errors
+  - User-friendly error messages with troubleshooting tips

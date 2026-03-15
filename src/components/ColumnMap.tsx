@@ -4,6 +4,7 @@ import type { ColumnAnalysis } from '../types/analysis';
 interface ColumnMapProps {
   columns: ColumnAnalysis[];
   totalRows: number;
+  onColumnClick?: (columnName: string) => void;
 }
 
 const TYPE_COLORS = {
@@ -12,7 +13,7 @@ const TYPE_COLORS = {
   datetime: '#64748B', // Privacy Slate
 };
 
-export function ColumnMap({ columns, totalRows }: ColumnMapProps) {
+export function ColumnMap({ columns, totalRows, onColumnClick }: ColumnMapProps) {
   const [hoveredColumn, setHoveredColumn] = useState<string | null>(null);
 
   const maxBarHeight = 120;
@@ -42,6 +43,7 @@ export function ColumnMap({ columns, totalRows }: ColumnMapProps) {
               className="flex-1 relative group cursor-pointer"
               onMouseEnter={() => setHoveredColumn(col.name)}
               onMouseLeave={() => setHoveredColumn(null)}
+              onClick={() => onColumnClick?.(col.name)}
             >
               {/* Bar */}
               <div

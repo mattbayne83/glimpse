@@ -4,6 +4,7 @@ import type { ColumnAnalysis } from '../types/analysis';
 interface MissingDataTableProps {
   columns: ColumnAnalysis[];
   totalRows: number;
+  onColumnClick?: (columnName: string) => void;
 }
 
 type SortField = 'name' | 'missing' | 'populated';
@@ -19,7 +20,7 @@ interface ColumnMissingData {
   populatedPercent: number;
 }
 
-export function MissingDataTable({ columns, totalRows }: MissingDataTableProps) {
+export function MissingDataTable({ columns, totalRows, onColumnClick }: MissingDataTableProps) {
   const [sortField, setSortField] = useState<SortField>('missing');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
@@ -132,6 +133,27 @@ export function MissingDataTable({ columns, totalRows }: MissingDataTableProps) 
         </div>
       </div>
 
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-4 text-xs text-[#64748B]">
+        <span className="font-medium text-[#334155]">Color Guide:</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded bg-[#D1FAE5]" />
+          <span>&gt;75% complete</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded bg-[#FED7AA]" />
+          <span>50-75% complete</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded bg-[#FDE68A]" />
+          <span>25-50% complete</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded bg-[#FCA5A5]" />
+          <span>&lt;25% complete</span>
+        </div>
+      </div>
+
       {/* Table */}
       <div className="bg-white border border-[#E2E8F0] rounded-lg overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
@@ -181,7 +203,11 @@ export function MissingDataTable({ columns, totalRows }: MissingDataTableProps) 
             <tbody className="divide-y divide-[#E2E8F0]">
               {sortedData.map((col) => (
                 <tr key={col.name} className="hover:bg-[#F8FAFC] transition-colors">
-                  <td className="px-4 py-3 font-mono text-[#0F172A] max-w-xs truncate" title={col.name}>
+                  <td
+                    className="px-4 py-3 font-mono text-[#0F172A] max-w-xs truncate cursor-pointer hover:text-[#0066CC] hover:underline"
+                    title={col.name}
+                    onClick={() => onColumnClick?.(col.name)}
+                  >
                     {col.name}
                   </td>
                   <td className="px-4 py-3">
@@ -225,27 +251,6 @@ export function MissingDataTable({ columns, totalRows }: MissingDataTableProps) 
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 text-xs text-[#64748B]">
-        <span className="font-medium text-[#334155]">Color Guide:</span>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-[#D1FAE5]" />
-          <span>&gt;75% complete</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-[#FED7AA]" />
-          <span>50-75% complete</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-[#FDE68A]" />
-          <span>25-50% complete</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-[#FCA5A5]" />
-          <span>&lt;25% complete</span>
         </div>
       </div>
     </div>

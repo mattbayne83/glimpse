@@ -9,12 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - Unified Markdown Export (replace JSON export + copy buttons)
-- Better error handling for malformed CSVs
-- Pyodide load failure recovery with retry
-- User-friendly error messages with suggestions
 - Excel file support (.xlsx)
 - Dark mode
 - Keyboard shortcuts
+
+## [0.5.0] - 2026-03-15
+
+### Added - Error Handling Overhaul
+- **Smart Error Categorization** - Automatically detect error types and provide relevant help
+  - CSV parsing errors (delimiters, encoding, malformed data)
+  - Pyodide loading failures (network, CDN issues)
+  - Memory errors with size recommendations
+  - Empty file detection
+  - Data type errors
+- **Retry with Exponential Backoff** - Pyodide loads automatically retry up to 3 times (1s, 2s, 4s delays)
+- **ErrorDisplay Component** - Rich error UI with:
+  - Clear error titles and messages
+  - Contextual suggestions for resolution
+  - Optional retry button for recoverable errors
+  - Visual hierarchy (error header, suggestions panel, action footer)
+- **Better CSV Validation** - Python script now catches pandas errors before they become generic failures
+- **File Read Error Handling** - Graceful handling of corrupted or inaccessible files
+
+### Changed
+- Error state upgraded from `string | null` to `unknown | null` for better error object preservation
+- All error handlers now use categorized error display instead of generic messages
+- Pyodide loader reset on failure to allow manual retries
+
+### Technical
+- New `src/utils/errorHandler.ts` - Error categorization engine
+- New `src/components/ErrorDisplay.tsx` - Rich error UI component
+- Updated `src/utils/pyodide.ts` - Retry logic with exponential backoff
+- Updated `src/utils/analyzeData.ts` - Python try-except blocks for better CSV error messages
+- Updated `src/App.tsx` - Integrated ErrorDisplay with retry functionality
 
 ## [0.4.0] - 2026-03-15
 

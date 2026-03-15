@@ -22,8 +22,9 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - **Zero config**: Drop a CSV, get insights immediately
 
 ### Component Structure
-- **App.tsx** - Main application, file upload orchestration, Pyodide initialization (main thread), Matrix background in header/footer
+- **App.tsx** - Main application, file upload orchestration, Pyodide initialization (main thread), error handling, Matrix background in header/footer
 - **FileUpload** - Drag-and-drop CSV uploader with validation (max 10MB) + example dataset button
+- **ErrorDisplay** - Rich error UI with categorized messages, suggestions, and retry button
 - **AnalysisView** - Results container with 3-tab interface + export/copy features + clear confirmation modal
   - **OverviewTab** - Dataset summary + visual column map + correlation matrix (when 2+ numeric cols) + copy-to-clipboard
   - **ColumnsTab** - Per-column analysis with type filtering + per-column copy
@@ -40,9 +41,22 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - Loaded on-demand when first CSV is uploaded (~10-15MB)
 - Runs pandas/numpy for statistical analysis
 - **Python executes on main thread** - brief UI freeze during analysis (~1-2s for small datasets)
+- **Retry Logic** - Automatically retries up to 3 times with exponential backoff (1s, 2s, 4s) on load failure
 - Loading indicators show Pyodide initialization and analysis progress
 - Results serialized to JSON and stored in Zustand
 - **Note**: Web Workers attempted but blocked by browser security policy (CSP)
+
+### Error Handling (March 2026)
+- **Smart Categorization** - Errors automatically categorized by type:
+  - Pyodide loading failures (network/CDN issues)
+  - CSV parsing errors (delimiters, encoding, malformed data)
+  - Memory errors
+  - Empty file detection
+  - Data type errors
+- **Actionable Suggestions** - Each error type gets relevant troubleshooting tips
+- **Retry Support** - Recoverable errors (network, Pyodide loading) show retry button
+- **Python Error Detection** - CSV parsing wrapped in try-except for pandas-specific errors
+- **User-Friendly Messages** - Technical errors translated to plain English with next steps
 
 ### State Management (Zustand)
 - `datasetName` - Current file name
@@ -59,6 +73,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
 
 ### Components
 - `src/components/AnalysisView.tsx` (~480 lines) - 3-tab results view: Overview (with correlation)/Columns/Quality + export/copy + clear modal
+- `src/components/ErrorDisplay.tsx` (~60 lines) - Rich error UI with categorization, suggestions, and optional retry button
 - `src/components/CorrelationMatrix.tsx` (~140 lines) - Interactive correlation heatmap with blue-white-red gradient scale
 - `src/components/MissingDataTable.tsx` (~230 lines) - Comprehensive sortable missing data analysis table
 - `src/components/ConfirmModal.tsx` (~60 lines) - Reusable confirmation dialog with backdrop
@@ -71,8 +86,9 @@ Upload CSV files and get instant statistical insights — all processed locally 
 ### Data & Types
 - `src/types/analysis.ts` - TypeScript interfaces for analysis results (includes CorrelationMatrix)
 - `src/store/useAppStore.ts` - Zustand store with persist middleware (simple: datasetName, rawCsvData, analysisResult)
-- `src/utils/analyzeData.ts` (~160 lines) - Python analysis script (pandas-powered, includes correlation matrix)
-- `src/utils/pyodide.ts` (~50 lines) - Pyodide lazy loader
+- `src/utils/analyzeData.ts` (~180 lines) - Python analysis script with error handling (pandas-powered, includes correlation matrix)
+- `src/utils/pyodide.ts` (~70 lines) - Pyodide lazy loader with retry logic (3 attempts, exponential backoff)
+- `src/utils/errorHandler.ts` (~130 lines) - Error categorization engine with actionable suggestions
 - `src/data/sampleDatasets.ts` (~190 lines) - Pre-loaded sample datasets (Iris flowers)
 
 ### Documentation
@@ -192,13 +208,38 @@ npm run build  # Production build
 npm run lint   # Run ESLint
 ```
 
+### Error Handling System (March 2026)
+- **ErrorDisplay Component**: Multi-section error UI
+  - Header section: error icon, title, message
+  - Suggestions section: lightbulb icon, bulleted troubleshooting tips
+  - Action footer: retry button (conditional on error type)
+  - Color-coded by severity (red/orange/yellow scheme)
+- **Error Categorizer** (`errorHandler.ts`): Pattern-matching error detection
+  - Scans error messages for keywords (case-insensitive)
+  - Returns structured ErrorInfo: title, message, suggestions, canRetry flag
+  - 9 error categories: Pyodide loading, CSV parsing, encoding, memory, empty file, missing columns, data type, network, generic fallback
+  - Suggestions tailored to error type (e.g., "save as UTF-8" for encoding errors)
+- **Pyodide Retry Logic**: Exponential backoff
+  - Max 3 attempts with 1s, 2s, 4s delays
+  - Resets loading promise on failure to allow manual retry
+  - Enhanced error message includes attempt count and connection hint
+- **Python Error Handling**: pandas-specific try-except blocks
+  - EmptyDataError → "CSV file is empty or contains no data"
+  - ParserError → "CSV parsing failed: {details}. Check delimiters and quoting."
+  - UnicodeDecodeError → "File encoding error: {details}. Save with UTF-8."
+  - Generic Exception → "Failed to read CSV: {details}"
+  - Validation: checks for empty DataFrame and zero columns
+- **App-Level Integration**:
+  - Error state type changed from `string` to `unknown` (preserves Error objects)
+  - Retry handler uses `lastFailedFile` state to re-run analysis
+  - Conditional retry button based on `categorizeError().canRetry`
+  - File read failures wrapped with helpful context message
+
 ## Future Enhancements
 
 See [BACKLOG.md](BACKLOG.md) for full roadmap.
 
 **Next Priority:**
-- Better error handling for malformed CSVs
-- Pyodide load failure recovery with retry
-- User-friendly error messages with suggestions
+- Unified Markdown Export (replace JSON export + copy buttons)
 - Keyboard shortcuts (Esc to clear, etc.)
 - Dark mode support

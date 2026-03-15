@@ -12,10 +12,28 @@ import pandas as pd
 import numpy as np
 from io import StringIO
 import json
+import sys
 
-# Load CSV
+# Load CSV with better error handling
 csv_data = """${csvData.replace(/"/g, '\\"')}"""
-df = pd.read_csv(StringIO(csv_data))
+
+try:
+    df = pd.read_csv(StringIO(csv_data))
+except pd.errors.EmptyDataError:
+    raise ValueError("CSV file is empty or contains no data")
+except pd.errors.ParserError as e:
+    raise ValueError(f"CSV parsing failed: {str(e)}. Check that your file uses comma delimiters and proper quoting.")
+except UnicodeDecodeError as e:
+    raise ValueError(f"File encoding error: {str(e)}. Save your CSV with UTF-8 encoding.")
+except Exception as e:
+    raise ValueError(f"Failed to read CSV: {str(e)}")
+
+# Validate we have data
+if df.empty:
+    raise ValueError("CSV file contains no data rows")
+
+if df.shape[1] == 0:
+    raise ValueError("CSV file contains no columns")
 
 # Dataset overview
 overview = {

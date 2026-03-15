@@ -3,8 +3,18 @@ import { loadPyodide, type PyodideInterface } from 'pyodide';
 let pyodideInstance: PyodideInterface | null = null;
 let loadingPromise: Promise<PyodideInterface> | null = null;
 
+const MAX_RETRIES = 3;
+const INITIAL_RETRY_DELAY = 1000; // 1 second
+
 /**
- * Lazily load Pyodide runtime.
+ * Sleep for specified milliseconds
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Lazily load Pyodide runtime with retry logic.
  * Subsequent calls return the same instance.
  */
 export async function getPyodide(): Promise<PyodideInterface> {
@@ -17,18 +27,48 @@ export async function getPyodide(): Promise<PyodideInterface> {
   }
 
   loadingPromise = (async () => {
-    console.log('🐍 Loading Pyodide...');
-    const pyodide = await loadPyodide({
-      indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/',
-    });
+    let lastError: Error | null = null;
 
-    // Load required packages
-    console.log('📦 Loading pandas, numpy...');
-    await pyodide.loadPackage(['pandas', 'numpy']);
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        console.log(`🐍 Loading Pyodide... (attempt ${attempt}/${MAX_RETRIES})`);
 
-    console.log('✅ Pyodide ready!');
-    pyodideInstance = pyodide;
-    return pyodide;
+        const pyodide = await loadPyodide({
+          indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/',
+        });
+
+        // Load required packages
+        console.log('📦 Loading pandas, numpy...');
+        await pyodide.loadPackage(['pandas', 'numpy']);
+
+        console.log('✅ Pyodide ready!');
+        pyodideInstance = pyodide;
+        return pyodide;
+
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.error(`Failed to load Pyodide (attempt ${attempt}/${MAX_RETRIES}):`, error);
+
+        // Don't retry if we've exhausted attempts
+        if (attempt === MAX_RETRIES) {
+          break;
+        }
+
+        // Exponential backoff: 1s, 2s, 4s
+        const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1);
+        console.log(`Retrying in ${delay}ms...`);
+        await sleep(delay);
+      }
+    }
+
+    // Reset loading promise so user can retry manually
+    loadingPromise = null;
+
+    // Throw the last error with helpful context
+    throw new Error(
+      `Failed to load Pyodide after ${MAX_RETRIES} attempts. ${lastError?.message || 'Unknown error'}. ` +
+      'Check your internet connection and try again.'
+    );
   })();
 
   return loadingPromise;
