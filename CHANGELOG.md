@@ -8,12 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
+- Unified Markdown Export (replace JSON export + copy buttons)
 - Better error handling for malformed CSVs
 - Pyodide load failure recovery with retry
 - User-friendly error messages with suggestions
 - Excel file support (.xlsx)
 - Dark mode
 - Keyboard shortcuts
+
+## [0.4.0] - 2026-03-15
+
+### Changed - Elon's 5-Step Algorithm Applied
+- **Deleted ruthlessly** - Removed 409 lines of unused 3D visualization code (DataCube3D, DataBlock3D)
+- **Simplified architecture** - Merged Correlation tab into Overview (4 tabs → 3 tabs)
+- **Reduced file limit** - 50MB → 10MB with helpful error messages ("try sampling or filtering your data first")
+- **Reverted to main-thread** - Web Worker implementation attempted but blocked by browser CSP
+  - Brief UI freeze during analysis (~1-2s for small datasets)
+  - Simplified state management (removed worker complexity)
+  - Unused files kept for reference: `pyodide.worker.ts`, `test.worker.ts`, `usePyodideWorker.ts`
+
+### Technical
+- Updated `App.tsx` to run Pyodide on main thread with loading states
+- Updated `AnalysisView.tsx` - Overview tab now includes correlation matrix inline
+- Updated `FileUpload.tsx` - 10MB limit with improved error messaging
+- Simplified `useAppStore.ts` - removed worker-related state
+- Bundle size: 261 KB (81 KB gzip) - includes all Pyodide utilities upfront
+
+### Lessons Learned
+- **Web Workers are NOT universally supported** - CSP or browser security policies can block execution entirely
+- **Blob workers also fail** - Even minimal inline workers won't execute if browser blocks them
+- **Main-thread is acceptable** - Brief freezing preferable to broken functionality
+- **Question requirements aggressively** - 50MB limit was arbitrary, 10MB is more practical
 
 ## [0.3.0] - 2026-03-15
 

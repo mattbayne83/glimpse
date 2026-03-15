@@ -7,7 +7,7 @@ interface FileUploadProps {
   isLoading?: boolean;
 }
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export function FileUpload({ onFileSelect, onExampleClick, isLoading = false }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
@@ -20,7 +20,7 @@ export function FileUpload({ onFileSelect, onExampleClick, isLoading = false }: 
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      return 'File too large (max 50MB)';
+      return 'File exceeds 10MB limit. For larger datasets, try sampling or filtering your data first.';
     }
 
     return null;
@@ -107,7 +107,7 @@ export function FileUpload({ onFileSelect, onExampleClick, isLoading = false }: 
                   Drop your CSV file here
                 </p>
                 <p className="text-sm text-[#64748B] mt-1">
-                  or click to browse (max 50MB)
+                  or click to browse (max 10MB)
                 </p>
               </div>
               <div className="mt-2 px-4 py-2 bg-[#F1F5F9] rounded text-xs text-[#475569]">

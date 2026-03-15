@@ -69,10 +69,9 @@ Visit `http://localhost:5174/` and upload a CSV file to get started!
 
 ### Sample Data
 
-Try Glimpse with the included `sample-data.csv` (15 rows × 6 columns):
-- Numeric columns: age, salary
-- Categorical: name, city, department
-- DateTime: hire_date
+Try Glimpse with the built-in example dataset (Iris - 150 rows × 5 columns):
+- Click "Try Example Dataset" to load instantly
+- Or upload your own CSV file (max 10MB)
 
 ## Tech Stack
 

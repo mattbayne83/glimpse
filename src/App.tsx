@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { FileUpload } from './components/FileUpload';
 import { AnalysisView } from './components/AnalysisView';
 import { MatrixBackground } from './components/MatrixBackground';
@@ -11,30 +11,23 @@ function App() {
   const {
     datasetName,
     analysisResult,
-    isAnalyzing,
-    analysisError,
-    isPyodideLoading,
-    isPyodideReady,
     setDataset,
     clearDataset,
-    setAnalyzing,
     setAnalysisResult,
-    setAnalysisError,
-    setPyodideLoading,
-    setPyodideReady,
   } = useAppStore();
+
+  // Local state for loading/errors (main thread fallback)
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isPyodideLoading, setIsPyodideLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Handle file upload
   const handleFileSelect = async (file: File) => {
     try {
-      // Read file as text
       const text = await file.text();
       await runAnalysis(file.name, text);
     } catch (error) {
       console.error('File read failed:', error);
-      setAnalysisError(
-        error instanceof Error ? error.message : 'Failed to read file'
-      );
     }
   };
 
@@ -43,36 +36,30 @@ function App() {
     await runAnalysis(IRIS_DATASET.name, IRIS_DATASET.csv);
   };
 
-  // Shared analysis logic
+  // Shared analysis logic (main thread fallback)
   const runAnalysis = async (name: string, csvText: string) => {
     try {
-      // Store in state
+      setError(null);
       setDataset(name, csvText);
 
-      // Initialize Pyodide if not ready
-      if (!isPyodideReady) {
-        setPyodideLoading(true);
-        await getPyodide();
-        setPyodideReady(true);
-      }
+      // Initialize Pyodide (first time only)
+      setIsPyodideLoading(true);
+      await getPyodide();
+      setIsPyodideLoading(false);
 
-      // Run analysis
-      setAnalyzing(true);
+      // Run analysis on main thread
+      setIsAnalyzing(true);
       const result = await analyzeData(csvText);
       setAnalysisResult(result);
-    } catch (error) {
-      console.error('Analysis failed:', error);
-      setAnalysisError(
-        error instanceof Error ? error.message : 'Failed to analyze data'
-      );
+      setIsAnalyzing(false);
+    } catch (err) {
+      setIsAnalyzing(false);
+      setIsPyodideLoading(false);
+      const message = err instanceof Error ? err.message : 'Analysis failed';
+      setError(message);
+      console.error('Analysis failed:', err);
     }
   };
-
-  // Preload Pyodide on mount (optional - could wait until file upload)
-  useEffect(() => {
-    // Uncomment to preload Pyodide:
-    // getPyodide().then(() => setPyodideReady(true));
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col">
@@ -122,16 +109,25 @@ function App() {
               isLoading={isAnalyzing || isPyodideLoading}
             />
 
-            {isPyodideLoading && (
-              <p className="mt-4 text-sm text-[#64748B] animate-pulse">
-                Loading Python runtime... (first time only)
-              </p>
+            {/* Loading Indicator */}
+            {(isPyodideLoading || isAnalyzing) && (
+              <div className="mt-6 p-4 max-w-2xl mx-auto bg-white border border-[#E2E8F0] rounded-lg shadow-sm">
+                <p className="text-sm font-medium text-[#334155]">
+                  {isPyodideLoading
+                    ? '🐍 Loading Python runtime... (first time only, ~15MB)'
+                    : '📊 Analyzing your data...'}
+                </p>
+                <div className="mt-2 w-full bg-[#E2E8F0] rounded-full h-2 overflow-hidden">
+                  <div className="bg-[#0066CC] h-full animate-pulse w-full" />
+                </div>
+              </div>
             )}
 
-            {analysisError && (
+            {/* Error Display */}
+            {error && (
               <div className="mt-6 p-4 max-w-2xl bg-[#FEE2E2] border border-[#FCA5A5] rounded-lg">
                 <p className="text-sm font-medium text-[#991B1B]">Analysis Error</p>
-                <p className="text-sm text-[#DC2626] mt-1">{analysisError}</p>
+                <p className="text-sm text-[#DC2626] mt-1">{error}</p>
               </div>
             )}
           </div>

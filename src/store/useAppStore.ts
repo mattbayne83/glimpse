@@ -7,29 +7,15 @@ interface AppState {
   datasetName: string | null;
   rawCsvData: string | null;
 
-  // Analysis
+  // Analysis result (persisted)
   analysisResult: AnalysisResult | null;
-  isAnalyzing: boolean;
-  analysisError: string | null;
-
-  // Pyodide state
-  isPyodideLoading: boolean;
-  isPyodideReady: boolean;
 }
 
 interface AppActions {
   // Dataset actions
   setDataset: (name: string, csvData: string) => void;
   clearDataset: () => void;
-
-  // Analysis actions
-  setAnalyzing: (isAnalyzing: boolean) => void;
   setAnalysisResult: (result: AnalysisResult) => void;
-  setAnalysisError: (error: string | null) => void;
-
-  // Pyodide actions
-  setPyodideLoading: (isLoading: boolean) => void;
-  setPyodideReady: (isReady: boolean) => void;
 }
 
 export const useAppStore = create<AppState & AppActions>()(
@@ -39,37 +25,20 @@ export const useAppStore = create<AppState & AppActions>()(
       datasetName: null,
       rawCsvData: null,
       analysisResult: null,
-      isAnalyzing: false,
-      analysisError: null,
-      isPyodideLoading: false,
-      isPyodideReady: false,
 
       // Actions
       setDataset: (name, csvData) =>
-        set({ datasetName: name, rawCsvData: csvData, analysisError: null }),
+        set({ datasetName: name, rawCsvData: csvData }),
 
       clearDataset: () =>
         set({
           datasetName: null,
           rawCsvData: null,
           analysisResult: null,
-          analysisError: null,
         }),
 
-      setAnalyzing: (isAnalyzing) =>
-        set({ isAnalyzing }),
-
       setAnalysisResult: (result) =>
-        set({ analysisResult: result, isAnalyzing: false, analysisError: null }),
-
-      setAnalysisError: (error) =>
-        set({ analysisError: error, isAnalyzing: false }),
-
-      setPyodideLoading: (isLoading) =>
-        set({ isPyodideLoading: isLoading }),
-
-      setPyodideReady: (isReady) =>
-        set({ isPyodideReady: isReady, isPyodideLoading: false }),
+        set({ analysisResult: result }),
     }),
     {
       name: 'glimpse-storage',

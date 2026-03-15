@@ -14,7 +14,7 @@ interface AnalysisViewProps {
   onClear: () => void;
 }
 
-type TabId = 'overview' | 'columns' | 'quality' | 'correlation';
+type TabId = 'overview' | 'columns' | 'quality';
 type ColumnFilter = 'all' | 'numeric' | 'categorical' | 'datetime';
 
 export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps) {
@@ -61,14 +61,11 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
     quality.highMissingColumns.length +
     quality.highCardinalityColumns.length;
 
-  // Build tabs array (conditionally include Correlation)
+  // Build tabs array
   const tabs = [
     { id: 'overview' as const, label: 'Overview' },
     { id: 'columns' as const, label: 'Columns', count: columns.length },
     { id: 'quality' as const, label: 'Quality', count: qualityIssueCount },
-    ...(result.correlation
-      ? [{ id: 'correlation' as const, label: 'Correlation', count: result.correlation.columns.length }]
-      : []),
   ];
 
   return (
@@ -112,6 +109,7 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
           <OverviewTab
             overview={overview}
             columns={columns}
+            correlation={result.correlation}
             datasetName={datasetName}
             onCopy={copyToClipboard}
             copiedId={copiedId}
@@ -128,9 +126,6 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
         )}
         {activeTab === 'quality' && (
           <QualityTab quality={quality} columns={columns} totalRows={overview.rows} />
-        )}
-        {activeTab === 'correlation' && result.correlation && (
-          <CorrelationTab correlation={result.correlation} />
         )}
       </div>
 
@@ -155,12 +150,13 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
 interface OverviewTabProps {
   overview: AnalysisResult['overview'];
   columns: ColumnAnalysis[];
+  correlation?: AnalysisResult['correlation'];
   datasetName: string;
   onCopy: (text: string, id: string) => void;
   copiedId: string | null;
 }
 
-function OverviewTab({ overview, columns, datasetName, onCopy, copiedId }: OverviewTabProps) {
+function OverviewTab({ overview, columns, correlation, datasetName, onCopy, copiedId }: OverviewTabProps) {
   // Format overview as markdown
   const formatOverviewMarkdown = () => {
     return `# ${datasetName} - Dataset Overview
@@ -232,6 +228,17 @@ function OverviewTab({ overview, columns, datasetName, onCopy, copiedId }: Overv
           </span>
         </div>
       </div>
+
+      {/* Correlation Matrix Section */}
+      {correlation && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold text-[#0F172A] mb-2">Correlation Analysis</h2>
+          <p className="text-sm text-[#64748B] mb-4">
+            Shows relationships between {correlation.columns.length} numeric columns
+          </p>
+          <CorrelationMatrix data={correlation} />
+        </div>
+      )}
     </div>
   );
 }
@@ -541,27 +548,6 @@ function QualityTab({ quality, columns, totalRows }: QualityTabProps) {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-// Correlation Tab
-interface CorrelationTabProps {
-  correlation: AnalysisResult['correlation'];
-}
-
-function CorrelationTab({ correlation }: CorrelationTabProps) {
-  if (!correlation) return null;
-
-  return (
-    <div>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-[#0F172A]">Correlation Matrix</h2>
-        <p className="text-sm text-[#64748B] mt-1">
-          Shows relationships between {correlation.columns.length} numeric columns
-        </p>
-      </div>
-      <CorrelationMatrix data={correlation} />
     </div>
   );
 }
