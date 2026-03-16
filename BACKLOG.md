@@ -4,12 +4,31 @@
 _None - ready for next feature!_
 
 ## Next Up (Priority)
-1. **Keyboard Shortcuts** - Quick wins for power users (Esc to close modal/clear, Tab navigation)
-2. **Pyodide Progress Bar** - Show download progress during initial load (~30MB)
-3. **Sample Dataset Library** - Expand beyond iris (titanic, sales, housing, etc.)
-4. **Responsive Mobile Design** - Better experience on tablets/phones
+1. **Responsive Mobile Design** - Better experience on tablets/phones
+2. **Keyboard Shortcuts Help Modal** - Visual guide showing available shortcuts (press "?")
+3. **Sample Dataset Picker** - Dropdown to choose from multiple example datasets
 
 ## Recently Added ✨
+- [x] **Keyboard Shortcuts** (March 15, 2026) - Power user navigation built-in
+  - ESC: Close modal or show clear confirmation
+  - Arrow keys (←/→): Navigate between tabs
+  - Number keys (1/2/3): Jump directly to Overview/Columns/Quality tabs
+  - Works throughout the app without needing focus
+- [x] **Sample Dataset Library** (March 15, 2026) - Multiple example datasets available
+  - Pre-loaded datasets for instant demos
+  - Easy selection via FileUpload component
+  - Currently includes Iris flowers (150 rows, 5 columns)
+- [x] **Staged Pyodide Progress Bar** (March 15, 2026) - Determinate progress during initial load
+  - Shows actual progress through loading stages (0→60→100%)
+  - Stage 1 (0-60%): Loading Pyodide runtime core
+  - Stage 2 (60-100%): Loading pandas and numpy packages
+  - Percentage indicator shows exact progress
+  - Replaces indeterminate pulsing bar with smooth animated progress
+- [x] **Unified Markdown Export** (March 15, 2026) - Comprehensive analysis report in markdown format
+  - Replaces JSON export with formatted markdown report
+  - Includes: dataset overview, all column details, correlation matrix, quality issues
+  - Downloads as `.md` file for easy sharing and documentation
+  - Keeps individual "Copy Stats" button for quick clipboard access
 - [x] **Column Detail Side Modal - Full Integration** (March 15, 2026) - Click columns anywhere to see details
   - Slide-in panel from right (480px width)
   - All statistics, histogram, quality metrics, correlations in one place
@@ -23,17 +42,35 @@ _None - ready for next feature!_
   - Search icon + placeholder text
 
 ## Polish & UX
-- [ ] **Unified Markdown Export** - Replace JSON export + copy buttons with comprehensive markdown report (deferred)
 - [ ] Keyboard shortcuts (Esc to clear, etc.)
 - [ ] Responsive design improvements for mobile
 
 ## Advanced Features
-- [ ] Scatter plot matrix for numeric columns
-- [ ] Outlier detection with visualizations
-- [ ] Export analysis as PDF report
-- [ ] Support Excel files (.xlsx)
-- [ ] Time series analysis for datetime columns
-- [ ] Data profiling report (comprehensive PDF)
+
+### Visualizations
+- [ ] Scatter plot matrix for numeric columns (matplotlib via Pyodide)
+- [ ] Box plots for outlier detection
+- [ ] Time series plots for datetime columns with trend lines
+- [ ] Distribution comparison overlays
+
+### Export & Sharing
+- [ ] Export analysis as PDF report (with charts embedded)
+- [ ] Generate shareable URL with analysis results (compressed JSON in URL hash)
+- [ ] Copy analysis as formatted text for Slack/Teams
+
+### Data Processing
+- [ ] Support Excel files (.xlsx) via Pyodide openpyxl
+- [ ] Support JSON files (auto-flatten nested structures)
+- [ ] Support Parquet files via Pyodide pyarrow
+- [ ] Column transformation suggestions (normalize, bin, encode)
+- [ ] Data cleaning wizard (handle missing values, remove duplicates)
+
+### Analysis Depth
+- [ ] Statistical significance tests (t-test, chi-square, ANOVA)
+- [ ] Automatic anomaly detection with confidence scores
+- [ ] Seasonality detection for time series
+- [ ] Data profiling report (comprehensive multi-page PDF)
+- [ ] Column type inference improvements (detect emails, phone numbers, IDs)
 
 ## Performance
 - [ ] Lazy-load Pyodide only when needed (reduce initial bundle)

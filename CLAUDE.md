@@ -39,11 +39,14 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - **TabNavigation** - Reusable tab switcher with counts
 
 ### Pyodide Integration (Main Thread - March 2026)
-- Loaded on-demand when first CSV is uploaded (~10-15MB)
+- Loaded on-demand when first CSV is uploaded (~30MB total)
 - Runs pandas/numpy for statistical analysis
 - **Python executes on main thread** - brief UI freeze during analysis (~1-2s for small datasets)
 - **Retry Logic** - Automatically retries up to 3 times with exponential backoff (1s, 2s, 4s) on load failure
-- Loading indicators show Pyodide initialization and analysis progress
+- **Staged Progress Bar** - Shows determinate progress through loading stages:
+  - 0-60%: Loading Pyodide runtime core
+  - 60-100%: Loading pandas and numpy packages
+  - Real-time percentage indicator and smooth animated progress
 - Results serialized to JSON and stored in Zustand
 - **Note**: Web Workers attempted but blocked by browser security policy (CSP)
 
@@ -134,7 +137,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
    - Correlation matrix (when 2+ numeric columns exist)
 6. **Serialize** → Python returns JSON string
 7. **Render** → React components display results in 3 tabs (Overview/Columns/Quality)
-8. **Export/Copy** → User can download JSON or copy markdown summaries
+8. **Export/Copy** → User can download markdown report or copy quick stats to clipboard
 
 ## Data Flow
 
@@ -224,12 +227,13 @@ Overview / Columns / Quality Tabs
 - **Example Dataset**: "Try Example Dataset" button loads Iris dataset
   - 150 rows, 4 numeric columns (sepal/petal measurements), 1 categorical (species)
   - Instant demo without needing to find a CSV file
-- **Export Analysis**: Download complete analysis results as JSON
-  - Filename: `{dataset-name}_analysis.json`
-  - Includes all stats, histograms, quality checks, correlation matrix
-- **Copy to Clipboard**: Markdown-formatted stats
-  - Overview tab: copy full dataset summary
-  - Column cards: copy individual column stats
+- **Export Report**: Download comprehensive markdown analysis report
+  - Filename: `{dataset-name}_analysis.md`
+  - Includes: dataset overview, all column details, correlation matrix, quality issues
+  - Formatted markdown for easy sharing and documentation
+  - Generated timestamp and footer with Glimpse attribution
+- **Copy to Clipboard**: Quick markdown-formatted stats
+  - Overview tab: copy dataset summary
   - Visual feedback with checkmark (2-second timeout)
 - **Correlation Matrix**: Interactive heatmap visualization, theme-aware
   - Color scale: blue (-1 negative) → white (0) → red (+1 positive)
@@ -278,6 +282,6 @@ npm run lint   # Run ESLint
 See [BACKLOG.md](BACKLOG.md) for full roadmap.
 
 **Next Priority:**
-- Unified Markdown Export (replace JSON export + copy buttons)
-- Keyboard shortcuts (Esc to clear, etc.)
-- Sample dataset library expansion (titanic, sales, housing)
+- Responsive mobile design (better tablet/phone experience)
+- Keyboard shortcuts help modal (press "?" to see available shortcuts)
+- Sample dataset picker (dropdown to choose from multiple examples)

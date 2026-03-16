@@ -31,6 +31,7 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isPyodideLoading, setIsPyodideLoading] = useState(false);
   const [pyodideLoadingMessage, setPyodideLoadingMessage] = useState('Initializing...');
+  const [pyodideProgress, setPyodideProgress] = useState(0);
   const [error, setError] = useState<unknown | null>(null);
   const [lastFailedFile, setLastFailedFile] = useState<{ name: string; text: string } | null>(null);
 
@@ -43,7 +44,10 @@ function App() {
 
       // Initialize Pyodide (first time only)
       setIsPyodideLoading(true);
-      await getPyodide((message) => setPyodideLoadingMessage(message));
+      await getPyodide((message, percentage) => {
+        setPyodideLoadingMessage(message);
+        setPyodideProgress(percentage);
+      });
       setIsPyodideLoading(false);
 
       // Run analysis on main thread
@@ -138,16 +142,28 @@ function App() {
             {/* Loading Indicator */}
             {(isPyodideLoading || isAnalyzing) && (
               <div className="mt-6 p-4 max-w-2xl mx-auto bg-bg-surface border border-border-default rounded-lg shadow-sm">
-                <p className="text-sm font-medium text-text-primary">
-                  {isPyodideLoading
-                    ? `🐍 ${pyodideLoadingMessage}`
-                    : '📊 Analyzing your data...'}
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-text-primary">
+                    {isPyodideLoading
+                      ? `🐍 ${pyodideLoadingMessage}`
+                      : '📊 Analyzing your data...'}
+                  </p>
+                  {isPyodideLoading && (
+                    <span className="text-xs font-mono text-text-secondary">{pyodideProgress}%</span>
+                  )}
+                </div>
                 {isPyodideLoading && (
-                  <p className="text-xs text-text-secondary mt-1">First time only, ~30MB download</p>
+                  <p className="text-xs text-text-secondary mb-2">First time only, ~30MB download</p>
                 )}
-                <div className="mt-2 w-full bg-border-default rounded-full h-2 overflow-hidden">
-                  <div className="bg-primary h-full animate-pulse w-full" />
+                <div className="w-full bg-border-default rounded-full h-2 overflow-hidden">
+                  {isPyodideLoading ? (
+                    <div
+                      className="bg-primary h-full transition-all duration-300 ease-out"
+                      style={{ width: `${pyodideProgress}%` }}
+                    />
+                  ) : (
+                    <div className="bg-primary h-full animate-pulse w-full" />
+                  )}
                 </div>
               </div>
             )}

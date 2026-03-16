@@ -65,14 +65,159 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [activeTab, selectedColumn]);
 
-  // Export analysis as JSON
-  const handleExportJSON = () => {
-    const json = JSON.stringify(result, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
+  // Format complete markdown report
+  const formatMarkdownReport = (): string => {
+    const lines: string[] = [];
+
+    // Header
+    lines.push(`# ${datasetName} - Data Analysis Report`);
+    lines.push('');
+    lines.push(`**Generated:** ${new Date().toLocaleString()}`);
+    lines.push('');
+
+    // Overview Section
+    lines.push('## Overview');
+    lines.push('');
+    lines.push('### Dataset Statistics');
+    lines.push(`- **Rows:** ${overview.rows.toLocaleString()}`);
+    lines.push(`- **Columns:** ${overview.columns}`);
+    lines.push(`- **Memory:** ${(overview.memoryBytes / 1024 / 1024).toFixed(2)} MB`);
+    lines.push(`- **Missing Values:** ${overview.missingPercentage.toFixed(1)}%`);
+    lines.push('');
+
+    lines.push('### Column Types');
+    lines.push(`- **Numeric:** ${overview.columnTypes.numeric}`);
+    lines.push(`- **Categorical:** ${overview.columnTypes.categorical}`);
+    lines.push(`- **DateTime:** ${overview.columnTypes.datetime}`);
+    lines.push('');
+
+    // Correlation Matrix
+    if (result.correlation && result.correlation.columns.length > 0) {
+      lines.push('## Correlation Analysis');
+      lines.push('');
+      lines.push(`Showing relationships between ${result.correlation.columns.length} numeric columns.`);
+      lines.push('');
+      lines.push('| Column | ' + result.correlation.columns.join(' | ') + ' |');
+      lines.push('|--------|' + result.correlation.columns.map(() => '--------').join('|') + '|');
+      result.correlation.matrix.forEach((row, i) => {
+        const colName = result.correlation!.columns[i];
+        const values = row.map(v => v.toFixed(2)).join(' | ');
+        lines.push(`| ${colName} | ${values} |`);
+      });
+      lines.push('');
+      lines.push('**Interpretation Guide:**');
+      lines.push('- Strong: |r| > 0.7');
+      lines.push('- Moderate: 0.4 < |r| ≤ 0.7');
+      lines.push('- Weak: |r| ≤ 0.4');
+      lines.push('');
+    }
+
+    // Column Details
+    lines.push('## Column Details');
+    lines.push('');
+    columns.forEach((col) => {
+      lines.push(`### ${col.name}`);
+      lines.push('');
+      lines.push(`**Type:** ${col.analysis.type}`);
+
+      if (col.analysis.type === 'numeric') {
+        const stats = col.analysis.stats;
+        const missingPct = (stats.missing / overview.rows) * 100;
+        lines.push(`**Missing:** ${stats.missing.toLocaleString()} (${missingPct.toFixed(1)}%)`);
+        lines.push('');
+        lines.push('**Statistics:**');
+        lines.push(`- Mean: ${stats.mean.toFixed(2)}`);
+        lines.push(`- Std Dev: ${stats.std.toFixed(2)}`);
+        lines.push(`- Min: ${stats.min.toFixed(2)}`);
+        lines.push(`- 25th percentile: ${stats.q25.toFixed(2)}`);
+        lines.push(`- Median: ${stats.q50.toFixed(2)}`);
+        lines.push(`- 75th percentile: ${stats.q75.toFixed(2)}`);
+        lines.push(`- Max: ${stats.max.toFixed(2)}`);
+      } else if (col.analysis.type === 'categorical') {
+        const stats = col.analysis.stats;
+        const missingPct = (stats.missing / overview.rows) * 100;
+        lines.push(`**Missing:** ${stats.missing.toLocaleString()} (${missingPct.toFixed(1)}%)`);
+        lines.push(`**Unique Values:** ${stats.uniqueCount.toLocaleString()}`);
+        if (stats.topValues && stats.topValues.length > 0) {
+          lines.push('');
+          lines.push('**Top Values:**');
+          stats.topValues.forEach(({ value, count }) => {
+            lines.push(`- ${value}: ${count.toLocaleString()}`);
+          });
+        }
+      } else if (col.analysis.type === 'datetime') {
+        const stats = col.analysis.stats;
+        const missingPct = (stats.missing / overview.rows) * 100;
+        lines.push(`**Missing:** ${stats.missing.toLocaleString()} (${missingPct.toFixed(1)}%)`);
+        lines.push(`**Unique Values:** ${stats.uniqueCount.toLocaleString()}`);
+        lines.push(`**Date Range:** ${stats.minDate} to ${stats.maxDate}`);
+      }
+      lines.push('');
+    });
+
+    // Quality Issues
+    lines.push('## Data Quality');
+    lines.push('');
+
+    const hasIssues = quality.duplicateRows > 0 ||
+                      quality.highMissingColumns.length > 0 ||
+                      quality.highCardinalityColumns.length > 0;
+
+    if (!hasIssues) {
+      lines.push('✅ **No issues found!** Your dataset looks clean and ready to use.');
+      lines.push('');
+    } else {
+      // Duplicate rows
+      if (quality.duplicateRows > 0) {
+        lines.push('### Duplicate Rows');
+        lines.push(`⚠️ Found ${quality.duplicateRows.toLocaleString()} duplicate rows (${quality.duplicatePercentage.toFixed(1)}% of dataset)`);
+        lines.push('');
+      }
+
+      // High missing columns
+      if (quality.highMissingColumns.length > 0) {
+        lines.push('### High Missing Data');
+        lines.push('Columns with >50% missing values:');
+        quality.highMissingColumns.forEach(colName => {
+          const col = columns.find(c => c.name === colName);
+          if (col) {
+            const missing = col.analysis.stats.missing;
+            const missingPct = (missing / overview.rows) * 100;
+            lines.push(`- **${colName}**: ${missingPct.toFixed(1)}% missing`);
+          }
+        });
+        lines.push('');
+      }
+
+      // High cardinality
+      if (quality.highCardinalityColumns.length > 0) {
+        lines.push('### High Cardinality Columns');
+        lines.push(`ℹ️ ${quality.highCardinalityColumns.length} categorical columns with >100 unique values:`);
+        quality.highCardinalityColumns.forEach(colName => {
+          lines.push(`- ${colName}`);
+        });
+        lines.push('');
+        lines.push('*Note: High cardinality may indicate these should be treated as IDs, not categories.*');
+        lines.push('');
+      }
+    }
+
+    // Footer
+    lines.push('---');
+    lines.push('');
+    lines.push('*Report generated by [Glimpse](https://github.com/yourusername/glimpse) - Privacy-first data analysis*');
+
+    return lines.join('\n');
+  };
+
+  // Export analysis as markdown
+  const handleExportMarkdown = () => {
+    const markdown = formatMarkdownReport();
+    const blob = new Blob([markdown], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${datasetName.replace(/\.[^/.]+$/, '')}_analysis.json`;
+    a.download = `${datasetName.replace(/\.[^/.]+$/, '')}_analysis.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -124,15 +269,17 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={handleExportJSON}
-            className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-md transition-colors duration-150"
+            onClick={handleExportMarkdown}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm bg-primary text-white hover:bg-primary-hover rounded-md transition-colors duration-150 font-medium shadow-sm whitespace-nowrap"
+            title="Download complete analysis report as markdown file"
           >
             <Download className="w-4 h-4" />
-            Export JSON
+            Export Report
           </button>
           <button
             onClick={() => setShowClearModal(true)}
-            className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-md transition-colors duration-150"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-text-secondary hover:text-error hover:bg-error-bg border border-border-default rounded-md transition-colors duration-150 whitespace-nowrap"
+            title="Remove current analysis and start over"
           >
             <X className="w-4 h-4" />
             Clear
