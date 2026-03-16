@@ -8,10 +8,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Unified Markdown Export (replace JSON export + copy buttons)
+- Responsive mobile design
+- Keyboard shortcuts help modal (press "?")
 - Excel file support (.xlsx)
-- Keyboard shortcuts
-- Sample dataset library expansion (titanic, sales, housing)
+
+## [0.7.0] - 2026-03-16
+
+### Added - Production-Quality Sample Datasets
+- **4 New Realistic Datasets** - Dramatically improved demo experience
+  - **E-Commerce Customers** (3,000 × 28): Revenue, engagement, customer segmentation
+  - **SaaS Product Usage** (5,000 × 32): Retention, churn, plan tier comparisons
+  - **Healthcare Patient Visits** (4,000 × 31): Vitals, labs, diagnoses, risk factors
+  - **Employee HR Analytics** (2,500 × 33): Salary, performance, attrition patterns
+- **Lazy Loading** - Large datasets loaded from `/public/*.csv` via fetch (not embedded)
+  - Keeps bundle size small while offering production-scale examples
+  - Error handling for network failures
+  - Metadata display shows row×column counts in dropdown (e.g., "3,000×28")
+- **Realistic Correlations** - All datasets include meaningful patterns
+  - E-Commerce: Customer tier → revenue (exponential growth), engagement → retention
+  - SaaS: Plan tier → churn (Free 23% vs Enterprise 3%), payment failure → 7.7x churn risk
+  - Healthcare: Age → conditions, BMI → vitals, smoking → cardiovascular metrics
+  - HR: Tenure → salary (+3%/year), performance → attrition (Rating 1 = 70% risk)
+- **Intentional Data Quality Issues** - Missing data patterns, duplicates, outliers
+  - E-Commerce: 8-12% missing (phone, middle initial), 3 duplicate emails, whale customers
+  - SaaS: 13% missing (churned users), power users with 800K-1.4M API calls
+  - Healthcare: 9.5% missing (labs for outpatient visits), age/vital outliers
+  - HR: 5.3% missing (exit dates for current employees), C-level salary outliers
+- **Complete Documentation** - New `docs/SAMPLE_DATASETS.md` reference guide
+  - Dataset overviews with key columns and correlations
+  - Use case descriptions for each dataset
+  - Generation methodology notes
+
+### Fixed
+- **Boolean Column Handling** - Fixed KeyError when analyzing datasets with boolean columns
+  - Pandas `.describe()` on booleans doesn't return numeric stats
+  - Now detects boolean columns and treats as categorical instead
+  - Manual stat calculation for numeric columns as fallback
+
+### Changed
+- **SampleDataset Interface** - Extended to support lazy-loading
+  - Added optional `filePath` property for `/public` datasets
+  - Added optional `rows` and `columns` metadata for UI display
+  - `csv` property now optional (for backward compatibility with embedded datasets)
+- **FileUpload Component** - Enhanced dataset selection UI
+  - Dropdown shows row×column dimensions for each dataset
+  - Layout: dataset name + description on left, dimensions on right
+- **App.tsx** - Dataset loading logic supports both embedded and fetched CSVs
+  - Checks `filePath` first, falls back to `csv` for instant demos
+  - Error handling for fetch failures
+- **Iris Dataset** - Renamed to "Iris Flowers (Quick Demo)" to highlight instant-load benefit
+
+### Removed
+- Penguins, Sales, and Housing toy datasets (replaced with production-quality alternatives)
+
+### Technical
+- New files: `public/*.csv` (4 datasets, ~2.5 MB total)
+- New documentation: `docs/SAMPLE_DATASETS.md`
+- Updated: `src/data/sampleDatasets.ts` (registry refactor)
+- Updated: `src/utils/analyzeData.ts` (boolean column detection)
 
 ## [0.6.0] - 2026-03-15
 

@@ -77,7 +77,28 @@ function App() {
 
   // Handle example dataset selection
   const handleExampleSelect = useCallback(async (dataset: SampleDataset) => {
-    await runAnalysis(dataset.name, dataset.csv);
+    try {
+      let csvText: string;
+
+      if (dataset.filePath) {
+        // Load from /public directory
+        const response = await fetch(dataset.filePath);
+        if (!response.ok) {
+          throw new Error(`Failed to load dataset: ${response.statusText}`);
+        }
+        csvText = await response.text();
+      } else if (dataset.csv) {
+        // Use embedded CSV
+        csvText = dataset.csv;
+      } else {
+        throw new Error('Dataset has neither csv nor filePath');
+      }
+
+      await runAnalysis(dataset.name, csvText);
+    } catch (error) {
+      console.error('Failed to load example dataset:', error);
+      setError(new Error(`Failed to load example dataset. ${error instanceof Error ? error.message : 'Unknown error'}`));
+    }
   }, [runAnalysis]);
 
   // Handle retry after error

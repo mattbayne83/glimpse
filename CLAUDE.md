@@ -106,10 +106,16 @@ Upload CSV files and get instant statistical insights — all processed locally 
 ### Data & Types
 - `src/types/analysis.ts` - TypeScript interfaces for analysis results (includes CorrelationMatrix)
 - `src/store/useAppStore.ts` - Zustand store with persist middleware (datasetName, rawCsvData, analysisResult, theme)
-- `src/utils/analyzeData.ts` (~180 lines) - Python analysis script with error handling (pandas-powered, includes correlation matrix)
+- `src/utils/analyzeData.ts` (~180 lines) - Python analysis script with error handling (pandas-powered, includes correlation matrix, handles boolean columns)
 - `src/utils/pyodide.ts` (~70 lines) - Pyodide lazy loader with retry logic (3 attempts, exponential backoff)
 - `src/utils/errorHandler.ts` (~130 lines) - Error categorization engine with actionable suggestions
-- `src/data/sampleDatasets.ts` (~190 lines) - Pre-loaded sample datasets (Iris flowers)
+- `src/data/sampleDatasets.ts` (~180 lines) - Sample dataset registry with lazy-loading support (4 production datasets + Iris)
+
+### Sample Datasets
+- `public/ecommerce_customers.csv` (565 KB) - 3,000 customers × 28 columns - revenue, engagement, demographics
+- `public/saas_usage.csv` (831 KB) - 5,000 users × 32 columns - retention, churn, feature adoption
+- `public/healthcare_patient_visits.csv` (630 KB) - 4,000 encounters × 31 columns - vitals, labs, diagnoses
+- `public/hr_analytics.csv` (477 KB) - 2,500 employees × 33 columns - salary, performance, attrition
 
 ### Configuration
 - `tailwind.config.ts` - Tailwind CSS 4 config mapping CSS variables to semantic classes (dark mode via `.dark` selector)
@@ -119,6 +125,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `README.md` - User-facing documentation
 - `CLAUDE.md` - Technical architecture reference (this file)
 - `DARK_MODE.md` - Dark mode architecture guide with anti-patterns section
+- `docs/SAMPLE_DATASETS.md` - Sample datasets reference with correlation patterns and use cases
 - `CHANGELOG.md` - Version history
 - `BACKLOG.md` - Feature roadmap
 - `tasks/todo.md` - Implementation plan
@@ -204,6 +211,20 @@ Overview / Columns / Quality Tabs
 - **Data flow**: User clicks → Zustand state → useResolvedTheme → hardcoded colors → components re-render
 - **See**: [DARK_MODE.md](DARK_MODE.md) for complete anti-pattern documentation
 
+### Sample Dataset Loading (March 2026)
+- **Interface Extension**: `SampleDataset` supports both `csv` (embedded string) and `filePath` (lazy-load from `/public`)
+- **Fetch Logic**: App.tsx checks for `filePath` first, falls back to `csv` for instant demos
+- **Metadata Display**: FileUpload dropdown shows row×column dimensions (e.g., "3,000×28")
+- **Error Handling**: Network failures for dataset loading caught and surfaced via ErrorDisplay
+- **Bundle Impact**: 4 large datasets (~2.5 MB total) NOT embedded, loaded on-demand
+- **Backward Compatibility**: Iris dataset kept embedded for instant zero-latency demo
+
+### Boolean Column Handling (March 2026)
+- **Issue**: Pandas `.describe()` on boolean columns doesn't return numeric stats ('mean', 'std', etc.)
+- **Fix**: Detect boolean columns via `pd.api.types.is_bool_dtype()` and treat as categorical
+- **Fallback**: For numeric columns, manually calculate stats instead of using `.describe()` to handle edge cases
+- **Impact**: Prevents KeyError when analyzing datasets with boolean flags (e.g., `premium_member`, `email_subscribed`)
+
 ### UI/UX Enhancements
 - **Dark Mode**: 3-state theme system (Light/Dark/System)
   - Theme toggle in header with icon and label
@@ -224,9 +245,14 @@ Overview / Columns / Quality Tabs
   - Sortable by column name, populated count, missing count
   - Color-coded completeness bars (green→yellow→orange→red)
   - Summary stats: total columns affected, avg completeness, most/least complete
-- **Example Dataset**: "Try Example Dataset" button loads Iris dataset
-  - 150 rows, 4 numeric columns (sepal/petal measurements), 1 categorical (species)
-  - Instant demo without needing to find a CSV file
+- **Sample Dataset Library** (March 2026): Dropdown to choose from production-quality datasets
+  - **E-Commerce Customers** (3,000 × 28): Revenue analysis, customer segmentation, engagement metrics
+  - **SaaS Product Usage** (5,000 × 32): Retention analysis, churn prediction, plan tier comparisons
+  - **Healthcare Patient Visits** (4,000 × 31): Medical correlations, vital signs, risk factors
+  - **Employee HR Analytics** (2,500 × 33): Compensation analysis, attrition patterns, performance
+  - **Iris Flowers** (150 × 5): Instant demo (embedded, no network request)
+  - Lazy-loaded from `/public/*.csv` via fetch to keep bundle size small
+  - See `docs/SAMPLE_DATASETS.md` for complete dataset documentation
 - **Export Report**: Download comprehensive markdown analysis report
   - Filename: `{dataset-name}_analysis.md`
   - Includes: dataset overview, all column details, correlation matrix, quality issues
@@ -284,4 +310,3 @@ See [BACKLOG.md](BACKLOG.md) for full roadmap.
 **Next Priority:**
 - Responsive mobile design (better tablet/phone experience)
 - Keyboard shortcuts help modal (press "?" to see available shortcuts)
-- Sample dataset picker (dropdown to choose from multiple examples)

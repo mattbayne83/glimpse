@@ -9,6 +9,15 @@ _None - ready for next feature!_
 3. **Sample Dataset Picker** - Dropdown to choose from multiple example datasets
 
 ## Recently Added ✨
+- [x] **Production-Quality Sample Datasets** (March 16, 2026) - Dramatically improved demo experience
+  - Replaced toy datasets (150 rows, 5 cols) with realistic production data
+  - **E-Commerce Customers**: 3,000 rows × 28 columns - revenue, engagement, segmentation
+  - **SaaS Product Usage**: 5,000 rows × 32 columns - retention, churn, feature adoption
+  - **Healthcare Patient Visits**: 4,000 rows × 31 columns - vitals, labs, diagnoses
+  - **Employee HR Analytics**: 2,500 rows × 33 columns - salary, performance, attrition
+  - All datasets include realistic correlations, missing data patterns, and quality issues
+  - Lazy-loaded from `/public` to keep bundle size small
+  - Kept Iris dataset as instant-load demo option (no network request)
 - [x] **Keyboard Shortcuts** (March 15, 2026) - Power user navigation built-in
   - ESC: Close modal or show clear confirmation
   - Arrow keys (←/→): Navigate between tabs
@@ -85,7 +94,6 @@ _None - ready for next feature!_
 - [ ] Suggest data cleaning steps
 
 ## Nice to Have
-- [ ] Sample dataset library (iris, titanic, sales, etc.)
 - [ ] URL sharing of analysis results
 - [ ] Side-by-side dataset comparison
 - [ ] Column rename/transform suggestions

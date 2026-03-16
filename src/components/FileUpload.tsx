@@ -173,8 +173,17 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
                   }}
                   className="w-full text-left px-4 py-3 hover:bg-bg-page transition-colors duration-150 first:rounded-t-lg last:rounded-b-lg border-b border-bg-hover last:border-b-0"
                 >
-                  <p className="font-medium text-text-primary text-sm">{dataset.name}</p>
-                  <p className="text-xs text-text-secondary mt-0.5">{dataset.description}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-text-primary text-sm">{dataset.name}</p>
+                      <p className="text-xs text-text-secondary mt-0.5">{dataset.description}</p>
+                    </div>
+                    {(dataset.rows || dataset.columns) && (
+                      <div className="flex-shrink-0 text-xs text-text-tertiary font-mono">
+                        {dataset.rows && dataset.columns && `${dataset.rows.toLocaleString()}×${dataset.columns}`}
+                      </div>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>

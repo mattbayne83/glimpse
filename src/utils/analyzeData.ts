@@ -55,9 +55,60 @@ columns_analysis = []
 for col in df.columns:
     col_data = df[col]
 
-    if pd.api.types.is_numeric_dtype(col_data):
-        # Numeric column
-        desc = col_data.describe()
+    # Check if it's a boolean column (treat as categorical instead of numeric)
+    if pd.api.types.is_bool_dtype(col_data):
+        # Boolean column - treat as categorical
+        value_counts = col_data.value_counts()
+        top_values = [
+            {
+                "value": str(val),
+                "count": int(count),
+                "percentage": float(count / len(col_data) * 100)
+            }
+            for val, count in value_counts.items()
+        ]
+
+        columns_analysis.append({
+            "name": col,
+            "analysis": {
+                "type": "categorical",
+                "stats": {
+                    "uniqueCount": int(col_data.nunique()),
+                    "missing": int(col_data.isnull().sum()),
+                    "topValues": top_values
+                }
+            }
+        })
+
+    elif pd.api.types.is_numeric_dtype(col_data):
+        # Numeric column - calculate stats manually to handle edge cases
+        clean_data = col_data.dropna()
+
+        if len(clean_data) > 0:
+            stats = {
+                "count": int(len(clean_data)),
+                "mean": float(clean_data.mean()),
+                "std": float(clean_data.std()) if len(clean_data) > 1 else 0,
+                "min": float(clean_data.min()),
+                "max": float(clean_data.max()),
+                "q25": float(clean_data.quantile(0.25)),
+                "q50": float(clean_data.quantile(0.50)),
+                "q75": float(clean_data.quantile(0.75)),
+                "missing": int(col_data.isnull().sum())
+            }
+        else:
+            # All values are missing
+            stats = {
+                "count": 0,
+                "mean": 0,
+                "std": 0,
+                "min": 0,
+                "max": 0,
+                "q25": 0,
+                "q50": 0,
+                "q75": 0,
+                "missing": int(col_data.isnull().sum())
+            }
 
         # Generate histogram data (exclude NaN values)
         clean_data = col_data.dropna()
@@ -65,29 +116,18 @@ for col in df.columns:
             counts, bin_edges = np.histogram(clean_data, bins=20)
             # Convert bin edges to bin centers for easier plotting
             bins = [(bin_edges[i] + bin_edges[i+1]) / 2 for i in range(len(bin_edges)-1)]
-            histogram = {
+            stats["histogram"] = {
                 "bins": [float(b) for b in bins],
                 "counts": [int(c) for c in counts]
             }
         else:
-            histogram = {"bins": [], "counts": []}
+            stats["histogram"] = {"bins": [], "counts": []}
 
         columns_analysis.append({
             "name": col,
             "analysis": {
                 "type": "numeric",
-                "stats": {
-                    "count": int(desc['count']),
-                    "mean": float(desc['mean']) if not pd.isna(desc['mean']) else 0,
-                    "std": float(desc['std']) if not pd.isna(desc['std']) else 0,
-                    "min": float(desc['min']) if not pd.isna(desc['min']) else 0,
-                    "max": float(desc['max']) if not pd.isna(desc['max']) else 0,
-                    "q25": float(desc['25%']) if not pd.isna(desc['25%']) else 0,
-                    "q50": float(desc['50%']) if not pd.isna(desc['50%']) else 0,
-                    "q75": float(desc['75%']) if not pd.isna(desc['75%']) else 0,
-                    "missing": int(col_data.isnull().sum()),
-                    "histogram": histogram
-                }
+                "stats": stats
             }
         })
 
