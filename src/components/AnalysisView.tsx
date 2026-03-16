@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Download, Copy, Check, Search } from 'lucide-react';
 import type { AnalysisResult, ColumnAnalysis } from '../types/analysis';
 import { TabNavigation } from './TabNavigation';
@@ -26,6 +26,44 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
   const [showClearModal, setShowClearModal] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Esc: Close modal (if open) or show clear confirmation
+      if (e.key === 'Escape' && !selectedColumn) {
+        setShowClearModal(true);
+      }
+
+      // Arrow keys: Navigate tabs (only when no modal open)
+      if (!selectedColumn) {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          if (activeTab === 'columns') setActiveTab('overview');
+          else if (activeTab === 'quality') setActiveTab('columns');
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          if (activeTab === 'overview') setActiveTab('columns');
+          else if (activeTab === 'columns') setActiveTab('quality');
+        }
+      }
+
+      // Number keys: Jump to tab (1=Overview, 2=Columns, 3=Quality)
+      if (!selectedColumn) {
+        if (e.key === '1') setActiveTab('overview');
+        else if (e.key === '2') setActiveTab('columns');
+        else if (e.key === '3') setActiveTab('quality');
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, selectedColumn]);
 
   // Export analysis as JSON
   const handleExportJSON = () => {
@@ -79,22 +117,22 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-4xl font-bold leading-snug text-[#0F172A]">{datasetName}</h1>
-          <p className="text-sm text-[#64748B] mt-1">
+          <h1 className="text-4xl font-bold leading-snug text-text-primary">{datasetName}</h1>
+          <p className="text-sm text-text-secondary mt-1">
             {overview.rows.toLocaleString()} rows × {overview.columns} columns
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportJSON}
-            className="flex items-center gap-2 px-4 py-2 text-[#334155] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-md transition-colors duration-150"
+            className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-md transition-colors duration-150"
           >
             <Download className="w-4 h-4" />
             Export JSON
           </button>
           <button
             onClick={() => setShowClearModal(true)}
-            className="flex items-center gap-2 px-4 py-2 text-[#334155] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-md transition-colors duration-150"
+            className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-md transition-colors duration-150"
           >
             <X className="w-4 h-4" />
             Clear
@@ -195,14 +233,14 @@ function OverviewTab({ overview, columns, correlation, datasetName, onCopy, copi
   return (
     <div className="min-w-0">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-[#0F172A]">Dataset Statistics</h2>
+        <h2 className="text-lg font-semibold text-text-primary">Dataset Statistics</h2>
         <button
           onClick={() => onCopy(formatOverviewMarkdown(), 'overview')}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-[#334155] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-md transition-colors duration-150"
+          className="flex items-center gap-2 px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-md transition-colors duration-150"
         >
           {copiedId === 'overview' ? (
             <>
-              <Check className="w-4 h-4 text-[#10B981]" />
+              <Check className="w-4 h-4 text-success" />
               Copied!
             </>
           ) : (
@@ -232,18 +270,18 @@ function OverviewTab({ overview, columns, correlation, datasetName, onCopy, copi
         <ColumnMap columns={columns} totalRows={overview.rows} onColumnClick={onColumnClick} />
       </div>
 
-      <div className="p-4 bg-[#F1F5F9] rounded-lg">
-        <p className="text-sm font-medium text-[#334155] mb-2">Column Types</p>
+      <div className="p-4 bg-bg-hover rounded-lg">
+        <p className="text-sm font-medium text-text-primary mb-2">Column Types</p>
         <div className="flex gap-4 text-sm">
-          <span className="text-[#64748B]">
-            Numeric: <span className="font-medium text-[#0F172A]">{overview.columnTypes.numeric}</span>
+          <span className="text-text-secondary">
+            Numeric: <span className="font-medium text-text-primary">{overview.columnTypes.numeric}</span>
           </span>
-          <span className="text-[#64748B]">
+          <span className="text-text-secondary">
             Categorical:{' '}
-            <span className="font-medium text-[#0F172A]">{overview.columnTypes.categorical}</span>
+            <span className="font-medium text-text-primary">{overview.columnTypes.categorical}</span>
           </span>
-          <span className="text-[#64748B]">
-            DateTime: <span className="font-medium text-[#0F172A]">{overview.columnTypes.datetime}</span>
+          <span className="text-text-secondary">
+            DateTime: <span className="font-medium text-text-primary">{overview.columnTypes.datetime}</span>
           </span>
         </div>
       </div>
@@ -251,8 +289,8 @@ function OverviewTab({ overview, columns, correlation, datasetName, onCopy, copi
       {/* Correlation Matrix Section */}
       {correlation && (
         <div className="mt-8">
-          <h2 className="text-lg font-semibold text-[#0F172A] mb-2">Correlation Analysis</h2>
-          <p className="text-sm text-[#64748B] mb-4">
+          <h2 className="text-lg font-semibold text-text-primary mb-2">Correlation Analysis</h2>
+          <p className="text-sm text-text-secondary mb-4">
             Shows relationships between {correlation.columns.length} numeric columns
           </p>
           <CorrelationMatrix data={correlation} />
@@ -285,18 +323,18 @@ function ColumnsTab({ columns, filter, onFilterChange, searchQuery, onSearchChan
     <div className="min-w-0">
       {/* Search Input */}
       <div className="relative mb-3">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search columns..."
-          className="w-full pl-10 pr-10 py-2 text-sm border border-[#E2E8F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0066CC] focus:border-transparent transition-all"
+          className="w-full pl-10 pr-10 py-2 text-sm border border-border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
         />
         {searchQuery && (
           <button
             onClick={() => onSearchChange('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-text-tertiary hover:text-text-primary hover:bg-bg-hover rounded transition-colors"
             aria-label="Clear search"
           >
             <X className="w-4 h-4" />
@@ -314,8 +352,8 @@ function ColumnsTab({ columns, filter, onFilterChange, searchQuery, onSearchChan
               px-3 py-1.5 text-sm rounded-md transition-colors duration-150
               ${
                 filter === f.value
-                  ? 'bg-[#E6F2FF] text-[#0066CC] font-medium'
-                  : 'bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0]'
+                  ? 'bg-primary-light text-primary font-medium'
+                  : 'bg-bg-hover text-text-secondary hover:bg-border-default'
               }
             `}
           >
@@ -356,12 +394,12 @@ function QualityTab({ quality, columns, totalRows, onColumnClick }: QualityTabPr
   if (!hasIssues) {
     return (
       <div className="min-w-0">
-        <div className="p-4 bg-[#D1FAE5] border border-[#6EE7B7] rounded-lg">
+        <div className="p-4 bg-success-bg border border-success-border rounded-lg">
           <div className="flex items-start gap-3">
             <span className="text-2xl">✅</span>
             <div>
-              <h3 className="text-xl font-semibold text-[#065F46] mb-2">No issues found!</h3>
-              <p className="text-[#047857]">Your dataset looks clean and ready to use.</p>
+              <h3 className="text-xl font-semibold text-success-text mb-2">No issues found!</h3>
+              <p className="text-success">Your dataset looks clean and ready to use.</p>
             </div>
           </div>
         </div>
@@ -373,24 +411,24 @@ function QualityTab({ quality, columns, totalRows, onColumnClick }: QualityTabPr
     <div className="min-w-0 space-y-6">
       {/* Missing Data Section */}
       <div>
-        <h2 className="text-lg font-semibold text-[#0F172A] mb-3">Missing Data Analysis</h2>
+        <h2 className="text-lg font-semibold text-text-primary mb-3">Missing Data Analysis</h2>
         <MissingDataTable columns={columns} totalRows={totalRows} onColumnClick={onColumnClick} />
       </div>
 
       {/* Duplicate Rows */}
       {quality.duplicateRows > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-[#0F172A] mb-3">Duplicate Rows</h2>
-          <div className="p-4 bg-[#FEF3C7] border border-[#FDE68A] rounded-lg">
+          <h2 className="text-lg font-semibold text-text-primary mb-3">Duplicate Rows</h2>
+          <div className="p-4 bg-warning-bg border border-warning-border rounded-lg">
             <div className="flex items-start gap-3">
               <span className="text-2xl">⚠️</span>
               <div className="flex-1">
-                <h3 className="font-medium text-[#92400E] mb-1">Found Duplicate Rows</h3>
-                <p className="text-sm text-[#B45309]">
+                <h3 className="font-medium text-warning-text mb-1">Found Duplicate Rows</h3>
+                <p className="text-sm text-warning">
                   {quality.duplicateRows.toLocaleString()} duplicate rows (
                   {quality.duplicatePercentage.toFixed(1)}% of dataset)
                 </p>
-                <p className="text-xs text-[#92400E] mt-2">
+                <p className="text-xs text-warning-text mt-2">
                   Consider removing duplicates if they're unintentional.
                 </p>
               </div>
@@ -402,28 +440,28 @@ function QualityTab({ quality, columns, totalRows, onColumnClick }: QualityTabPr
       {/* High Cardinality */}
       {quality.highCardinalityColumns.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-[#0F172A] mb-3">High Cardinality Columns</h2>
-          <div className="p-4 bg-[#DBEAFE] border border-[#93C5FD] rounded-lg">
+          <h2 className="text-lg font-semibold text-text-primary mb-3">High Cardinality Columns</h2>
+          <div className="p-4 bg-primary-light border border-primary-border rounded-lg">
             <div className="flex items-start gap-3">
               <span className="text-2xl">ℹ️</span>
               <div className="flex-1">
-                <h3 className="font-medium text-[#1E40AF] mb-1">
+                <h3 className="font-medium text-primary mb-1">
                   {quality.highCardinalityColumns.length} columns with &gt;100 unique values
                 </h3>
-                <p className="text-sm text-[#2563EB] mb-2">
+                <p className="text-sm text-primary mb-2">
                   These categorical columns have high cardinality:
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {quality.highCardinalityColumns.map((col) => (
                     <span
                       key={col}
-                      className="px-2 py-1 bg-[#93C5FD] text-[#1E40AF] text-xs rounded font-mono"
+                      className="px-2 py-1 bg-primary-border text-primary text-xs rounded font-mono"
                     >
                       {col}
                     </span>
                   ))}
                 </div>
-                <p className="text-xs text-[#1E40AF] mt-2">
+                <p className="text-xs text-primary mt-2">
                   High cardinality may indicate these should be treated as IDs, not categories.
                 </p>
               </div>
@@ -444,11 +482,11 @@ interface StatCardProps {
 
 function StatCard({ label, value, color = 'gray' }: StatCardProps) {
   return (
-    <div className="p-4 bg-white border border-[#E2E8F0] rounded-lg shadow-sm">
-      <p className="text-sm text-[#64748B] mb-1">{label}</p>
+    <div className="p-4 bg-bg-surface border border-border-default rounded-lg shadow-sm">
+      <p className="text-sm text-text-secondary mb-1">{label}</p>
       <p
         className={`text-2xl font-bold ${
-          color === 'red' ? 'text-[#EF4444]' : 'text-[#0F172A]'
+          color === 'red' ? 'text-error' : 'text-text-primary'
         }`}
       >
         {value}

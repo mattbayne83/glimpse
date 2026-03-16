@@ -1,24 +1,116 @@
 @import "tailwindcss";
 
 @theme {
+  /* === FONTS === */
   --font-sans: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Primary Colors */
-  --color-primary: #0066CC;
-  --color-primary-light: #E6F2FF;
-  --color-primary-dark: #004C99;
+  /* === LIGHT MODE (default) === */
 
-  /* Secondary Colors */
+  /* Backgrounds */
+  --color-bg-page: #F8FAFC;        /* slate-50 */
+  --color-bg-surface: #FFFFFF;     /* white */
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-hover: #F1F5F9;       /* slate-100 */
+
+  /* Borders */
+  --color-border-default: #E2E8F0; /* slate-200 */
+  --color-border-hover: #CBD5E1;   /* slate-300 */
+
+  /* Text */
+  --color-text-primary: #0F172A;   /* slate-900 */
+  --color-text-secondary: #64748B; /* slate-500 */
+  --color-text-tertiary: #94A3B8;  /* slate-400 */
+
+  /* Brand */
+  --color-primary: #0066CC;
+  --color-primary-hover: #0052A3;
+  --color-primary-light: #E6F2FF;
+  --color-primary-border: #93C5FD;
   --color-secondary: #0D9488;
   --color-secondary-light: #CCFBF1;
-  --color-accent: #475569;
 
-  /* Semantic Colors */
+  /* Semantic */
   --color-success: #10B981;
+  --color-success-bg: #D1FAE5;
+  --color-success-border: #6EE7B7;
+  --color-success-text: #065F46;
   --color-warning: #F59E0B;
+  --color-warning-bg: #FEF3C7;
+  --color-warning-border: #FDE68A;
+  --color-warning-text: #92400E;
   --color-error: #EF4444;
-  --color-info: #3B82F6;
+  --color-error-bg: #FEE2E2;
+  --color-error-border: #FCA5A5;
+  --color-error-text: #991B1B;
+
+  /* Quality Indicators (Data Completeness) */
+  --color-quality-excellent-bg: #D1FAE5;
+  --color-quality-excellent-text: #065F46;
+  --color-quality-good-bg: #FED7AA;
+  --color-quality-good-text: #9A3412;
+  --color-quality-fair-bg: #FDE68A;
+  --color-quality-fair-text: #92400E;
+  --color-quality-poor-bg: #FCA5A5;
+  --color-quality-poor-text: #991B1B;
+
+  /* Special: Correlation Matrix */
+  --color-correlation-negative: #A6DEFF;
+  --color-correlation-positive: #FFA6A6;
+
+  /* Special: Matrix Background */
+  --color-matrix-char: #0066CC;
+  --color-matrix-bg: #FFFFFF;
+}
+
+/* === DARK MODE OVERRIDES === */
+.dark {
+  --color-bg-page: #020617;        /* slate-950 */
+  --color-bg-surface: #0F172A;     /* slate-900 */
+  --color-bg-elevated: #1E293B;    /* slate-800 */
+  --color-bg-hover: #1E293B;
+
+  --color-border-default: #334155; /* slate-700 */
+  --color-border-hover: #475569;   /* slate-600 */
+
+  --color-text-primary: #F8FAFC;   /* slate-50 */
+  --color-text-secondary: #CBD5E1; /* slate-300 */
+  --color-text-tertiary: #94A3B8;  /* slate-400 */
+
+  --color-primary: #3B9EFF;        /* lighter for contrast */
+  --color-primary-hover: #60B0FF;
+  --color-primary-light: #1E3A5F;
+  --color-primary-border: #60A5FA;
+  --color-secondary: #14B8A6;
+  --color-secondary-light: #134E4A;
+
+  --color-success: #34D399;
+  --color-success-bg: #064E3B;
+  --color-success-border: #047857;
+  --color-success-text: #D1FAE5;
+  --color-warning: #FBBF24;
+  --color-warning-bg: #78350F;
+  --color-warning-border: #92400E;
+  --color-warning-text: #FDE68A;
+  --color-error: #F87171;
+  --color-error-bg: #7F1D1D;
+  --color-error-border: #991B1B;
+  --color-error-text: #FEE2E2;
+
+  --color-quality-excellent-bg: #064E3B;
+  --color-quality-excellent-text: #D1FAE5;
+  --color-quality-good-bg: #7C2D12;
+  --color-quality-good-text: #FED7AA;
+  --color-quality-fair-bg: #78350F;
+  --color-quality-fair-text: #FDE68A;
+  --color-quality-poor-bg: #7F1D1D;
+  --color-quality-poor-text: #FCA5A5;
+
+  --color-correlation-negative: #60A5FA;
+  --color-correlation-positive: #F87171;
+
+  --color-matrix-char: #3B9EFF;
+  --color-matrix-bg: #0F172A;
 }
 
 /* Column Detail Modal Animations */

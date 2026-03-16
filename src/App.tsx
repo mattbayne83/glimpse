@@ -3,10 +3,13 @@ import { FileUpload } from './components/FileUpload';
 import { AnalysisView } from './components/AnalysisView';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { MatrixBackground } from './components/MatrixBackground';
+import { ThemeToggle } from './components/ThemeToggle';
 import { useAppStore } from './store/useAppStore';
+import { useThemeSync } from './hooks/useThemeSync';
+import { useThemeColors } from './hooks/useThemeColors';
 import { getPyodide } from './utils/pyodide';
 import { analyzeData } from './utils/analyzeData';
-import { IRIS_DATASET } from './data/sampleDatasets';
+import { SAMPLE_DATASETS, type SampleDataset } from './data/sampleDatasets';
 import { categorizeError } from './utils/errorHandler';
 
 function App() {
@@ -18,9 +21,16 @@ function App() {
     setAnalysisResult,
   } = useAppStore();
 
+  // Sync theme with document class
+  useThemeSync();
+
+  // Get current theme colors (updates when theme changes)
+  const colors = useThemeColors();
+
   // Local state for loading/errors (main thread fallback)
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isPyodideLoading, setIsPyodideLoading] = useState(false);
+  const [pyodideLoadingMessage, setPyodideLoadingMessage] = useState('Initializing...');
   const [error, setError] = useState<unknown | null>(null);
   const [lastFailedFile, setLastFailedFile] = useState<{ name: string; text: string } | null>(null);
 
@@ -33,7 +43,7 @@ function App() {
 
       // Initialize Pyodide (first time only)
       setIsPyodideLoading(true);
-      await getPyodide();
+      await getPyodide((message) => setPyodideLoadingMessage(message));
       setIsPyodideLoading(false);
 
       // Run analysis on main thread
@@ -61,9 +71,9 @@ function App() {
     }
   }, [runAnalysis]);
 
-  // Handle example dataset
-  const handleExampleClick = useCallback(async () => {
-    await runAnalysis(IRIS_DATASET.name, IRIS_DATASET.csv);
+  // Handle example dataset selection
+  const handleExampleSelect = useCallback(async (dataset: SampleDataset) => {
+    await runAnalysis(dataset.name, dataset.csv);
   }, [runAnalysis]);
 
   // Handle retry after error
@@ -74,25 +84,28 @@ function App() {
   }, [lastFailedFile, runAnalysis]);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col">
+    <div className="min-h-screen bg-bg-page font-sans flex flex-col">
       {/* Header */}
-      <header className="relative bg-white border-b border-[#E2E8F0] px-6 py-4 overflow-hidden">
+      <header className="relative bg-bg-surface border-b border-border-default px-6 py-4 overflow-hidden">
         {/* Subtle animated background */}
         <MatrixBackground
-          color="#0066CC"
-          backgroundColor="#FFFFFF"
           fontSize={10}
           speed={80}
+          color={colors.matrixChar}
+          backgroundColor={colors.matrixBg}
         />
 
         {/* Content - positioned above background */}
-        <div className="relative z-10 max-w-6xl mx-auto">
-          <h1 className="text-2xl font-bold text-[#0F172A]" style={{ textShadow: '0 0 8px rgba(255, 255, 255, 0.5), 0 0 16px rgba(255, 255, 255, 0.3)' }}>
-            Glimpse
-          </h1>
-          <p className="text-sm text-[#64748B] mt-1" style={{ textShadow: '0 0 8px rgba(255, 255, 255, 0.5), 0 0 16px rgba(255, 255, 255, 0.3)' }}>
-            Privacy-first data analysis • All processing runs locally
-          </p>
+        <div className="relative z-10 max-w-6xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary">
+              Glimpse
+            </h1>
+            <p className="text-sm text-text-secondary mt-1">
+              Privacy-first data analysis • All processing runs locally
+            </p>
+          </div>
+          <ThemeToggle />
         </div>
       </header>
 
@@ -107,30 +120,34 @@ function App() {
         ) : (
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <div className="mb-8 text-center">
-              <h2 className="text-4xl font-bold leading-snug text-[#0F172A] mb-2">
+              <h2 className="text-4xl font-bold leading-snug text-text-primary mb-2">
                 Get instant insights from your data
               </h2>
-              <p className="text-[#64748B]">
+              <p className="text-text-secondary">
                 Upload a CSV file to see statistics, distributions, and quality checks
               </p>
             </div>
 
             <FileUpload
               onFileSelect={handleFileSelect}
-              onExampleClick={handleExampleClick}
+              onExampleSelect={handleExampleSelect}
+              sampleDatasets={SAMPLE_DATASETS}
               isLoading={isAnalyzing || isPyodideLoading}
             />
 
             {/* Loading Indicator */}
             {(isPyodideLoading || isAnalyzing) && (
-              <div className="mt-6 p-4 max-w-2xl mx-auto bg-white border border-[#E2E8F0] rounded-lg shadow-sm">
-                <p className="text-sm font-medium text-[#334155]">
+              <div className="mt-6 p-4 max-w-2xl mx-auto bg-bg-surface border border-border-default rounded-lg shadow-sm">
+                <p className="text-sm font-medium text-text-primary">
                   {isPyodideLoading
-                    ? '🐍 Loading Python runtime... (first time only, ~15MB)'
+                    ? `🐍 ${pyodideLoadingMessage}`
                     : '📊 Analyzing your data...'}
                 </p>
-                <div className="mt-2 w-full bg-[#E2E8F0] rounded-full h-2 overflow-hidden">
-                  <div className="bg-[#0066CC] h-full animate-pulse w-full" />
+                {isPyodideLoading && (
+                  <p className="text-xs text-text-secondary mt-1">First time only, ~30MB download</p>
+                )}
+                <div className="mt-2 w-full bg-border-default rounded-full h-2 overflow-hidden">
+                  <div className="bg-primary h-full animate-pulse w-full" />
                 </div>
               </div>
             )}
@@ -147,24 +164,24 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="relative border-t border-[#E2E8F0] px-6 py-4 bg-white overflow-hidden">
+      <footer className="relative border-t border-border-default px-6 py-4 bg-bg-surface overflow-hidden">
         {/* Subtle animated background */}
         <MatrixBackground
-          color="#0066CC"
-          backgroundColor="#FFFFFF"
           fontSize={10}
           speed={80}
+          color={colors.matrixChar}
+          backgroundColor={colors.matrixBg}
         />
 
         {/* Content - positioned above background */}
-        <div className="relative z-10 max-w-6xl mx-auto text-center text-sm text-[#64748B]" style={{ textShadow: '0 0 8px rgba(255, 255, 255, 0.5), 0 0 16px rgba(255, 255, 255, 0.3)' }}>
+        <div className="relative z-10 max-w-6xl mx-auto text-center text-sm text-text-secondary">
           <p>
             No data ever leaves your machine • Powered by{' '}
             <a
               href="https://pyodide.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#0066CC] hover:underline transition-colors duration-150"
+              className="text-primary hover:underline transition-colors duration-150"
             >
               Pyodide
             </a>
@@ -173,7 +190,7 @@ function App() {
               href="https://mattbayne.dev/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#0066CC] hover:underline transition-colors duration-150"
+              className="text-primary hover:underline transition-colors duration-150"
             >
               Matt Bayne
             </a>

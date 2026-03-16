@@ -9,7 +9,7 @@ export function Histogram({ bins, counts, width = 300, height = 80 }: HistogramP
   if (bins.length === 0 || counts.length === 0) {
     return (
       <div
-        className="flex items-center justify-center bg-[#F8FAFC] border border-[#E2E8F0] rounded text-xs text-[#94A3B8]"
+        className="flex items-center justify-center bg-bg-page border border-border-default rounded text-xs text-text-tertiary"
         style={{ width, height }}
       >
         No data
@@ -21,8 +21,13 @@ export function Histogram({ bins, counts, width = 300, height = 80 }: HistogramP
   const barWidth = width / bins.length;
   const padding = 4;
 
+  // Read secondary color from CSS variables for theme support
+  const fillColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--color-secondary')
+    .trim();
+
   return (
-    <svg width={width} height={height} className="bg-[#F8FAFC] border border-[#E2E8F0] rounded">
+    <svg width={width} height={height} className="bg-bg-page border border-border-default rounded">
       {counts.map((count, i) => {
         const barHeight = (count / maxCount) * (height - padding * 2);
         const x = i * barWidth;
@@ -35,7 +40,7 @@ export function Histogram({ bins, counts, width = 300, height = 80 }: HistogramP
             y={y}
             width={Math.max(barWidth - 2, 1)}
             height={barHeight}
-            fill="#0D9488"
+            fill={fillColor}
             opacity={0.8}
             className="transition-opacity hover:opacity-100"
           />

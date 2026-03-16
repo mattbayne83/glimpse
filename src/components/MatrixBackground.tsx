@@ -2,18 +2,18 @@ import { useEffect, useRef } from 'react';
 
 interface MatrixBackgroundProps {
   className?: string;
-  color?: string; // Hex color for the characters
-  backgroundColor?: string; // Background color
   fontSize?: number;
   speed?: number; // Lower = faster
+  color: string;
+  backgroundColor: string;
 }
 
 export function MatrixBackground({
   className = '',
-  color = '#00FF41', // Classic Matrix green
-  backgroundColor = '#0D1117',
   fontSize = 14,
   speed = 33,
+  color,
+  backgroundColor,
 }: MatrixBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -78,7 +78,7 @@ export function MatrixBackground({
       clearInterval(interval);
       window.removeEventListener('resize', resizeCanvas);
     };
-  }, [color, backgroundColor, fontSize, speed]);
+  }, [fontSize, speed, color, backgroundColor]);
 
   return (
     <canvas

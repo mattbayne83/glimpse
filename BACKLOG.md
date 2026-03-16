@@ -4,19 +4,27 @@
 _None - ready for next feature!_
 
 ## Next Up (Priority)
-_None - ready for next feature!_
+1. **Keyboard Shortcuts** - Quick wins for power users (Esc to close modal/clear, Tab navigation)
+2. **Pyodide Progress Bar** - Show download progress during initial load (~30MB)
+3. **Sample Dataset Library** - Expand beyond iris (titanic, sales, housing, etc.)
+4. **Responsive Mobile Design** - Better experience on tablets/phones
 
 ## Recently Added ✨
-- [x] **Column Detail Side Modal** (March 2026) - Click any column card to see comprehensive details
+- [x] **Column Detail Side Modal - Full Integration** (March 15, 2026) - Click columns anywhere to see details
   - Slide-in panel from right (480px width)
   - All statistics, histogram, quality metrics, correlations in one place
   - ESC key + backdrop click to dismiss
-  - Phase 1: Triggered from Columns tab cards only
+  - **Phase 2 Complete**: Works from Overview (column chart), Columns (cards), Quality (table)
+  - Body scroll lock prevents background scrolling
+- [x] **Column Search** (March 15, 2026) - Real-time search in Columns tab
+  - Case-insensitive substring matching
+  - Works with type filters
+  - Clear button for quick reset
+  - Search icon + placeholder text
 
 ## Polish & UX
 - [ ] **Unified Markdown Export** - Replace JSON export + copy buttons with comprehensive markdown report (deferred)
 - [ ] Keyboard shortcuts (Esc to clear, etc.)
-- [ ] Dark mode support
 - [ ] Responsive design improvements for mobile
 
 ## Advanced Features
@@ -73,3 +81,16 @@ _None - ready for next feature!_
   - Better CSV parsing error detection (encoding, delimiters, empty files)
   - Retry button for recoverable errors
   - User-friendly error messages with troubleshooting tips
+- [x] **Progressive Disclosure UX** (March 15, 2026) - Simplified column views with detail modal
+  - Minimal preview cards (sparklines, key stats only)
+  - Full detail modal for comprehensive exploration
+  - Reduced bundle by 1.5 KB despite adding features
+  - Layout consistency fixes across all tabs
+- [x] **Dark Mode Support** (March 15, 2026) - Full dark mode implementation with system preference detection
+  - 3-state theme toggle (Light/Dark/System) with persistence
+  - Pure React architecture (hardcoded colors, no DOM reads)
+  - CSS variables + Tailwind semantic tokens
+  - FOUC prevention with inline script
+  - Theme-aware MatrixBackground and CorrelationMatrix components
+  - **7-iteration lesson**: Avoid reading CSS variables from DOM - creates race conditions
+  - See DARK_MODE.md for architecture documentation

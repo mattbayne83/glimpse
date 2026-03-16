@@ -9,6 +9,9 @@ interface AppState {
 
   // Analysis result (persisted)
   analysisResult: AnalysisResult | null;
+
+  // Theme preference
+  theme: 'light' | 'dark' | 'system';
 }
 
 interface AppActions {
@@ -16,6 +19,9 @@ interface AppActions {
   setDataset: (name: string, csvData: string) => void;
   clearDataset: () => void;
   setAnalysisResult: (result: AnalysisResult) => void;
+
+  // Theme actions
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
 }
 
 export const useAppStore = create<AppState & AppActions>()(
@@ -25,6 +31,7 @@ export const useAppStore = create<AppState & AppActions>()(
       datasetName: null,
       rawCsvData: null,
       analysisResult: null,
+      theme: (localStorage.getItem('glimpse-theme') as 'light' | 'dark' | 'system') || 'system',
 
       // Actions
       setDataset: (name, csvData) =>
@@ -39,6 +46,11 @@ export const useAppStore = create<AppState & AppActions>()(
 
       setAnalysisResult: (result) =>
         set({ analysisResult: result }),
+
+      setTheme: (theme) => {
+        localStorage.setItem('glimpse-theme', theme);
+        set({ theme });
+      },
     }),
     {
       name: 'glimpse-storage',
@@ -46,6 +58,7 @@ export const useAppStore = create<AppState & AppActions>()(
       partialize: (state) => ({
         analysisResult: state.analysisResult,
         datasetName: state.datasetName,
+        theme: state.theme,
       }),
     }
   )

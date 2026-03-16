@@ -25,19 +25,19 @@ export function ColumnPreviewCard({ column, totalRows, onClick }: ColumnPreviewC
   return (
     <div
       onClick={onClick}
-      className="group relative p-4 bg-white border border-[#E2E8F0] rounded-lg shadow-sm cursor-pointer hover:border-[#0066CC] hover:shadow-md transition-all duration-150"
+      className="group relative p-4 bg-bg-surface border border-border-default rounded-lg shadow-sm cursor-pointer hover:border-primary hover:shadow-md transition-all duration-150"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-[#334155] font-mono truncate">{name}</h3>
+          <h3 className="font-semibold text-text-primary font-mono truncate">{name}</h3>
           <span
             className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded ${typeColors[type]}`}
           >
             {type.charAt(0).toUpperCase() + type.slice(1)}
           </span>
         </div>
-        <ChevronRight className="w-5 h-5 text-[#94A3B8] group-hover:text-[#0066CC] transition-colors flex-shrink-0 ml-2" />
+        <ChevronRight className="w-5 h-5 text-text-tertiary group-hover:text-primary transition-colors flex-shrink-0 ml-2" />
       </div>
 
       {/* Content - varies by type */}
@@ -82,20 +82,20 @@ function NumericPreview({ stats, missingPct }: { stats: { mean?: number; min?: n
       {/* Key Stats */}
       <div className="grid grid-cols-3 gap-2 text-xs">
         <div>
-          <span className="text-[#64748B] block">Mean</span>
-          <span className="font-medium text-[#0F172A] font-mono">
+          <span className="text-text-secondary block">Mean</span>
+          <span className="font-medium text-text-primary font-mono">
             {stats.mean?.toFixed(2) || 'N/A'}
           </span>
         </div>
         <div>
-          <span className="text-[#64748B] block">Range</span>
-          <span className="font-medium text-[#0F172A] font-mono">
+          <span className="text-text-secondary block">Range</span>
+          <span className="font-medium text-text-primary font-mono">
             {stats.min?.toFixed(1)}–{stats.max?.toFixed(1)}
           </span>
         </div>
         <div>
-          <span className="text-[#64748B] block">Missing</span>
-          <span className={`font-medium font-mono ${missingPct > 0 ? 'text-[#F59E0B]' : 'text-[#10B981]'}`}>
+          <span className="text-text-secondary block">Missing</span>
+          <span className={`font-medium font-mono ${missingPct > 0 ? 'text-warning' : 'text-success'}`}>
             {missingPct.toFixed(1)}%
           </span>
         </div>
@@ -114,21 +114,21 @@ function CategoricalPreview({ stats, missingPct }: { stats: { uniqueCount: numbe
       <div className="space-y-1.5">
         {topValues.map((item, idx) => (
           <div key={idx} className="flex items-center justify-between text-xs">
-            <span className="text-[#334155] truncate flex-1 mr-2">• {item.value}</span>
-            <span className="text-[#0066CC] font-medium flex-shrink-0">
+            <span className="text-text-primary truncate flex-1 mr-2">• {item.value}</span>
+            <span className="text-primary font-medium flex-shrink-0">
               {item.percentage.toFixed(1)}%
             </span>
           </div>
         ))}
         {topValues.length === 0 && (
-          <p className="text-xs text-[#94A3B8] italic">No values</p>
+          <p className="text-xs text-text-tertiary italic">No values</p>
         )}
       </div>
 
       {/* Summary Stats */}
-      <div className="flex items-center justify-between text-xs pt-2 border-t border-[#E2E8F0]">
-        <span className="text-[#64748B]">{stats.uniqueCount} unique values</span>
-        <span className={`font-medium ${missingPct > 0 ? 'text-[#F59E0B]' : 'text-[#10B981]'}`}>
+      <div className="flex items-center justify-between text-xs pt-2 border-t border-border-default">
+        <span className="text-text-secondary">{stats.uniqueCount} unique values</span>
+        <span className={`font-medium ${missingPct > 0 ? 'text-warning' : 'text-success'}`}>
           Missing: {missingPct.toFixed(1)}%
         </span>
       </div>
@@ -142,18 +142,18 @@ function DateTimePreview({ stats, missingPct }: { stats: { uniqueCount: number; 
     <div className="space-y-3">
       {/* Date Range */}
       <div className="text-xs">
-        <span className="text-[#64748B] block mb-1">Range</span>
-        <div className="flex items-center gap-2 font-mono text-[#0F172A]">
+        <span className="text-text-secondary block mb-1">Range</span>
+        <div className="flex items-center gap-2 font-mono text-text-primary">
           <span className="truncate">{stats.minDate || 'N/A'}</span>
-          <span className="text-[#94A3B8]">→</span>
+          <span className="text-text-tertiary">→</span>
           <span className="truncate">{stats.maxDate || 'N/A'}</span>
         </div>
       </div>
 
       {/* Summary Stats */}
-      <div className="flex items-center justify-between text-xs pt-2 border-t border-[#E2E8F0]">
-        <span className="text-[#64748B]">{stats.uniqueCount} unique dates</span>
-        <span className={`font-medium ${missingPct > 0 ? 'text-[#F59E0B]' : 'text-[#10B981]'}`}>
+      <div className="flex items-center justify-between text-xs pt-2 border-t border-border-default">
+        <span className="text-text-secondary">{stats.uniqueCount} unique dates</span>
+        <span className={`font-medium ${missingPct > 0 ? 'text-warning' : 'text-success'}`}>
           Missing: {missingPct.toFixed(1)}%
         </span>
       </div>

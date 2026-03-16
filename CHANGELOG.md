@@ -10,8 +10,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - Unified Markdown Export (replace JSON export + copy buttons)
 - Excel file support (.xlsx)
-- Dark mode
 - Keyboard shortcuts
+- Sample dataset library expansion (titanic, sales, housing)
+
+## [0.6.0] - 2026-03-15
+
+### Added - Dark Mode
+- **3-State Theme Toggle** - Light, Dark, and System modes
+  - ThemeToggle component in header with icon (Sun/Moon/Monitor) and label
+  - System mode automatically follows OS preference
+  - Persists theme choice to localStorage (`glimpse-theme`)
+- **Pure React Architecture** - No DOM reads, hardcoded colors selected by React state
+  - `useResolvedTheme` hook resolves 'system' to 'light' or 'dark'
+  - `useThemeColors` hook returns hardcoded colors (not read from CSS)
+  - `useThemeSync` hook syncs resolved theme with `<html>` class
+- **CSS Variables + Tailwind** - Semantic design tokens
+  - `@theme` block in `index.css` with comprehensive color palette
+  - `.dark` class overrides for dark mode
+  - Tailwind config maps CSS variables to utility classes (e.g., `bg-bg-surface`)
+- **Theme-Aware Components**
+  - MatrixBackground receives colors as props (light: #0066CC, dark: #3B9EFF)
+  - CorrelationMatrix uses theme-aware gradient colors
+  - All UI components use semantic Tailwind classes
+- **FOUC Prevention** - Inline script in `index.html` applies theme before CSS loads
+- **Complete Documentation** - New `DARK_MODE.md` with architecture guide and anti-patterns section
+
+### Changed
+- MatrixBackground refactored to accept `color` and `backgroundColor` props instead of reading DOM
+- CorrelationMatrix uses `useThemeColors` hook for gradient colors
+- Zustand store extended with `theme` state and `setTheme` action
+- Store persistence partialize includes `theme` field
+
+### Technical
+- New hooks: `useResolvedTheme.ts`, `useThemeColors.ts`, `useThemeSync.ts`
+- New component: `ThemeToggle.tsx`
+- Updated `tailwind.config.ts` with semantic color mappings
+- Updated `index.css` with dark mode CSS variable overrides
+- Updated `index.html` with FOUC prevention script
+
+### Lessons Learned
+- **CRITICAL**: Never read CSS variables from DOM via `getComputedStyle()` in React
+  - Creates race conditions: useEffect updates `.dark` class AFTER render, but useMemo/useState reads CSS DURING render
+  - 7 iterations to discover this issue - initial implementation failed inconsistently
+  - Solution: Hardcode colors in TypeScript, select via React state
+- **Pure React is better**: Keep theme colors in React state, not in DOM
+- **Props > Context for canvas/SVG**: Passing colors as props is cleaner than reading from DOM
 
 ## [0.5.0] - 2026-03-15
 

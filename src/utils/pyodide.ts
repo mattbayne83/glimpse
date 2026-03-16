@@ -16,8 +16,9 @@ function sleep(ms: number): Promise<void> {
 /**
  * Lazily load Pyodide runtime with retry logic.
  * Subsequent calls return the same instance.
+ * @param onProgress - Optional callback to report loading progress
  */
-export async function getPyodide(): Promise<PyodideInterface> {
+export async function getPyodide(onProgress?: (message: string) => void): Promise<PyodideInterface> {
   if (pyodideInstance) {
     return pyodideInstance;
   }
@@ -31,7 +32,10 @@ export async function getPyodide(): Promise<PyodideInterface> {
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        console.log(`🐍 Loading Pyodide... (attempt ${attempt}/${MAX_RETRIES})`);
+        const retryMsg = attempt > 1 ? ` (attempt ${attempt}/${MAX_RETRIES})` : '';
+
+        console.log(`🐍 Loading Pyodide...${retryMsg}`);
+        onProgress?.(`Loading Pyodide runtime...${retryMsg}`);
 
         const pyodide = await loadPyodide({
           indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/',
@@ -39,9 +43,11 @@ export async function getPyodide(): Promise<PyodideInterface> {
 
         // Load required packages
         console.log('📦 Loading pandas, numpy...');
+        onProgress?.('Loading pandas package...');
         await pyodide.loadPackage(['pandas', 'numpy']);
 
         console.log('✅ Pyodide ready!');
+        onProgress?.('Analysis ready!');
         pyodideInstance = pyodide;
         return pyodide;
 

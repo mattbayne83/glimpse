@@ -7,20 +7,23 @@ interface ColumnMapProps {
   onColumnClick?: (columnName: string) => void;
 }
 
-const TYPE_COLORS = {
-  numeric: '#0D9488', // Analysis Teal
-  categorical: '#0066CC', // Insight Blue
-  datetime: '#64748B', // Privacy Slate
-};
-
 export function ColumnMap({ columns, totalRows, onColumnClick }: ColumnMapProps) {
   const [hoveredColumn, setHoveredColumn] = useState<string | null>(null);
 
   const maxBarHeight = 120;
 
+  // Read colors from CSS variables for theme support
+  const TYPE_COLORS = {
+    numeric: getComputedStyle(document.documentElement).getPropertyValue('--color-secondary').trim(),
+    categorical: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim(),
+    datetime: getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary').trim(),
+  };
+
+  const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--color-border-default').trim();
+
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-lg p-4 shadow-sm">
-      <h3 className="text-sm font-medium text-[#334155] mb-3">Column Structure</h3>
+    <div className="bg-bg-surface border border-border-default rounded-lg p-4 shadow-sm">
+      <h3 className="text-sm font-medium text-text-primary mb-3">Column Structure</h3>
 
       <div className="flex items-end gap-1 mb-2" style={{ height: maxBarHeight + 20 }}>
         {columns.map((col) => {
@@ -62,7 +65,7 @@ export function ColumnMap({ columns, totalRows, onColumnClick }: ColumnMapProps)
                   className="w-full"
                   style={{
                     height: `${maxBarHeight - barHeight}px`,
-                    backgroundColor: '#E2E8F0',
+                    backgroundColor: borderColor,
                     opacity: 0.5,
                   }}
                 />
@@ -70,13 +73,13 @@ export function ColumnMap({ columns, totalRows, onColumnClick }: ColumnMapProps)
 
               {/* Tooltip on hover */}
               {isHovered && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#0F172A] text-white text-xs rounded whitespace-nowrap z-10 pointer-events-none shadow-lg">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-bg-elevated text-text-primary text-xs rounded whitespace-nowrap z-10 pointer-events-none shadow-lg">
                   <div className="font-medium font-mono">{col.name}</div>
-                  <div className="text-[#CBD5E1]">
+                  <div className="text-text-secondary">
                     {col.analysis.type} · {completeness.toFixed(1)}% complete
                   </div>
                   {missingCount > 0 && (
-                    <div className="text-[#CBD5E1]">{missingCount} missing</div>
+                    <div className="text-text-secondary">{missingCount} missing</div>
                   )}
                 </div>
               )}
@@ -89,18 +92,18 @@ export function ColumnMap({ columns, totalRows, onColumnClick }: ColumnMapProps)
       <div className="flex gap-4 text-xs">
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded" style={{ backgroundColor: TYPE_COLORS.numeric }} />
-          <span className="text-[#64748B]">Numeric</span>
+          <span className="text-text-secondary">Numeric</span>
         </div>
         <div className="flex items-center gap-1">
           <div
             className="w-3 h-3 rounded"
             style={{ backgroundColor: TYPE_COLORS.categorical }}
           />
-          <span className="text-[#64748B]">Categorical</span>
+          <span className="text-text-secondary">Categorical</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded" style={{ backgroundColor: TYPE_COLORS.datetime }} />
-          <span className="text-[#64748B]">DateTime</span>
+          <span className="text-text-secondary">DateTime</span>
         </div>
       </div>
     </div>

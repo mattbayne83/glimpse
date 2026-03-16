@@ -30,14 +30,14 @@ export function ConfirmModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+      <div className="relative bg-bg-surface rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
         <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#FEF3C7] flex items-center justify-center">
-            <AlertTriangle className="w-5 h-5 text-[#D97706]" />
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-warning-bg flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5 text-warning" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-[#0F172A] mb-2">{title}</h3>
-            <p className="text-sm text-[#64748B]">{message}</p>
+            <h3 className="text-lg font-semibold text-text-primary mb-2">{title}</h3>
+            <p className="text-sm text-text-secondary">{message}</p>
           </div>
         </div>
 
@@ -45,13 +45,13 @@ export function ConfirmModal({
         <div className="flex gap-3 mt-6">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-2 text-sm font-medium text-[#334155] bg-[#F1F5F9] hover:bg-[#E2E8F0] rounded-md transition-colors duration-150"
+            className="flex-1 px-4 py-2 text-sm font-medium text-text-primary bg-bg-hover hover:bg-border-default rounded-md transition-colors duration-150"
           >
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-[#DC2626] hover:bg-[#B91C1C] rounded-md transition-colors duration-150"
+            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-error hover:opacity-90 rounded-md transition-all duration-150"
           >
             {confirmLabel}
           </button>

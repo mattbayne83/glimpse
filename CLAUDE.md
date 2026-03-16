@@ -22,15 +22,16 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - **Zero config**: Drop a CSV, get insights immediately
 
 ### Component Structure
-- **App.tsx** - Main application, file upload orchestration, Pyodide initialization (main thread), error handling, Matrix background in header/footer
+- **App.tsx** - Main application, file upload orchestration, Pyodide initialization (main thread), error handling, Matrix background in header/footer, theme sync
 - **FileUpload** - Drag-and-drop CSV uploader with validation (max 10MB) + example dataset button
 - **ErrorDisplay** - Rich error UI with categorized messages, suggestions, and retry button
+- **ThemeToggle** - 3-state theme switcher (Light/Dark/System) with persistence
 - **AnalysisView** - Results container with 3-tab interface + export/copy features + clear confirmation modal
   - **OverviewTab** - Dataset summary + visual column map + correlation matrix (when 2+ numeric cols) + copy-to-clipboard
   - **ColumnsTab** - Per-column analysis with type filtering + per-column copy
   - **QualityTab** - Comprehensive missing data table + duplicate/cardinality warnings
-- **CorrelationMatrix** - Interactive correlation heatmap with color scale (-1 to +1)
-- **MatrixBackground** - Subtle animated background effect (falling characters, canvas-based)
+- **CorrelationMatrix** - Interactive correlation heatmap with color scale (-1 to +1), theme-aware
+- **MatrixBackground** - Subtle animated background effect (falling characters, canvas-based), theme-aware via props
 - **MissingDataTable** - Sortable table showing completeness for all columns with missing data
 - **ConfirmModal** - Reusable confirmation dialog (used for clear action)
 - **ColumnMap** - Visual bar chart showing dataset structure (color = type, height = completeness)
@@ -45,6 +46,15 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - Loading indicators show Pyodide initialization and analysis progress
 - Results serialized to JSON and stored in Zustand
 - **Note**: Web Workers attempted but blocked by browser security policy (CSP)
+
+### Theme System (March 2026)
+- **3-state theme switcher**: Light, Dark, System (follows OS preference)
+- **Pure React architecture**: Colors selected via React state, NOT read from DOM
+- **CSS variables + Tailwind**: Semantic tokens in `@theme` block, auto-generated utility classes
+- **FOUC prevention**: Inline script in `index.html` applies theme before CSS loads
+- **Persistence**: Theme choice stored in localStorage (`glimpse-theme`)
+- **Architecture docs**: See [DARK_MODE.md](DARK_MODE.md) for complete implementation guide
+- **Key insight**: Avoid reading CSS variables from DOM via `getComputedStyle()` - creates race conditions. Use hardcoded TS colors selected by React state instead.
 
 ### Error Handling (March 2026)
 - **Smart Categorization** - Errors automatically categorized by type:
@@ -62,6 +72,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `datasetName` - Current file name
 - `rawCsvData` - CSV text (not persisted)
 - `analysisResult` - Full analysis object (persisted to localStorage)
+- `theme` - Theme preference ('light' | 'dark' | 'system', persisted to localStorage)
 - Local component state: `isAnalyzing`, `isPyodideLoading`, `error` (in App.tsx)
 
 ## Key Files
@@ -74,26 +85,37 @@ Upload CSV files and get instant statistical insights — all processed locally 
 ### Components
 - `src/components/AnalysisView.tsx` (~480 lines) - 3-tab results view: Overview (with correlation)/Columns/Quality + export/copy + clear modal
 - `src/components/ErrorDisplay.tsx` (~60 lines) - Rich error UI with categorization, suggestions, and optional retry button
-- `src/components/CorrelationMatrix.tsx` (~140 lines) - Interactive correlation heatmap with blue-white-red gradient scale
+- `src/components/CorrelationMatrix.tsx` (~140 lines) - Interactive correlation heatmap with blue-white-red gradient scale (theme-aware)
 - `src/components/MissingDataTable.tsx` (~230 lines) - Comprehensive sortable missing data analysis table
 - `src/components/ConfirmModal.tsx` (~60 lines) - Reusable confirmation dialog with backdrop
-- `src/components/MatrixBackground.tsx` (~90 lines) - Animated falling characters background (canvas-based)
+- `src/components/MatrixBackground.tsx` (~90 lines) - Animated falling characters background (canvas-based, theme-aware via props)
 - `src/components/FileUpload.tsx` (~140 lines) - Drag-and-drop uploader with 10MB limit + example dataset button
+- `src/components/ThemeToggle.tsx` (~30 lines) - 3-state theme switcher (Light/Dark/System) with icon and label
 - `src/components/ColumnMap.tsx` (~80 lines) - Visual column structure chart
 - `src/components/Histogram.tsx` (~40 lines) - Simple SVG histogram renderer
 - `src/components/TabNavigation.tsx` (~50 lines) - Tab switcher with badge counts
 
+### Hooks
+- `src/hooks/useThemeSync.ts` (~20 lines) - Syncs resolved theme with `<html>` class (adds/removes `.dark`)
+- `src/hooks/useResolvedTheme.ts` (~40 lines) - Resolves 'system' theme to 'light' or 'dark' based on OS preference
+- `src/hooks/useThemeColors.ts` (~50 lines) - Returns hardcoded theme colors (NOT read from DOM) for canvas/SVG components
+
 ### Data & Types
 - `src/types/analysis.ts` - TypeScript interfaces for analysis results (includes CorrelationMatrix)
-- `src/store/useAppStore.ts` - Zustand store with persist middleware (simple: datasetName, rawCsvData, analysisResult)
+- `src/store/useAppStore.ts` - Zustand store with persist middleware (datasetName, rawCsvData, analysisResult, theme)
 - `src/utils/analyzeData.ts` (~180 lines) - Python analysis script with error handling (pandas-powered, includes correlation matrix)
 - `src/utils/pyodide.ts` (~70 lines) - Pyodide lazy loader with retry logic (3 attempts, exponential backoff)
 - `src/utils/errorHandler.ts` (~130 lines) - Error categorization engine with actionable suggestions
 - `src/data/sampleDatasets.ts` (~190 lines) - Pre-loaded sample datasets (Iris flowers)
 
+### Configuration
+- `tailwind.config.ts` - Tailwind CSS 4 config mapping CSS variables to semantic classes (dark mode via `.dark` selector)
+- `src/index.css` - Theme CSS variables in `@theme` block with `.dark` overrides
+
 ### Documentation
 - `README.md` - User-facing documentation
 - `CLAUDE.md` - Technical architecture reference (this file)
+- `DARK_MODE.md` - Dark mode architecture guide with anti-patterns section
 - `CHANGELOG.md` - Version history
 - `BACKLOG.md` - Feature roadmap
 - `tasks/todo.md` - Implementation plan
@@ -152,9 +174,10 @@ Overview / Columns / Quality Tabs
 - 10MB limit prevents browser memory issues with Pyodide
 
 ### State Persistence
-- Only `analysisResult` and `datasetName` persist to localStorage
+- Only `analysisResult`, `datasetName`, and `theme` persist to localStorage
 - `rawCsvData` NOT persisted (can be large)
 - Loading states never persisted
+- Theme stored under `glimpse-theme` key (separate from Zustand `glimpse-storage` for early access)
 
 ### CSV Escaping
 - Python script uses triple quotes for CSV data
@@ -170,10 +193,25 @@ Overview / Columns / Quality Tabs
 - **Trade-off**: Brief UI freeze during analysis (~1-2 seconds for small datasets) instead of background processing
 - **Unused files**: `src/workers/pyodide.worker.ts`, `src/workers/test.worker.ts`, `src/hooks/usePyodideWorker.ts` (kept for reference)
 
+### Dark Mode Architecture (March 2026)
+- **Critical lesson**: DO NOT read CSS variables from DOM via `getComputedStyle()` - creates race conditions
+- **Why**: React state updates → triggers re-render → useEffect adds `.dark` class AFTER render → but useMemo/useState reads CSS DURING render = reads old value
+- **Solution**: Hardcode colors in TypeScript (`useThemeColors`), select via React state (`useResolvedTheme`)
+- **7 iterations**: Initial implementation tried reading DOM, failed inconsistently, refactored to pure React approach
+- **Data flow**: User clicks → Zustand state → useResolvedTheme → hardcoded colors → components re-render
+- **See**: [DARK_MODE.md](DARK_MODE.md) for complete anti-pattern documentation
+
 ### UI/UX Enhancements
-- **MatrixBackground**: Subtle animated effect (8-18% opacity, blue #0066CC on white)
+- **Dark Mode**: 3-state theme system (Light/Dark/System)
+  - Theme toggle in header with icon and label
+  - System mode follows OS preference automatically
+  - Persists to localStorage (`glimpse-theme`)
+  - FOUC prevention via inline script
+  - See [DARK_MODE.md](DARK_MODE.md) for architecture details
+- **MatrixBackground**: Subtle animated effect, theme-aware
   - Falling characters with random Greek/math/currency symbols
   - Canvas-based animation (80ms speed, 10px font size)
+  - Colors passed as props (light: #0066CC on white, dark: #3B9EFF on slate-900)
   - Used in header and footer with white text-shadow for legibility
 - **Clear Confirmation**: Modal prevents accidental data loss
   - Yellow warning icon + destructive red button
@@ -193,7 +231,7 @@ Overview / Columns / Quality Tabs
   - Overview tab: copy full dataset summary
   - Column cards: copy individual column stats
   - Visual feedback with checkmark (2-second timeout)
-- **Correlation Matrix**: Interactive heatmap visualization
+- **Correlation Matrix**: Interactive heatmap visualization, theme-aware
   - Color scale: blue (-1 negative) → white (0) → red (+1 positive)
   - Grid layout with row/column headers
   - Hover tooltips show exact correlation values
@@ -242,4 +280,4 @@ See [BACKLOG.md](BACKLOG.md) for full roadmap.
 **Next Priority:**
 - Unified Markdown Export (replace JSON export + copy buttons)
 - Keyboard shortcuts (Esc to clear, etc.)
-- Dark mode support
+- Sample dataset library expansion (titanic, sales, housing)

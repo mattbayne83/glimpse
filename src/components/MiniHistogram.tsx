@@ -13,7 +13,7 @@ export function MiniHistogram({ bins, counts, width = 200, height = 24 }: MiniHi
   if (bins.length === 0 || counts.length === 0) {
     return (
       <div
-        className="bg-[#F1F5F9] rounded"
+        className="bg-bg-hover rounded"
         style={{ width, height }}
       />
     );
@@ -22,6 +22,11 @@ export function MiniHistogram({ bins, counts, width = 200, height = 24 }: MiniHi
   const maxCount = Math.max(...counts);
   const barWidth = width / bins.length;
   const padding = 2;
+
+  // Read secondary color from CSS variables for theme support
+  const fillColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--color-secondary')
+    .trim();
 
   return (
     <svg width={width} height={height} className="rounded">
@@ -37,7 +42,7 @@ export function MiniHistogram({ bins, counts, width = 200, height = 24 }: MiniHi
             y={y}
             width={Math.max(barWidth - 1, 1)}
             height={barHeight}
-            fill="#0D9488"
+            fill={fillColor}
             opacity={0.7}
           />
         );

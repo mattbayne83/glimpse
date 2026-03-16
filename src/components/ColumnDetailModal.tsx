@@ -56,9 +56,9 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
 
   // Get type badge color
   const typeColors = {
-    numeric: 'bg-[#DBEAFE] text-[#1E40AF]',
-    categorical: 'bg-[#F3E8FF] text-[#6B21A8]',
-    datetime: 'bg-[#FEF3C7] text-[#92400E]',
+    numeric: 'bg-secondary-light text-secondary',
+    categorical: 'bg-primary-light text-primary',
+    datetime: 'bg-warning-bg text-warning-text',
   };
 
   // Calculate completeness for quality section
@@ -91,11 +91,11 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
       />
 
       {/* Modal */}
-      <div className="fixed top-0 right-0 bottom-0 w-full max-w-[480px] bg-white shadow-2xl z-50 overflow-y-auto animate-slide-in-right">
+      <div className="fixed top-0 right-0 bottom-0 w-full max-w-[480px] bg-bg-surface shadow-2xl z-50 overflow-y-auto animate-slide-in-right">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-[#E2E8F0] px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-bg-surface border-b border-border-default px-6 py-4 flex items-center justify-between">
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-[#0F172A] truncate">{columnName}</h2>
+            <h2 className="text-xl font-bold text-text-primary truncate">{columnName}</h2>
             <span
               className={`inline-block mt-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${typeColors[type]}`}
             >
@@ -104,7 +104,7 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
           </div>
           <button
             onClick={onClose}
-            className="ml-4 p-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-lg transition-colors"
+            className="ml-4 p-2 text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -115,8 +115,8 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
         <div className="p-6 space-y-6">
           {/* Statistics Section */}
           <section>
-            <h3 className="text-sm font-semibold text-[#334155] mb-3">Statistics</h3>
-            <div className="bg-[#F8FAFC] rounded-lg p-4 space-y-2">
+            <h3 className="text-sm font-semibold text-text-primary mb-3">Statistics</h3>
+            <div className="bg-bg-page rounded-lg p-4 space-y-2">
               {type === 'numeric' && (
                 <>
                   <StatRow label="Count" value={analysis.stats.count.toLocaleString()} />
@@ -155,8 +155,8 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
           {/* Distribution Section (Numeric only) */}
           {type === 'numeric' && analysis.stats.histogram && (
             <section>
-              <h3 className="text-sm font-semibold text-[#334155] mb-3">Distribution</h3>
-              <div className="bg-[#F8FAFC] rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-text-primary mb-3">Distribution</h3>
+              <div className="bg-bg-page rounded-lg p-4">
                 <Histogram
                   bins={analysis.stats.histogram.bins}
                   counts={analysis.stats.histogram.counts}
@@ -170,16 +170,16 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
           {/* Top Values (Categorical only) */}
           {type === 'categorical' && analysis.stats.topValues && (
             <section>
-              <h3 className="text-sm font-semibold text-[#334155] mb-3">Top Values</h3>
-              <div className="bg-[#F8FAFC] rounded-lg p-4 space-y-3">
+              <h3 className="text-sm font-semibold text-text-primary mb-3">Top Values</h3>
+              <div className="bg-bg-page rounded-lg p-4 space-y-3">
                 {analysis.stats.topValues.map((item, idx) => (
                   <div key={idx} className="flex items-center justify-between text-sm">
-                    <span className="text-[#334155] font-medium truncate flex-1 mr-4">
+                    <span className="text-text-primary font-medium truncate flex-1 mr-4">
                       {item.value}
                     </span>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      <span className="text-[#64748B]">{item.count.toLocaleString()}</span>
-                      <span className="text-[#0066CC] font-medium min-w-[48px] text-right">
+                      <span className="text-text-secondary">{item.count.toLocaleString()}</span>
+                      <span className="text-primary font-medium min-w-[48px] text-right">
                         {item.percentage.toFixed(1)}%
                       </span>
                     </div>
@@ -191,23 +191,23 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
 
           {/* Data Quality Section */}
           <section>
-            <h3 className="text-sm font-semibold text-[#334155] mb-3">Data Quality</h3>
-            <div className="bg-[#F8FAFC] rounded-lg p-4 space-y-3">
+            <h3 className="text-sm font-semibold text-text-primary mb-3">Data Quality</h3>
+            <div className="bg-bg-page rounded-lg p-4 space-y-3">
               <div>
                 <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-[#334155] font-medium">Completeness</span>
-                  <span className="text-[#0066CC] font-semibold">{completeness.toFixed(1)}%</span>
+                  <span className="text-text-primary font-medium">Completeness</span>
+                  <span className="text-primary font-semibold">{completeness.toFixed(1)}%</span>
                 </div>
-                <div className="w-full bg-[#E2E8F0] rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-border-default rounded-full h-2 overflow-hidden">
                   <div
                     className={`h-full transition-all duration-300 ${
                       completeness >= 95
-                        ? 'bg-[#10B981]'
+                        ? 'bg-success'
                         : completeness >= 80
-                        ? 'bg-[#F59E0B]'
+                        ? 'bg-warning'
                         : completeness >= 50
-                        ? 'bg-[#F97316]'
-                        : 'bg-[#EF4444]'
+                        ? 'bg-warning'
+                        : 'bg-error'
                     }`}
                     style={{ width: `${completeness}%` }}
                   />
@@ -215,8 +215,8 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
               </div>
 
               {missingCount > 0 && (
-                <div className="pt-2 border-t border-[#E2E8F0]">
-                  <p className="text-xs text-[#64748B]">
+                <div className="pt-2 border-t border-border-default">
+                  <p className="text-xs text-text-secondary">
                     {missingCount.toLocaleString()} missing values out of {totalRows.toLocaleString()} total rows
                   </p>
                 </div>
@@ -227,20 +227,20 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
           {/* Correlations Section (Numeric only) */}
           {type === 'numeric' && correlations.length > 0 && (
             <section>
-              <h3 className="text-sm font-semibold text-[#334155] mb-3">Correlations</h3>
-              <div className="bg-[#F8FAFC] rounded-lg p-4 space-y-2">
+              <h3 className="text-sm font-semibold text-text-primary mb-3">Correlations</h3>
+              <div className="bg-bg-page rounded-lg p-4 space-y-2">
                 {correlations.slice(0, 5).map((corr, idx) => (
                   <div key={idx} className="flex items-center justify-between text-sm">
-                    <span className="text-[#334155] font-medium truncate flex-1 mr-4">
+                    <span className="text-text-primary font-medium truncate flex-1 mr-4">
                       {corr.name}
                     </span>
                     <span
                       className={`font-semibold min-w-[56px] text-right ${
                         Math.abs(corr.value) > 0.7
-                          ? 'text-[#DC2626]'
+                          ? 'text-error'
                           : Math.abs(corr.value) > 0.3
-                          ? 'text-[#F59E0B]'
-                          : 'text-[#64748B]'
+                          ? 'text-warning'
+                          : 'text-text-secondary'
                       }`}
                     >
                       {corr.value.toFixed(2)}
@@ -248,12 +248,12 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                   </div>
                 ))}
                 {correlations.length > 5 && (
-                  <p className="text-xs text-[#64748B] pt-2 border-t border-[#E2E8F0]">
+                  <p className="text-xs text-text-secondary pt-2 border-t border-border-default">
                     +{correlations.length - 5} more correlations
                   </p>
                 )}
               </div>
-              <p className="text-xs text-[#64748B] mt-2">
+              <p className="text-xs text-text-secondary mt-2">
                 Strong: |r| &gt; 0.7 • Moderate: 0.3 &lt; |r| &lt; 0.7 • Weak: |r| &lt; 0.3
               </p>
             </section>
@@ -268,8 +268,8 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-[#64748B]">{label}</span>
-      <span className="text-[#0F172A] font-medium">{value}</span>
+      <span className="text-text-secondary">{label}</span>
+      <span className="text-text-primary font-medium">{value}</span>
     </div>
   );
 }
