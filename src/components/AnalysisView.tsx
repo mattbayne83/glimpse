@@ -329,7 +329,7 @@ function ColumnsTab({ columns, filter, onFilterChange, searchQuery, onSearchChan
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search columns..."
-          className="w-full pl-10 pr-10 py-2 text-sm border border-border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+          className="w-full pl-10 pr-10 py-2 text-sm bg-bg-surface text-text-primary placeholder:text-text-tertiary border border-border-default rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
         />
         {searchQuery && (
           <button
