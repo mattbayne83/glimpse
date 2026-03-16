@@ -25,6 +25,12 @@ export interface NumericColumnStats {
     bins: number[];
     counts: number[];
   };
+  boxPlot?: {
+    iqr: number;           // Interquartile range (Q3 - Q1)
+    lowerWhisker: number;  // Q1 - 1.5*IQR
+    upperWhisker: number;  // Q3 + 1.5*IQR
+    outliers: number[];    // Values beyond whiskers
+  };
 }
 
 export interface CategoricalColumnStats {

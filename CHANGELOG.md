@@ -12,6 +12,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keyboard shortcuts help modal (press "?")
 - Excel file support (.xlsx)
 
+## [0.8.0] - 2026-03-16
+
+### Added - Column Detail Modal & Enhanced UI
+- **Column Detail Modal** - Full-screen side modal for deep column analysis
+  - Click any column in the Columns tab to open detailed view
+  - Statistics section with smart insights (skewness, spread, completeness badges)
+  - Professional histogram with axes, gridlines, and smooth distribution curve
+  - Distribution shape detection: Normal, Right-skewed, Left-skewed, Bimodal, Uniform
+  - Range indicator showing min/Q1/Q2/Q3/max + outlier count
+  - Top values for categorical columns
+  - Correlation analysis for numeric columns (top 5 strongest correlations)
+  - ESC key to close, keyboard navigation support
+- **Enhanced Histogram Component** - Professional statistical visualization
+  - Y-axis with frequency labels and dashed gridlines
+  - X-axis with bin labels (5-7 evenly spaced values)
+  - Smooth Catmull-Rom curve overlay with gradient fill
+  - Vertical gradient on bars (80% → 30% opacity for depth)
+  - Shape detection badge (pill-shaped with backdrop blur)
+  - Default height increased from 80px → 200px for better readability
+- **Snapshot Card Grid** - Engaging visual column overview (Columns tab)
+  - Responsive grid layout (1-4 columns depending on screen size)
+  - Compact header with column name + single-letter type badge (N/C/D)
+  - Prominent visualization area:
+    - Numeric: Mini histogram (56px tall)
+    - Categorical: Top 3 horizontal bar chart with percentages
+    - DateTime: Date range placeholder
+  - 2-column stat grid with 4-6 key metrics per column
+  - Color-coded missing values (green = 0%, orange/red = >0%)
+  - Hover effects: shadow lift + primary border + chevron indicator
+  - Click anywhere on card to open detail modal
+- **Box Plot Removal** - Deleted redundant box plot from detail modal
+  - Range indicator already shows quartiles + outlier count
+  - Reduced visual clutter while keeping all essential information
+
+### Changed
+- **Columns Tab** - Grid layout replaced vertical list for better engagement
+  - 1 column on mobile, 2 on md, 3 on lg, 4 on xl screens
+  - Snapshot cards show immediate visual sense of data distribution
+  - Click-to-detail pattern encourages exploration
+- **Data Quality Section** - Removed from detail modal (now in Statistics section)
+  - Completeness shown inline with "Missing" stat row
+  - Color-coded insight badges (green/amber/red) indicate data quality
+  - Simplified UI while maintaining all information
+
+### Technical
+- New components: `ColumnDetailModal.tsx` (427 lines), `ColumnPreviewCard.tsx` (205 lines), `RangeIndicator.tsx` (239 lines), `MiniHistogram.tsx` (52 lines)
+- Enhanced: `Histogram.tsx` (40 → 235 lines) - complete rewrite with axes, gridlines, curve smoothing
+- Enhanced: `AnalysisView.tsx` - grid layout for Columns tab, modal state management
+- Distribution shape detection algorithm in `ColumnDetailModal.tsx`
+
 ## [0.7.0] - 2026-03-16
 
 ### Added - Production-Quality Sample Datasets

@@ -1,7 +1,8 @@
-import { X } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle } from 'lucide-react';
 import { useEffect } from 'react';
 import type { AnalysisResult } from '../types/analysis';
 import { Histogram } from './Histogram';
+import { RangeIndicator } from './RangeIndicator';
 
 interface ColumnDetailModalProps {
   columnName: string;
@@ -61,10 +62,9 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
     datetime: 'bg-warning-bg text-warning-text',
   };
 
-  // Calculate completeness for quality section
+  // Get missing data info
   const totalRows = result.overview.rows;
   const missingCount = analysis.stats.missing || 0;
-  const completeness = totalRows > 0 ? ((totalRows - missingCount) / totalRows) * 100 : 100;
 
   // Get correlations for this column (if numeric)
   const correlations: Array<{ name: string; value: number }> = [];
@@ -81,6 +81,122 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
       correlations.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
     }
   }
+
+  // Smart insights for numeric columns
+  const getSkewnessInsight = () => {
+    if (type !== 'numeric') return null;
+    const mean = analysis.stats.mean;
+    const median = analysis.stats.q50;
+    const diff = Math.abs(mean - median);
+    const avgValue = (mean + median) / 2;
+    const percentDiff = avgValue !== 0 ? (diff / avgValue) * 100 : 0;
+
+    if (percentDiff < 5) {
+      return { icon: Minus, color: 'text-emerald-600 dark:text-emerald-400', label: 'Symmetric', detail: 'mean ≈ median' };
+    } else if (mean > median) {
+      return { icon: TrendingUp, color: 'text-amber-600 dark:text-amber-400', label: 'Right-skewed', detail: 'mean > median' };
+    } else {
+      return { icon: TrendingDown, color: 'text-amber-600 dark:text-amber-400', label: 'Left-skewed', detail: 'mean < median' };
+    }
+  };
+
+  const getSpreadInsight = () => {
+    if (type !== 'numeric') return null;
+    const mean = analysis.stats.mean;
+    const std = analysis.stats.std;
+    if (mean === 0) return null;
+
+    const cv = (std / Math.abs(mean)) * 100; // Coefficient of variation
+
+    if (cv < 30) {
+      return { icon: CheckCircle, color: 'text-emerald-600 dark:text-emerald-400', label: 'Low spread', detail: `${cv.toFixed(0)}% of mean` };
+    } else if (cv < 70) {
+      return { icon: AlertCircle, color: 'text-amber-600 dark:text-amber-400', label: 'Moderate spread', detail: `${cv.toFixed(0)}% of mean` };
+    } else {
+      return { icon: AlertCircle, color: 'text-rose-600 dark:text-rose-400', label: 'High spread', detail: `${cv.toFixed(0)}% of mean` };
+    }
+  };
+
+  const getMissingInsight = () => {
+    const missingPct = totalRows > 0 ? (missingCount / totalRows) * 100 : 0;
+
+    if (missingPct === 0) {
+      return { icon: CheckCircle, color: 'text-emerald-600 dark:text-emerald-400', label: 'Complete' };
+    } else if (missingPct < 5) {
+      return { icon: CheckCircle, color: 'text-emerald-600 dark:text-emerald-400', label: 'Mostly complete' };
+    } else if (missingPct < 20) {
+      return { icon: AlertCircle, color: 'text-amber-600 dark:text-amber-400', label: 'Some missing' };
+    } else {
+      return { icon: AlertCircle, color: 'text-rose-600 dark:text-rose-400', label: 'Many missing' };
+    }
+  };
+
+  // Detect distribution shape from histogram data
+  const getDistributionShape = (): string | undefined => {
+    if (type !== 'numeric' || !analysis.stats.histogram) return undefined;
+
+    const { counts } = analysis.stats.histogram;
+    if (counts.length < 5) return undefined; // Need enough bins to detect shape
+
+    const maxCount = Math.max(...counts);
+    const normalizedCounts = counts.map(c => c / maxCount);
+
+    // Find peaks (local maxima)
+    const peaks: number[] = [];
+    for (let i = 1; i < normalizedCounts.length - 1; i++) {
+      if (normalizedCounts[i] > normalizedCounts[i - 1] && normalizedCounts[i] > normalizedCounts[i + 1]) {
+        // Only count significant peaks (>40% of max)
+        if (normalizedCounts[i] > 0.4) {
+          peaks.push(i);
+        }
+      }
+    }
+
+    // Check for bimodal (two distinct peaks)
+    if (peaks.length >= 2) {
+      // Make sure peaks are separated by at least 2 bins
+      const peaksSeparated = peaks.some((p1, idx) =>
+        peaks.slice(idx + 1).some(p2 => Math.abs(p2 - p1) >= 2)
+      );
+      if (peaksSeparated) return 'Bimodal';
+    }
+
+    // Check for uniform distribution (low variance in counts)
+    const mean = counts.reduce((a, b) => a + b, 0) / counts.length;
+    const variance = counts.reduce((sum, c) => sum + Math.pow(c - mean, 2), 0) / counts.length;
+    const coefficientOfVariation = Math.sqrt(variance) / mean;
+
+    if (coefficientOfVariation < 0.3) {
+      return 'Uniform';
+    }
+
+    // Use existing skewness logic for skew detection
+    const mean_val = analysis.stats.mean;
+    const median_val = analysis.stats.q50;
+    const diff = Math.abs(mean_val - median_val);
+    const avgValue = (mean_val + median_val) / 2;
+    const percentDiff = avgValue !== 0 ? (diff / avgValue) * 100 : 0;
+
+    // Check if peak is roughly in the middle (normal distribution)
+    const peakIndex = normalizedCounts.indexOf(Math.max(...normalizedCounts));
+    const middleIndex = normalizedCounts.length / 2;
+    const peakInMiddle = Math.abs(peakIndex - middleIndex) < normalizedCounts.length * 0.2;
+
+    if (percentDiff < 5 && peakInMiddle) {
+      return 'Normal';
+    } else if (mean_val > median_val) {
+      return 'Right-skewed';
+    } else if (mean_val < median_val) {
+      return 'Left-skewed';
+    }
+
+    return undefined;
+  };
+
+  const skewnessInsight = getSkewnessInsight();
+  const spreadInsight = getSpreadInsight();
+  const missingInsight = getMissingInsight();
+  const distributionShape = getDistributionShape();
 
   return (
     <>
@@ -116,17 +232,51 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
           {/* Statistics Section */}
           <section>
             <h3 className="text-sm font-semibold text-text-primary mb-3">Statistics</h3>
-            <div className="bg-bg-page rounded-lg p-4 space-y-2">
+            <div className="bg-bg-page rounded-lg p-4 space-y-3">
               {type === 'numeric' && (
                 <>
-                  <StatRow label="Count" value={analysis.stats.count.toLocaleString()} />
-                  <StatRow label="Mean" value={analysis.stats.mean?.toFixed(2) || 'N/A'} />
-                  <StatRow label="Std Dev" value={analysis.stats.std?.toFixed(2) || 'N/A'} />
-                  <StatRow label="Min" value={analysis.stats.min?.toFixed(2) || 'N/A'} />
-                  <StatRow label="25%" value={analysis.stats.q25?.toFixed(2) || 'N/A'} />
-                  <StatRow label="Median" value={analysis.stats.q50?.toFixed(2) || 'N/A'} />
-                  <StatRow label="75%" value={analysis.stats.q75?.toFixed(2) || 'N/A'} />
-                  <StatRow label="Max" value={analysis.stats.max?.toFixed(2) || 'N/A'} />
+                  {/* Basic stats */}
+                  <div className="space-y-2">
+                    <StatRow label="Count" value={analysis.stats.count.toLocaleString()} />
+                    <StatRowWithInsight
+                      label="Mean"
+                      value={analysis.stats.mean?.toFixed(2) || 'N/A'}
+                      insight={skewnessInsight}
+                    />
+                    <StatRowWithInsight
+                      label="Std Dev"
+                      value={analysis.stats.std?.toFixed(2) || 'N/A'}
+                      insight={spreadInsight}
+                    />
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-border-default my-3" />
+
+                  {/* Visual range indicator */}
+                  <div>
+                    <h4 className="text-xs font-medium text-text-secondary mb-3">Distribution Range</h4>
+                    <RangeIndicator
+                      min={analysis.stats.min}
+                      q25={analysis.stats.q25}
+                      q50={analysis.stats.q50}
+                      q75={analysis.stats.q75}
+                      max={analysis.stats.max}
+                      outlierCount={analysis.stats.boxPlot?.outliers.length || 0}
+                      width={432}
+                      height={120}
+                    />
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-border-default my-3" />
+
+                  {/* Missing data */}
+                  <StatRowWithInsight
+                    label="Missing"
+                    value={`${missingCount.toLocaleString()} (${((missingCount / totalRows) * 100).toFixed(1)}%)`}
+                    insight={missingInsight}
+                  />
                 </>
               )}
 
@@ -134,6 +284,12 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                 <>
                   <StatRow label="Unique Values" value={analysis.stats.uniqueCount.toLocaleString()} />
                   <StatRow label="Total Count" value={totalRows.toLocaleString()} />
+                  <div className="border-t border-border-default my-2" />
+                  <StatRowWithInsight
+                    label="Missing"
+                    value={`${missingCount.toLocaleString()} (${((missingCount / totalRows) * 100).toFixed(1)}%)`}
+                    insight={missingInsight}
+                  />
                 </>
               )}
 
@@ -142,13 +298,14 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                   <StatRow label="Unique Dates" value={analysis.stats.uniqueCount.toLocaleString()} />
                   <StatRow label="Min Date" value={analysis.stats.minDate || 'N/A'} />
                   <StatRow label="Max Date" value={analysis.stats.maxDate || 'N/A'} />
+                  <div className="border-t border-border-default my-2" />
+                  <StatRowWithInsight
+                    label="Missing"
+                    value={`${missingCount.toLocaleString()} (${((missingCount / totalRows) * 100).toFixed(1)}%)`}
+                    insight={missingInsight}
+                  />
                 </>
               )}
-
-              <StatRow
-                label="Missing"
-                value={`${missingCount.toLocaleString()} (${((missingCount / totalRows) * 100).toFixed(1)}%)`}
-              />
             </div>
           </section>
 
@@ -156,13 +313,16 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
           {type === 'numeric' && analysis.stats.histogram && (
             <section>
               <h3 className="text-sm font-semibold text-text-primary mb-3">Distribution</h3>
+
+              {/* Histogram with shape curve */}
               <div className="bg-bg-page rounded-lg p-4">
-                <Histogram
-                  bins={analysis.stats.histogram.bins}
-                  counts={analysis.stats.histogram.counts}
-                  width={432}
-                  height={120}
-                />
+                  <Histogram
+                    bins={analysis.stats.histogram.bins}
+                    counts={analysis.stats.histogram.counts}
+                    width={432}
+                    height={200}
+                    shapeLabel={distributionShape}
+                  />
               </div>
             </section>
           )}
@@ -188,41 +348,6 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
               </div>
             </section>
           )}
-
-          {/* Data Quality Section */}
-          <section>
-            <h3 className="text-sm font-semibold text-text-primary mb-3">Data Quality</h3>
-            <div className="bg-bg-page rounded-lg p-4 space-y-3">
-              <div>
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-text-primary font-medium">Completeness</span>
-                  <span className="text-primary font-semibold">{completeness.toFixed(1)}%</span>
-                </div>
-                <div className="w-full bg-border-default rounded-full h-2 overflow-hidden">
-                  <div
-                    className={`h-full transition-all duration-300 ${
-                      completeness >= 95
-                        ? 'bg-success'
-                        : completeness >= 80
-                        ? 'bg-warning'
-                        : completeness >= 50
-                        ? 'bg-warning'
-                        : 'bg-error'
-                    }`}
-                    style={{ width: `${completeness}%` }}
-                  />
-                </div>
-              </div>
-
-              {missingCount > 0 && (
-                <div className="pt-2 border-t border-border-default">
-                  <p className="text-xs text-text-secondary">
-                    {missingCount.toLocaleString()} missing values out of {totalRows.toLocaleString()} total rows
-                  </p>
-                </div>
-              )}
-            </div>
-          </section>
 
           {/* Correlations Section (Numeric only) */}
           {type === 'numeric' && correlations.length > 0 && (
@@ -270,6 +395,33 @@ function StatRow({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between text-sm">
       <span className="text-text-secondary">{label}</span>
       <span className="text-text-primary font-medium">{value}</span>
+    </div>
+  );
+}
+
+// Helper component for stat rows with insight badges
+function StatRowWithInsight({
+  label,
+  value,
+  insight,
+}: {
+  label: string;
+  value: string;
+  insight?: { icon: React.ComponentType<{ className?: string }>; color: string; label: string; detail?: string } | null;
+}) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-text-secondary">{label}</span>
+      <div className="flex items-center gap-2">
+        <span className="text-text-primary font-medium font-mono">{value}</span>
+        {insight && (
+          <div className={`flex items-center gap-1 ${insight.color}`}>
+            <insight.icon className="w-3.5 h-3.5" />
+            <span className="text-xs font-medium">{insight.label}</span>
+            {insight.detail && <span className="text-xs opacity-70">({insight.detail})</span>}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

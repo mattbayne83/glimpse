@@ -14,9 +14,9 @@ export function ColumnPreviewCard({ column, totalRows, onClick }: ColumnPreviewC
 
   // Type badge colors
   const typeColors = {
-    numeric: 'bg-[#DBEAFE] text-[#1E40AF]',
-    categorical: 'bg-[#F3E8FF] text-[#6B21A8]',
-    datetime: 'bg-[#FEF3C7] text-[#92400E]',
+    numeric: 'bg-secondary-light text-secondary',
+    categorical: 'bg-primary-light text-primary',
+    datetime: 'bg-warning-bg text-warning-text',
   };
 
   const missingCount = analysis.stats.missing || 0;
@@ -25,137 +25,180 @@ export function ColumnPreviewCard({ column, totalRows, onClick }: ColumnPreviewC
   return (
     <div
       onClick={onClick}
-      className="group relative p-4 bg-bg-surface border border-border-default rounded-lg shadow-sm cursor-pointer hover:border-primary hover:shadow-md transition-all duration-150"
+      className="group relative bg-bg-surface border border-border-default rounded-lg shadow-sm cursor-pointer hover:border-primary hover:shadow-lg transition-all duration-150 overflow-hidden"
     >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-text-primary font-mono truncate">{name}</h3>
+      {/* Header - Compact */}
+      <div className="px-3 py-2 border-b border-border-default bg-bg-hover">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-semibold text-sm text-text-primary font-mono truncate flex-1" title={name}>
+            {name}
+          </h3>
           <span
-            className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded ${typeColors[type]}`}
+            className={`px-1.5 py-0.5 text-[10px] font-semibold rounded uppercase tracking-wide ${typeColors[type]} flex-shrink-0`}
           >
-            {type.charAt(0).toUpperCase() + type.slice(1)}
-          </span>
-        </div>
-        <ChevronRight className="w-5 h-5 text-text-tertiary group-hover:text-primary transition-colors flex-shrink-0 ml-2" />
-      </div>
-
-      {/* Content - varies by type */}
-      {type === 'numeric' && (
-        <NumericPreview
-          stats={analysis.stats}
-          missingPct={missingPct}
-        />
-      )}
-
-      {type === 'categorical' && (
-        <CategoricalPreview
-          stats={analysis.stats}
-          missingPct={missingPct}
-        />
-      )}
-
-      {type === 'datetime' && (
-        <DateTimePreview
-          stats={analysis.stats}
-          missingPct={missingPct}
-        />
-      )}
-    </div>
-  );
-}
-
-// Numeric column preview
-function NumericPreview({ stats, missingPct }: { stats: { mean?: number; min?: number; max?: number; histogram?: { bins: number[]; counts: number[] } }; missingPct: number }) {
-  return (
-    <div className="space-y-3">
-      {/* Mini Histogram */}
-      {stats.histogram && (
-        <MiniHistogram
-          bins={stats.histogram.bins}
-          counts={stats.histogram.counts}
-          width={240}
-          height={28}
-        />
-      )}
-
-      {/* Key Stats */}
-      <div className="grid grid-cols-3 gap-2 text-xs">
-        <div>
-          <span className="text-text-secondary block">Mean</span>
-          <span className="font-medium text-text-primary font-mono">
-            {stats.mean?.toFixed(2) || 'N/A'}
-          </span>
-        </div>
-        <div>
-          <span className="text-text-secondary block">Range</span>
-          <span className="font-medium text-text-primary font-mono">
-            {stats.min?.toFixed(1)}–{stats.max?.toFixed(1)}
-          </span>
-        </div>
-        <div>
-          <span className="text-text-secondary block">Missing</span>
-          <span className={`font-medium font-mono ${missingPct > 0 ? 'text-warning' : 'text-success'}`}>
-            {missingPct.toFixed(1)}%
+            {type.charAt(0)}
           </span>
         </div>
       </div>
-    </div>
-  );
-}
 
-// Categorical column preview
-function CategoricalPreview({ stats, missingPct }: { stats: { uniqueCount: number; topValues?: Array<{ value: string; percentage: number }> }; missingPct: number }) {
-  const topValues = stats.topValues?.slice(0, 2) || [];
+      {/* Visualization Area - Larger, more prominent */}
+      <div className="p-3 bg-bg-page">
+        {type === 'numeric' && analysis.stats.histogram && (
+          <MiniHistogram
+            bins={analysis.stats.histogram.bins}
+            counts={analysis.stats.histogram.counts}
+            width={200}
+            height={56}
+          />
+        )}
 
-  return (
-    <div className="space-y-3">
-      {/* Top Values */}
-      <div className="space-y-1.5">
-        {topValues.map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between text-xs">
-            <span className="text-text-primary truncate flex-1 mr-2">• {item.value}</span>
-            <span className="text-primary font-medium flex-shrink-0">
-              {item.percentage.toFixed(1)}%
-            </span>
+        {type === 'categorical' && (
+          <CategoricalViz stats={analysis.stats} />
+        )}
+
+        {type === 'datetime' && (
+          <div className="h-14 flex items-center justify-center text-xs text-text-tertiary italic">
+            Date range visualization
           </div>
-        ))}
-        {topValues.length === 0 && (
-          <p className="text-xs text-text-tertiary italic">No values</p>
         )}
       </div>
 
-      {/* Summary Stats */}
-      <div className="flex items-center justify-between text-xs pt-2 border-t border-border-default">
-        <span className="text-text-secondary">{stats.uniqueCount} unique values</span>
-        <span className={`font-medium ${missingPct > 0 ? 'text-warning' : 'text-success'}`}>
-          Missing: {missingPct.toFixed(1)}%
-        </span>
+      {/* Stats Grid - Compact key metrics */}
+      <div className="px-3 py-2.5 bg-bg-surface">
+        {type === 'numeric' && (
+          <NumericStats stats={analysis.stats} missingPct={missingPct} />
+        )}
+
+        {type === 'categorical' && (
+          <CategoricalStats stats={analysis.stats} missingPct={missingPct} />
+        )}
+
+        {type === 'datetime' && (
+          <DateTimeStats stats={analysis.stats} missingPct={missingPct} />
+        )}
+      </div>
+
+      {/* Hover indicator */}
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <ChevronRight className="w-4 h-4 text-primary" />
       </div>
     </div>
   );
 }
 
-// DateTime column preview
-function DateTimePreview({ stats, missingPct }: { stats: { uniqueCount: number; minDate?: string; maxDate?: string }; missingPct: number }) {
-  return (
-    <div className="space-y-3">
-      {/* Date Range */}
-      <div className="text-xs">
-        <span className="text-text-secondary block mb-1">Range</span>
-        <div className="flex items-center gap-2 font-mono text-text-primary">
-          <span className="truncate">{stats.minDate || 'N/A'}</span>
-          <span className="text-text-tertiary">→</span>
-          <span className="truncate">{stats.maxDate || 'N/A'}</span>
-        </div>
-      </div>
+// Compact numeric stats grid
+function NumericStats({ stats, missingPct }: { stats: { mean?: number; std?: number; min?: number; max?: number; q50?: number }; missingPct: number }) {
+  const formatNum = (val: number | undefined) => {
+    if (val === undefined) return 'N/A';
+    if (Math.abs(val) >= 1000) return (val / 1000).toFixed(1) + 'k';
+    if (Math.abs(val) < 1 && val !== 0) return val.toFixed(2);
+    return val.toFixed(1);
+  };
 
-      {/* Summary Stats */}
-      <div className="flex items-center justify-between text-xs pt-2 border-t border-border-default">
-        <span className="text-text-secondary">{stats.uniqueCount} unique dates</span>
-        <span className={`font-medium ${missingPct > 0 ? 'text-warning' : 'text-success'}`}>
-          Missing: {missingPct.toFixed(1)}%
-        </span>
+  return (
+    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px]">
+      <StatItem label="Mean" value={formatNum(stats.mean)} />
+      <StatItem label="Median" value={formatNum(stats.q50)} />
+      <StatItem label="Min" value={formatNum(stats.min)} />
+      <StatItem label="Max" value={formatNum(stats.max)} />
+      <StatItem label="Std Dev" value={formatNum(stats.std)} />
+      <StatItem
+        label="Missing"
+        value={`${missingPct.toFixed(1)}%`}
+        valueColor={missingPct > 0 ? 'text-warning' : 'text-success'}
+      />
+    </div>
+  );
+}
+
+// Categorical visualization - horizontal bars
+function CategoricalViz({ stats }: { stats: { topValues?: Array<{ value: string; percentage: number }> } }) {
+  const topValues = stats.topValues?.slice(0, 3) || [];
+  const maxPct = topValues[0]?.percentage || 100;
+
+  return (
+    <div className="space-y-2">
+      {topValues.map((item, idx) => (
+        <div key={idx} className="space-y-0.5">
+          <div className="flex items-center justify-between text-[9px]">
+            <span className="text-text-primary truncate flex-1 mr-1" title={item.value}>
+              {item.value.length > 12 ? item.value.slice(0, 12) + '...' : item.value}
+            </span>
+            <span className="text-primary font-semibold flex-shrink-0">
+              {item.percentage.toFixed(0)}%
+            </span>
+          </div>
+          <div className="w-full bg-border-default rounded-full h-1.5 overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-300"
+              style={{ width: `${(item.percentage / maxPct) * 100}%` }}
+            />
+          </div>
+        </div>
+      ))}
+      {topValues.length === 0 && (
+        <div className="h-14 flex items-center justify-center text-xs text-text-tertiary italic">
+          No values
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Compact categorical stats
+function CategoricalStats({ stats, missingPct }: { stats: { uniqueCount: number; topValues?: Array<{ value: string; percentage: number }> }; missingPct: number }) {
+  const topValue = stats.topValues?.[0];
+
+  return (
+    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px]">
+      <StatItem label="Unique" value={stats.uniqueCount.toLocaleString()} />
+      <StatItem
+        label="Missing"
+        value={`${missingPct.toFixed(1)}%`}
+        valueColor={missingPct > 0 ? 'text-warning' : 'text-success'}
+      />
+      {topValue && (
+        <>
+          <div className="col-span-2">
+            <StatItem
+              label="Most Common"
+              value={topValue.value.length > 15 ? topValue.value.slice(0, 15) + '...' : topValue.value}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Compact datetime stats
+function DateTimeStats({ stats, missingPct }: { stats: { uniqueCount: number; minDate?: string; maxDate?: string }; missingPct: number }) {
+  const formatDate = (date: string | undefined) => {
+    if (!date) return 'N/A';
+    return date.split(' ')[0]; // Just the date part, not time
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px]">
+      <StatItem label="Unique" value={stats.uniqueCount.toLocaleString()} />
+      <StatItem
+        label="Missing"
+        value={`${missingPct.toFixed(1)}%`}
+        valueColor={missingPct > 0 ? 'text-warning' : 'text-success'}
+      />
+      <StatItem label="Min Date" value={formatDate(stats.minDate)} />
+      <StatItem label="Max Date" value={formatDate(stats.maxDate)} />
+    </div>
+  );
+}
+
+// Reusable stat item component
+function StatItem({ label, value, valueColor = 'text-text-primary' }: { label: string; value: string; valueColor?: string }) {
+  return (
+    <div>
+      <div className="text-text-tertiary uppercase tracking-wide mb-0.5">{label}</div>
+      <div className={`font-semibold font-mono ${valueColor} truncate`} title={value}>
+        {value}
       </div>
     </div>
   );

@@ -85,16 +85,40 @@ for col in df.columns:
         clean_data = col_data.dropna()
 
         if len(clean_data) > 0:
+            q25 = float(clean_data.quantile(0.25))
+            q50 = float(clean_data.quantile(0.50))
+            q75 = float(clean_data.quantile(0.75))
+
             stats = {
                 "count": int(len(clean_data)),
                 "mean": float(clean_data.mean()),
                 "std": float(clean_data.std()) if len(clean_data) > 1 else 0,
                 "min": float(clean_data.min()),
                 "max": float(clean_data.max()),
-                "q25": float(clean_data.quantile(0.25)),
-                "q50": float(clean_data.quantile(0.50)),
-                "q75": float(clean_data.quantile(0.75)),
+                "q25": q25,
+                "q50": q50,
+                "q75": q75,
                 "missing": int(col_data.isnull().sum())
+            }
+
+            # Calculate box plot statistics
+            iqr = q75 - q25
+            lower_whisker = q25 - (1.5 * iqr)
+            upper_whisker = q75 + (1.5 * iqr)
+
+            # Find outliers (values beyond whiskers)
+            if iqr > 0:
+                outliers = clean_data[(clean_data < lower_whisker) | (clean_data > upper_whisker)].tolist()
+                outliers = [float(o) for o in outliers[:100]]  # Limit to 100 outliers max
+            else:
+                # No spread (constant column), no outliers
+                outliers = []
+
+            stats["boxPlot"] = {
+                "iqr": float(iqr),
+                "lowerWhisker": float(lower_whisker),
+                "upperWhisker": float(upper_whisker),
+                "outliers": outliers
             }
         else:
             # All values are missing
@@ -107,7 +131,13 @@ for col in df.columns:
                 "q25": 0,
                 "q50": 0,
                 "q75": 0,
-                "missing": int(col_data.isnull().sum())
+                "missing": int(col_data.isnull().sum()),
+                "boxPlot": {
+                    "iqr": 0,
+                    "lowerWhisker": 0,
+                    "upperWhisker": 0,
+                    "outliers": []
+                }
             }
 
         # Generate histogram data (exclude NaN values)

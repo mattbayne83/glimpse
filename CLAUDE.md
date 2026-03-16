@@ -28,14 +28,28 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - **ThemeToggle** - 3-state theme switcher (Light/Dark/System) with persistence
 - **AnalysisView** - Results container with 3-tab interface + export/copy features + clear confirmation modal
   - **OverviewTab** - Dataset summary + visual column map + correlation matrix (when 2+ numeric cols) + copy-to-clipboard
-  - **ColumnsTab** - Per-column analysis with type filtering + per-column copy
+  - **ColumnsTab** - Responsive grid of snapshot cards (1-4 columns) with type filtering, search, and click-to-detail
   - **QualityTab** - Comprehensive missing data table + duplicate/cardinality warnings
+- **ColumnPreviewCard** - Compact snapshot card for column overview (used in grid layout)
+  - Numeric: Mini histogram + 6 key stats (Mean, Median, Min, Max, Std Dev, Missing)
+  - Categorical: Top 3 horizontal bar chart + unique count, missing, most common value
+  - DateTime: Date range + unique count, missing, min/max dates
+- **ColumnDetailModal** - Full-screen side modal with comprehensive column analysis
+  - Statistics section with insights (skewness, spread, completeness badges)
+  - Distribution histogram with shape detection (Normal, Right-skewed, Left-skewed, Bimodal, Uniform)
+  - Range indicator showing quartiles + outlier count
+  - Top values (categorical), Correlations (numeric)
+- **Histogram** - Professional statistical histogram with axes, gridlines, and smooth distribution curve overlay
+  - Dashed gridlines, Y-axis frequency labels, X-axis bin labels
+  - Catmull-Rom smoothed curve with gradient fill
+  - Shape detection badge (Normal, Right-skewed, etc.)
+- **RangeIndicator** - Visual quartile display (box plot style) showing min/Q1/Q2/Q3/max + outlier count
+- **MiniHistogram** - Simplified histogram for snapshot cards (no axes, just bars)
 - **CorrelationMatrix** - Interactive correlation heatmap with color scale (-1 to +1), theme-aware
 - **MatrixBackground** - Subtle animated background effect (falling characters, canvas-based), theme-aware via props
 - **MissingDataTable** - Sortable table showing completeness for all columns with missing data
 - **ConfirmModal** - Reusable confirmation dialog (used for clear action)
 - **ColumnMap** - Visual bar chart showing dataset structure (color = type, height = completeness)
-- **Histogram** - SVG histogram for numeric column distributions
 - **TabNavigation** - Reusable tab switcher with counts
 
 ### Pyodide Integration (Main Thread - March 2026)
@@ -86,7 +100,12 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/index.css` - Tailwind imports + theme config
 
 ### Components
-- `src/components/AnalysisView.tsx` (~480 lines) - 3-tab results view: Overview (with correlation)/Columns/Quality + export/copy + clear modal
+- `src/components/AnalysisView.tsx` (~540 lines) - 3-tab results view: Overview (with correlation)/Columns (grid layout)/Quality + export/copy + clear modal
+- `src/components/ColumnDetailModal.tsx` (~427 lines) - Full-screen side modal with comprehensive column analysis (stats, distribution, correlations)
+- `src/components/ColumnPreviewCard.tsx` (~205 lines) - Compact snapshot card for grid view (viz + key metrics)
+- `src/components/Histogram.tsx` (~235 lines) - Professional statistical histogram with axes, gridlines, smooth curve, and shape detection
+- `src/components/RangeIndicator.tsx` (~239 lines) - Visual quartile display (box plot style) with min/Q1/Q2/Q3/max + outlier count
+- `src/components/MiniHistogram.tsx` (~52 lines) - Simplified histogram for snapshot cards (no axes, compact)
 - `src/components/ErrorDisplay.tsx` (~60 lines) - Rich error UI with categorization, suggestions, and optional retry button
 - `src/components/CorrelationMatrix.tsx` (~140 lines) - Interactive correlation heatmap with blue-white-red gradient scale (theme-aware)
 - `src/components/MissingDataTable.tsx` (~230 lines) - Comprehensive sortable missing data analysis table
@@ -95,7 +114,6 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/components/FileUpload.tsx` (~140 lines) - Drag-and-drop uploader with 10MB limit + example dataset button
 - `src/components/ThemeToggle.tsx` (~30 lines) - 3-state theme switcher (Light/Dark/System) with icon and label
 - `src/components/ColumnMap.tsx` (~80 lines) - Visual column structure chart
-- `src/components/Histogram.tsx` (~40 lines) - Simple SVG histogram renderer
 - `src/components/TabNavigation.tsx` (~50 lines) - Tab switcher with badge counts
 
 ### Hooks

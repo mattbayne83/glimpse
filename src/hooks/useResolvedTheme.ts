@@ -17,14 +17,16 @@ export function useResolvedTheme() {
   });
 
   useEffect(() => {
+    // Handle non-system themes
     if (theme !== 'system') {
-      setResolvedTheme(theme);
-      return;
+      // Schedule state update to avoid synchronous setState in effect
+      const timeoutId = setTimeout(() => setResolvedTheme(theme), 0);
+      return () => clearTimeout(timeoutId);
     }
 
     // Handle 'system' mode
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
       setResolvedTheme(e.matches ? 'dark' : 'light');
     };
@@ -34,7 +36,7 @@ export function useResolvedTheme() {
 
     // Listen for OS changes
     mediaQuery.addEventListener('change', handleChange);
-    
+
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme]);
 
