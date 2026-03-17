@@ -17,7 +17,7 @@ export interface SampleDataset {
  */
 export const ECOMMERCE_DATASET: SampleDataset = {
   name: 'E-Commerce Customers',
-  description: '3,000 customers with revenue, engagement & demographics',
+  description: 'Customer revenue, engagement & demographics',
   filePath: '/ecommerce_customers.csv',
   rows: 3000,
   columns: 28,
@@ -29,7 +29,7 @@ export const ECOMMERCE_DATASET: SampleDataset = {
  */
 export const SAAS_DATASET: SampleDataset = {
   name: 'SaaS Product Usage',
-  description: '5,000 users with engagement, billing & churn patterns',
+  description: 'User retention, churn prediction & feature adoption',
   filePath: '/saas_usage.csv',
   rows: 5000,
   columns: 32,
@@ -64,8 +64,8 @@ export const HR_DATASET: SampleDataset = {
  * Source: Fisher's 1936 paper on discriminant analysis
  */
 export const IRIS_DATASET: SampleDataset = {
-  name: 'Iris Flowers (Quick Demo)',
-  description: '150 iris flowers - instant load, no missing data',
+  name: 'Iris Flowers',
+  description: 'Classic ML demo dataset',
   rows: 150,
   columns: 5,
   csv: `sepal_length,sepal_width,petal_length,petal_width,species
@@ -222,9 +222,7 @@ export const IRIS_DATASET: SampleDataset = {
 };
 
 export const SAMPLE_DATASETS = [
-  ECOMMERCE_DATASET,
-  SAAS_DATASET,
-  HEALTHCARE_DATASET,
-  HR_DATASET,
-  IRIS_DATASET,  // Keep as instant demo option
+  IRIS_DATASET,       // First: instant demo, zero friction
+  ECOMMERCE_DATASET,  // Second: broadest appeal
+  SAAS_DATASET,       // Third: tech/product focus
 ];

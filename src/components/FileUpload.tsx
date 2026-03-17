@@ -1,5 +1,5 @@
-import { Upload, FileSpreadsheet, Sparkles, ChevronDown } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { Upload, FileSpreadsheet, Flower2, ShoppingCart, TrendingUp } from 'lucide-react';
+import { useState, useRef } from 'react';
 import type { SampleDataset } from '../data/sampleDatasets';
 
 interface FileUploadProps {
@@ -14,9 +14,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [], isLoading = false }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showSampleMenu, setShowSampleMenu] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const validateFile = (file: File): string | null => {
     if (!file.name.endsWith('.csv')) {
@@ -71,28 +69,19 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
     fileInputRef.current?.click();
   };
 
-  // Click outside to close dropdown
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowSampleMenu(false);
-      }
-    };
-
-    if (showSampleMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showSampleMenu]);
+  // Helper to get icon for dataset
+  const getDatasetIcon = (name: string) => {
+    if (name.includes('Iris')) return Flower2;
+    if (name.includes('Commerce')) return ShoppingCart;
+    if (name.includes('SaaS')) return TrendingUp;
+    return FileSpreadsheet;
+  };
 
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div
         className={`
-          relative rounded-2xl p-16
+          relative rounded-2xl p-8
           transition-all duration-300 cursor-pointer glass-card
           group hover:scale-[1.02] active:scale-[0.98]
           ${isDragging ? 'border-primary shadow-[0_0_40px_rgba(0,102,204,0.1)] ring-2 ring-primary/20 bg-primary/5' : ''}
@@ -156,47 +145,56 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
       )}
 
       {onExampleSelect && sampleDatasets.length > 0 && !isLoading && (
-        <div className="mt-4 text-center relative" ref={dropdownRef}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowSampleMenu(!showSampleMenu);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm text-primary hover:text-primary-hover hover:bg-primary-light rounded-md transition-colors duration-150"
-          >
-            <Sparkles className="w-4 h-4" />
-            Try Example Dataset
-            <ChevronDown className="w-4 h-4" />
-          </button>
+        <div className="mt-4">
+          {/* Section Header */}
+          <div className="text-center mb-4">
+            <p className="text-sm text-text-secondary">or try a sample dataset</p>
+          </div>
 
-          {/* Dropdown Menu */}
-          {showSampleMenu && (
-            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-bg-surface border border-border-default rounded-lg shadow-lg z-50 min-w-[280px] max-h-[320px] overflow-y-auto">
-              {sampleDatasets.map((dataset) => (
+          {/* Sample Dataset Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {sampleDatasets.map((dataset) => {
+              const Icon = getDatasetIcon(dataset.name);
+
+              return (
                 <button
                   key={dataset.name}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowSampleMenu(false);
-                    onExampleSelect(dataset);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-bg-page transition-colors duration-150 first:rounded-t-lg last:rounded-b-lg border-b border-bg-hover last:border-b-0"
+                  onClick={() => onExampleSelect(dataset)}
+                  className="group relative p-3 bg-bg-page hover:bg-bg-hover border border-border-default hover:border-primary/30 rounded-xl transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] text-left flex items-center gap-3"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-text-primary text-sm">{dataset.name}</p>
-                      <p className="text-xs text-text-secondary mt-0.5">{dataset.description}</p>
+                  {/* Icon */}
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-primary-light group-hover:bg-primary/20 flex items-center justify-center transition-colors duration-200">
+                      <Icon className="w-5 h-5 text-primary" />
                     </div>
-                    {(dataset.rows || dataset.columns) && (
-                      <div className="flex-shrink-0 text-xs text-text-tertiary font-mono">
-                        {dataset.rows && dataset.columns && `${dataset.rows.toLocaleString()}×${dataset.columns}`}
-                      </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    {/* Dataset Name */}
+                    <h3 className="font-semibold text-text-primary mb-0.5 truncate">
+                      {dataset.name
+                        .replace('Iris Flowers', 'Iris')
+                        .replace('E-Commerce Customers', 'E-Commerce')
+                        .replace('SaaS Product Usage', 'SaaS Usage')}
+                    </h3>
+
+                    {/* Dimensions */}
+                    {dataset.rows && dataset.columns && (
+                      <p className="text-xs text-text-tertiary font-mono mb-1">
+                        {dataset.rows.toLocaleString()} × {dataset.columns}
+                      </p>
                     )}
+
+                    {/* Description */}
+                    <p className="text-xs text-text-secondary leading-snug line-clamp-2">
+                      {dataset.description}
+                    </p>
                   </div>
                 </button>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

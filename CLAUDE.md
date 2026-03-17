@@ -23,7 +23,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
 
 ### Component Structure
 - **App.tsx** - Main application, file upload orchestration, Pyodide initialization (main thread), error handling, Matrix background in header/footer, theme sync
-- **FileUpload** - Drag-and-drop CSV uploader with validation (max 10MB) + example dataset button
+- **FileUpload** - Drag-and-drop CSV uploader with validation (max 10MB) + 3 horizontal sample dataset cards (Iris, E-Commerce, SaaS)
 - **ErrorDisplay** - Rich error UI with categorized messages, suggestions, and retry button
 - **ThemeToggle** - 3-state theme switcher (Light/Dark/System) with persistence
 - **AnalysisView** - Results container with 3-tab interface + export/copy features + clear confirmation modal
@@ -113,7 +113,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/components/MissingDataTable.tsx` (~230 lines) - Comprehensive sortable missing data analysis table
 - `src/components/ConfirmModal.tsx` (~60 lines) - Reusable confirmation dialog with backdrop
 - `src/components/MatrixBackground.tsx` (~90 lines) - Animated falling characters background (canvas-based, theme-aware via props)
-- `src/components/FileUpload.tsx` (~140 lines) - Drag-and-drop uploader with 10MB limit + example dataset button
+- `src/components/FileUpload.tsx` (~217 lines) - Drag-and-drop uploader with 10MB limit + 3 horizontal sample dataset cards (icon left, content right)
 - `src/components/ThemeToggle.tsx` (~30 lines) - 3-state theme switcher (Light/Dark/System) with icon and label
 - `src/components/ColumnMap.tsx` (~80 lines) - Visual column structure chart
 - `src/components/TabNavigation.tsx` (~50 lines) - Tab switcher with badge counts
@@ -265,13 +265,13 @@ Overview / Columns / Quality Tabs
   - Sortable by column name, populated count, missing count
   - Color-coded completeness bars (green→yellow→orange→red)
   - Summary stats: total columns affected, avg completeness, most/least complete
-- **Sample Dataset Library** (March 2026): Dropdown to choose from production-quality datasets
-  - **E-Commerce Customers** (3,000 × 28): Revenue analysis, customer segmentation, engagement metrics
-  - **SaaS Product Usage** (5,000 × 32): Retention analysis, churn prediction, plan tier comparisons
-  - **Healthcare Patient Visits** (4,000 × 31): Medical correlations, vital signs, risk factors
-  - **Employee HR Analytics** (2,500 × 33): Compensation analysis, attrition patterns, performance
-  - **Iris Flowers** (150 × 5): Instant demo (embedded, no network request)
-  - Lazy-loaded from `/public/*.csv` via fetch to keep bundle size small
+- **Sample Dataset Cards** (March 2026): 3 compact horizontal cards below file upload
+  - **Iris** (150 × 5): Classic ML demo, instant load (embedded)
+  - **E-Commerce** (3,000 × 28): Customer revenue, engagement & demographics
+  - **SaaS Usage** (5,000 × 32): User retention, churn prediction & feature adoption
+  - Horizontal layout: icon left (Flower2, ShoppingCart, TrendingUp), content right
+  - Lazy-loaded from `/public/*.csv` via fetch (Iris embedded)
+  - Ultra-compact design to fit above the fold: p-3, text-xs, line-clamp-2
   - See `docs/SAMPLE_DATASETS.md` for complete dataset documentation
 - **Export Report**: Download comprehensive markdown analysis report
   - Filename: `{dataset-name}_analysis.md`
