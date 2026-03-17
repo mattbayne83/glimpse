@@ -24,7 +24,7 @@ export function RangeIndicator({
   const colors = useThemeColors();
 
   // Layout constants
-  const padding = { left: 50, right: 50, top: 20, bottom: 60 };
+  const padding = { left: 48, right: 48, top: 32, bottom: 48 };
   const plotWidth = width - padding.left - padding.right;
   const lineY = padding.top + 15;
 

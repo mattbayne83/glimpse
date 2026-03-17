@@ -25,16 +25,16 @@ export function ColumnPreviewCard({ column, totalRows, onClick }: ColumnPreviewC
   return (
     <div
       onClick={onClick}
-      className="group relative bg-bg-surface border border-border-default rounded-lg shadow-sm cursor-pointer hover:border-primary hover:shadow-lg transition-all duration-150 overflow-hidden"
+      className="group relative glass-card rounded-2xl cursor-pointer hover:border-primary/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
     >
       {/* Header - Compact */}
-      <div className="px-3 py-2 border-b border-border-default bg-bg-hover">
+      <div className="px-4 py-3 border-b border-border-default bg-bg-hover/50">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="font-semibold text-sm text-text-primary font-mono truncate flex-1" title={name}>
+          <h3 className="font-bold text-sm text-text-primary font-mono truncate flex-1 tracking-tight" title={name}>
             {name}
           </h3>
           <span
-            className={`px-1.5 py-0.5 text-[10px] font-semibold rounded uppercase tracking-wide ${typeColors[type]} flex-shrink-0`}
+            className={`px-2 py-0.5 text-[10px] font-bold rounded-lg uppercase tracking-wider ${typeColors[type]} flex-shrink-0 shadow-sm`}
           >
             {type.charAt(0)}
           </span>

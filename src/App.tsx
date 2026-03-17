@@ -122,20 +122,28 @@ function App() {
 
         {/* Content - positioned above background */}
         <div className="relative z-10 max-w-6xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">
-              Glimpse
-            </h1>
-            <p className="text-sm text-text-secondary mt-1">
-              Privacy-first data analysis • All processing runs locally
-            </p>
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-xl bg-[linear-gradient(135deg,#0066CC_0%,#0D9488_100%)] flex items-center justify-center shadow-lg shadow-primary/20">
+               <span className="text-white font-bold text-xl">G</span>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-text-primary tracking-tight">
+                Glimpse
+              </h1>
+              <p className="text-[10px] uppercase tracking-widest text-text-secondary font-semibold">
+                Privacy-First Data Analysis
+              </p>
+            </div>
           </div>
           <ThemeToggle />
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 px-6 py-12">
+      <main className="flex-1 px-6 py-12 relative">
+        {/* Background ambient glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 blur-[120px] pointer-events-none rounded-full" />
+        
         {analysisResult && datasetName ? (
           <AnalysisView
             datasetName={datasetName}
@@ -143,13 +151,16 @@ function App() {
             onClear={clearDataset}
           />
         ) : (
-          <div className="flex flex-col items-center justify-center min-h-[60vh]">
-            <div className="mb-8 text-center">
-              <h2 className="text-4xl font-bold leading-snug text-text-primary mb-2">
-                Get instant insights from your data
+          <div className="flex flex-col items-center justify-center min-h-[60vh] relative z-10">
+            <div className="mb-12 text-center max-w-2xl">
+              <h2 className="text-5xl font-extrabold leading-[1.15] text-text-primary mb-6 tracking-tight">
+                Get instant insights <br /> 
+                <span className="bg-[linear-gradient(135deg,#0066CC_0%,#0D9488_100%)] bg-clip-text text-transparent">from your data</span>
               </h2>
-              <p className="text-text-secondary">
-                Upload a CSV file to see statistics, distributions, and quality checks
+              <p className="text-lg text-text-secondary leading-relaxed">
+                Upload a CSV file to see statistics, distributions, and quality checks.
+                <br />
+                All processing happens locally on your machine.
               </p>
             </div>
 

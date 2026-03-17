@@ -61,6 +61,29 @@
   /* Special: Matrix Background */
   --color-matrix-char: #0066CC;
   --color-matrix-bg: #FFFFFF;
+
+  /* === PREMIUM DESIGN TOKENS === */
+  --gradient-brand: linear-gradient(135deg, #0066CC 0%, #0D9488 100%);
+  --gradient-brand-hover: linear-gradient(135deg, #0052A3 0%, #0B7A6F 100%);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-blur: blur(12px);
+}
+
+/* === UTILITIES === */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.glass-surface {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* === DARK MODE OVERRIDES === */
@@ -111,9 +134,33 @@
 
   --color-matrix-char: #3B9EFF;
   --color-matrix-bg: #0F172A;
+
+  /* === PREMIUM DESIGN TOKENS (DARK) === */
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(12px);
 }
 
-/* Column Detail Modal Animations */
+/* === UTILITIES === */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+.dark .glass-surface {
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-surface {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
 @keyframes slide-in-right {
   from {
     transform: translateX(100%);

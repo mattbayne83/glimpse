@@ -202,33 +202,40 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/30 z-40 transition-opacity duration-200"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="fixed top-0 right-0 bottom-0 w-full max-w-[480px] bg-bg-surface shadow-2xl z-50 overflow-y-auto animate-slide-in-right">
+      <div className="fixed top-0 right-0 bottom-0 w-full max-w-[500px] bg-bg-surface/80 backdrop-blur-xl border-l border-border-default shadow-2xl z-50 overflow-y-auto animate-slide-in-right">
         {/* Header */}
-        <div className="sticky top-0 bg-bg-surface border-b border-border-default px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-bg-surface/90 backdrop-blur-md border-b border-border-default px-8 py-6 flex items-center justify-between z-10">
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-text-primary truncate">{columnName}</h2>
-            <span
-              className={`inline-block mt-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${typeColors[type]}`}
-            >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </span>
+            <h2 className="text-2xl font-bold text-text-primary truncate tracking-tight">{columnName}</h2>
+            <div className="flex items-center gap-2 mt-2">
+              <span
+                className={`inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm ${typeColors[type]}`}
+              >
+                {type}
+              </span>
+              {distributionShape && (
+                <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-primary/10 text-primary border border-primary/20">
+                  {distributionShape}
+                </span>
+              )}
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="ml-4 p-2 text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors"
+            className="ml-4 p-2 text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-xl transition-all duration-200"
             aria-label="Close"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-8 space-y-8">
           {/* Statistics Section */}
           <section>
             <h3 className="text-sm font-semibold text-text-primary mb-3">Statistics</h3>
@@ -263,7 +270,7 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                       q75={analysis.stats.q75}
                       max={analysis.stats.max}
                       outlierCount={analysis.stats.boxPlot?.outliers.length || 0}
-                      width={432}
+                      width={400}
                       height={120}
                     />
                   </div>
@@ -319,7 +326,7 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                   <Histogram
                     bins={analysis.stats.histogram.bins}
                     counts={analysis.stats.histogram.counts}
-                    width={432}
+                    width={400}
                     height={200}
                     shapeLabel={distributionShape}
                   />

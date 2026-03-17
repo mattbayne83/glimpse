@@ -92,9 +92,10 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
     <div className="w-full max-w-2xl mx-auto">
       <div
         className={`
-          relative border-2 border-dashed rounded-lg p-12
-          transition-all duration-200 cursor-pointer shadow
-          ${isDragging ? 'border-primary bg-primary-light' : 'border-border-hover bg-bg-surface hover:border-text-tertiary'}
+          relative rounded-2xl p-16
+          transition-all duration-300 cursor-pointer glass-card
+          group hover:scale-[1.02] active:scale-[0.98]
+          ${isDragging ? 'border-primary shadow-[0_0_40px_rgba(0,102,204,0.1)] ring-2 ring-primary/20 bg-primary/5' : ''}
           ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
         `}
         onDragOver={handleDragOver}
@@ -102,6 +103,9 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
         onDrop={handleDrop}
         onClick={handleClick}
       >
+        {/* Animated background glow on hover */}
+        <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/[0.02] transition-colors rounded-2xl pointer-events-none" />
+        
         <input
           ref={fileInputRef}
           type="file"
@@ -111,29 +115,34 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
           disabled={isLoading}
         />
 
-        <div className="flex flex-col items-center gap-4 text-center">
+        <div className="flex flex-col items-center gap-6 text-center relative z-10">
           {isLoading ? (
             <>
-              <FileSpreadsheet className="w-16 h-16 text-primary animate-pulse" />
+              <div className="w-20 h-20 rounded-2xl bg-primary-light flex items-center justify-center animate-pulse">
+                <FileSpreadsheet className="w-10 h-10 text-primary" />
+              </div>
               <div>
-                <p className="text-lg font-medium text-text-primary">Analyzing your data...</p>
-                <p className="text-sm text-text-secondary mt-1">This may take a moment</p>
+                <p className="text-xl font-bold text-text-primary">Analyzing your data...</p>
+                <p className="text-sm text-text-secondary mt-1">Sifting through the rows and columns</p>
               </div>
             </>
           ) : (
             <>
-              <Upload className="w-16 h-16 text-text-tertiary" />
+              <div className="w-20 h-20 rounded-2xl bg-bg-hover group-hover:bg-primary-light flex items-center justify-center transition-colors duration-300 shadow-inner">
+                <Upload className="w-10 h-10 text-text-tertiary group-hover:text-primary transition-colors duration-300" />
+              </div>
               <div>
-                <p className="text-lg font-medium text-text-primary">
+                <p className="text-2xl font-bold text-text-primary tracking-tight">
                   Drop your CSV file here
                 </p>
-                <p className="text-sm text-text-secondary mt-1">
-                  or click to browse (max 10MB)
+                <p className="text-text-secondary mt-2">
+                  or click to browse your local files
                 </p>
               </div>
-              <div className="mt-2 px-4 py-2 bg-bg-hover rounded text-xs text-text-secondary">
-                <p className="font-medium">🔒 Privacy First</p>
-                <p className="mt-1 text-text-secondary">All analysis runs locally in your browser</p>
+              
+              <div className="mt-4 flex items-center gap-3 px-4 py-2 bg-bg-hover/50 backdrop-blur-sm rounded-full border border-border-default text-xs font-medium text-text-secondary shadow-sm">
+                <span className="flex h-2 w-2 rounded-full bg-success"></span>
+                <span>Privacy First: All processing runs locally</span>
               </div>
             </>
           )}

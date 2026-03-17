@@ -21,10 +21,10 @@ export function Histogram({ bins, counts, width = 300, height = 200, shapeLabel 
   const maxCount = Math.max(...counts);
 
   // Layout dimensions
-  const leftPadding = 42; // More space for Y-axis labels
-  const rightPadding = 16;
-  const topPadding = 20;
-  const bottomPadding = 32; // More space for X-axis labels
+  const leftPadding = 48; // Space for Y-axis labels
+  const rightPadding = 48; // Balanced space (matches RangeIndicator)
+  const topPadding = 40; // Balanced vertical space
+  const bottomPadding = 40; // Space for X-axis labels
 
   const chartHeight = height - topPadding - bottomPadding;
   const chartWidth = width - leftPadding - rightPadding;
@@ -99,7 +99,7 @@ export function Histogram({ bins, counts, width = 300, height = 200, shapeLabel 
 
   return (
     <div className="relative group">
-      <svg width={width} height={height} className="bg-bg-page/50 backdrop-blur-sm border border-border-default rounded-xl overflow-hidden">
+      <svg width={width} height={height} className="overflow-visible">
         <defs>
           <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={fillColor} stopOpacity="0.8" />

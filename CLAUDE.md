@@ -43,6 +43,8 @@ Upload CSV files and get instant statistical insights — all processed locally 
   - Dashed gridlines, Y-axis frequency labels, X-axis bin labels
   - Catmull-Rom smoothed curve with gradient fill
   - Shape detection badge (Normal, Right-skewed, etc.)
+  - Transparent SVG with `overflow-visible` (matches RangeIndicator pattern)
+  - 48px padding on all sides for visual consistency
 - **RangeIndicator** - Visual quartile display (box plot style) showing min/Q1/Q2/Q3/max + outlier count
 - **MiniHistogram** - Simplified histogram for snapshot cards (no axes, just bars)
 - **CorrelationMatrix** - Interactive correlation heatmap with color scale (-1 to +1), theme-aware
