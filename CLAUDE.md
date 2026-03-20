@@ -22,11 +22,12 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - **Zero config**: Drop a CSV, get insights immediately
 
 ### Component Structure
-- **App.tsx** - Main application, file upload orchestration, Pyodide initialization (main thread), error handling, Matrix background in header/footer, theme sync
+- **App.tsx** - Main application, file upload orchestration, Pyodide initialization (main thread), error handling, Matrix background in header/footer, theme sync, keyboard shortcuts listener
 - **FileUpload** - Drag-and-drop CSV uploader with validation (max 10MB) + 3 horizontal sample dataset cards (Iris, E-Commerce, SaaS)
 - **ErrorDisplay** - Rich error UI with categorized messages, suggestions, and retry button
 - **ThemeToggle** - 3-state theme switcher (Light/Dark/System) with persistence
-- **AnalysisView** - Results container with 3-tab interface + export/copy features + clear confirmation modal
+- **KeyboardShortcutsModal** - Help modal showing all keyboard shortcuts (triggered by "?" key)
+- **AnalysisView** - Results container with 3-tab interface + export/copy features + clear confirmation modal + keyboard navigation (arrows/numbers)
   - **OverviewTab** - Dataset summary + visual column map + correlation matrix (when 2+ numeric cols) + copy-to-clipboard
   - **ColumnsTab** - Responsive grid of snapshot cards (1-4 columns) with type filtering, search, and click-to-detail
   - **QualityTab** - Comprehensive missing data table + duplicate/cardinality warnings
@@ -34,7 +35,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
   - Numeric: Mini histogram + 6 key stats (Mean, Median, Min, Max, Std Dev, Missing)
   - Categorical: Top 3 horizontal bar chart + unique count, missing, most common value
   - DateTime: Date range + unique count, missing, min/max dates
-- **ColumnDetailModal** - Full-screen side modal with comprehensive column analysis
+- **ColumnDetailModal** - Full-screen side modal with comprehensive column analysis (ESC to close)
   - Statistics section with insights (skewness, spread, completeness badges)
   - Distribution histogram with shape detection (Normal, Right-skewed, Left-skewed, Bimodal, Uniform)
   - Range indicator showing quartiles + outlier count
@@ -102,7 +103,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/index.css` - Tailwind imports + theme config
 
 ### Components
-- `src/components/AnalysisView.tsx` (~540 lines) - 3-tab results view: Overview (with correlation)/Columns (grid layout)/Quality + export/copy + clear modal
+- `src/components/AnalysisView.tsx` (~540 lines) - 3-tab results view: Overview (with correlation)/Columns (grid layout)/Quality + export/copy + clear modal + keyboard navigation
 - `src/components/ColumnDetailModal.tsx` (~427 lines) - Full-screen side modal with comprehensive column analysis (stats, distribution, correlations)
 - `src/components/ColumnPreviewCard.tsx` (~205 lines) - Compact snapshot card for grid view (viz + key metrics)
 - `src/components/Histogram.tsx` (~235 lines) - Professional statistical histogram with axes, gridlines, smooth curve, and shape detection
@@ -112,6 +113,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/components/CorrelationMatrix.tsx` (~140 lines) - Interactive correlation heatmap with blue-white-red gradient scale (theme-aware)
 - `src/components/MissingDataTable.tsx` (~230 lines) - Comprehensive sortable missing data analysis table
 - `src/components/ConfirmModal.tsx` (~60 lines) - Reusable confirmation dialog with backdrop
+- `src/components/KeyboardShortcutsModal.tsx` (~90 lines) - Help modal showing keyboard shortcuts (triggered by "?" key)
 - `src/components/MatrixBackground.tsx` (~90 lines) - Animated falling characters background (canvas-based, theme-aware via props)
 - `src/components/FileUpload.tsx` (~217 lines) - Drag-and-drop uploader with 10MB limit + 3 horizontal sample dataset cards (icon left, content right)
 - `src/components/ThemeToggle.tsx` (~30 lines) - 3-state theme switcher (Light/Dark/System) with icon and label
@@ -246,6 +248,12 @@ Overview / Columns / Quality Tabs
 - **Impact**: Prevents KeyError when analyzing datasets with boolean flags (e.g., `premium_member`, `email_subscribed`)
 
 ### UI/UX Enhancements
+- **Keyboard Shortcuts** (March 2026): Power user navigation
+  - `ESC` - Close modal or show clear confirmation
+  - `←` / `→` - Navigate between tabs
+  - `1` / `2` / `3` - Jump to Overview/Columns/Quality tabs
+  - `?` - Show keyboard shortcuts help modal
+  - Works globally (guards against input field focus)
 - **Dark Mode**: 3-state theme system (Light/Dark/System)
   - Theme toggle in header with icon and label
   - System mode follows OS preference automatically

@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { FileUpload } from './components/FileUpload';
 import { AnalysisView } from './components/AnalysisView';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { MatrixBackground } from './components/MatrixBackground';
 import { ThemeToggle } from './components/ThemeToggle';
+import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { useAppStore } from './store/useAppStore';
 import { useThemeSync } from './hooks/useThemeSync';
 import { useThemeColors } from './hooks/useThemeColors';
@@ -11,6 +12,7 @@ import { getPyodide } from './utils/pyodide';
 import { analyzeData } from './utils/analyzeData';
 import { SAMPLE_DATASETS, type SampleDataset } from './data/sampleDatasets';
 import { categorizeError } from './utils/errorHandler';
+import { HelpCircle } from 'lucide-react';
 
 function App() {
   const {
@@ -34,13 +36,18 @@ function App() {
   const [pyodideProgress, setPyodideProgress] = useState(0);
   const [error, setError] = useState<unknown | null>(null);
   const [lastFailedFile, setLastFailedFile] = useState<{ name: string; text: string } | null>(null);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
   // Shared analysis logic (main thread fallback)
-  const runAnalysis = useCallback(async (name: string, csvText: string) => {
+  const runAnalysis = useCallback(async (
+    name: string,
+    data: string,
+    fileType: 'csv' | 'xlsx' = 'csv'
+  ) => {
     try {
       setError(null);
       setLastFailedFile(null);
-      setDataset(name, csvText);
+      setDataset(name, data);
 
       // Initialize Pyodide (first time only)
       setIsPyodideLoading(true);
@@ -52,14 +59,14 @@ function App() {
 
       // Run analysis on main thread
       setIsAnalyzing(true);
-      const result = await analyzeData(csvText);
+      const result = await analyzeData(data, fileType);
       setAnalysisResult(result);
       setIsAnalyzing(false);
     } catch (err) {
       setIsAnalyzing(false);
       setIsPyodideLoading(false);
       setError(err);
-      setLastFailedFile({ name, text: csvText });
+      setLastFailedFile({ name, text: data });
       console.error('Analysis failed:', err);
     }
   }, [setDataset, setAnalysisResult]);
@@ -67,8 +74,21 @@ function App() {
   // Handle file upload
   const handleFileSelect = useCallback(async (file: File) => {
     try {
-      const text = await file.text();
-      await runAnalysis(file.name, text);
+      const fileType = file.name.endsWith('.xlsx') ? 'xlsx' : 'csv';
+
+      if (fileType === 'xlsx') {
+        // Convert Excel file to base64 for Pyodide
+        const arrayBuffer = await file.arrayBuffer();
+        const base64 = btoa(
+          new Uint8Array(arrayBuffer)
+            .reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+        await runAnalysis(file.name, base64, 'xlsx');
+      } else {
+        // Read CSV as text
+        const text = await file.text();
+        await runAnalysis(file.name, text, 'csv');
+      }
     } catch (error) {
       console.error('File read failed:', error);
       setError(new Error('Failed to read file. The file may be corrupted or inaccessible.'));
@@ -108,6 +128,25 @@ function App() {
     }
   }, [lastFailedFile, runAnalysis]);
 
+  // Global keyboard shortcut for "?" to show help
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Show shortcuts modal on "?" key
+      if (e.key === '?') {
+        e.preventDefault();
+        setShowShortcutsModal(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div className="min-h-screen bg-bg-page font-sans flex flex-col">
       {/* Header */}
@@ -135,7 +174,17 @@ function App() {
               </p>
             </div>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowShortcutsModal(true)}
+              className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors duration-150 active:scale-95"
+              title="Keyboard Shortcuts (?)"
+              aria-label="Show keyboard shortcuts"
+            >
+              <HelpCircle className="w-5 h-5" />
+            </button>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -158,7 +207,7 @@ function App() {
                 <span className="bg-[linear-gradient(135deg,#0066CC_0%,#0D9488_100%)] bg-clip-text text-transparent">from your data</span>
               </h2>
               <p className="text-lg text-text-secondary leading-relaxed">
-                Upload a CSV file to see statistics, distributions, and quality checks.
+                Upload a CSV or Excel file to see statistics, distributions, and quality checks.
                 <br />
                 All processing happens locally on your machine.
               </p>
@@ -210,6 +259,12 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
+      />
 
       {/* Footer */}
       <footer className="relative border-t border-border-default px-6 py-4 bg-bg-surface overflow-hidden">

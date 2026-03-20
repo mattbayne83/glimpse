@@ -22,7 +22,7 @@ export function ConfirmModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -30,7 +30,7 @@ export function ConfirmModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-bg-surface rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+      <div className="relative bg-bg-surface rounded-lg shadow-xl w-full max-w-[calc(100vw-2rem)] md:max-w-md p-6">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 w-10 h-10 rounded-full bg-warning-bg flex items-center justify-center">
             <AlertTriangle className="w-5 h-5 text-warning" />

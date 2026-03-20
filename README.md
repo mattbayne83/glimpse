@@ -37,6 +37,9 @@ Get instant insights from CSV files with beautiful visualizations and comprehens
   - Overview: High-level dataset summary
   - Columns: Detailed per-column analysis with filters
   - Quality: Data quality issues and recommendations
+- **Keyboard Shortcuts** - Power user navigation
+  - `ESC` to close modals, `←`/`→` to navigate tabs, `1`/`2`/`3` to jump to tabs
+  - Press `?` to see all shortcuts
 - **Column Filtering** - Filter by type (All/Numeric/Categorical/DateTime)
 - **Persistent Results** - Analysis cached in localStorage
 
@@ -125,10 +128,9 @@ npm run lint
 See [BACKLOG.md](BACKLOG.md) for full feature list.
 
 **Coming Soon:**
-- Example dataset button
-- Export analysis as JSON/PDF
-- Correlation matrix heatmap
-- Excel file support
+- Responsive mobile design
+- Excel file support (.xlsx)
+- Advanced visualizations (scatter plots, time series)
 
 ## Contributing
 

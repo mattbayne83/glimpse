@@ -45,8 +45,17 @@ export async function getPyodide(
 
         // Pyodide core loaded - 60% complete
         console.log('📦 Loading pandas, numpy...');
-        onProgress?.('Loading pandas package...', 60);
+        onProgress?.('Loading pandas and numpy packages...', 60);
         await pyodide.loadPackage(['pandas', 'numpy']);
+
+        // Install openpyxl via micropip (not in built-in packages)
+        console.log('📦 Installing openpyxl via micropip...');
+        onProgress?.('Installing openpyxl for Excel support...', 80);
+        await pyodide.loadPackage(['micropip']);
+        await pyodide.runPythonAsync(`
+          import micropip
+          await micropip.install('openpyxl')
+        `);
 
         // Packages loaded - 100% complete
         console.log('✅ Pyodide ready!');

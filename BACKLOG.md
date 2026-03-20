@@ -5,10 +5,14 @@ _None - ready for next feature!_
 
 ## Next Up (Priority)
 1. **Responsive Mobile Design** - Better experience on tablets/phones
-2. **Keyboard Shortcuts Help Modal** - Visual guide showing available shortcuts (press "?")
-3. **Sample Dataset Picker** - Dropdown to choose from multiple example datasets
+2. **Excel File Support** - Upload and analyze .xlsx files via Pyodide openpyxl
 
 ## Recently Added ✨
+- [x] **Keyboard Shortcuts** (March 17, 2026) - Power user navigation
+  - ESC, arrow keys, number keys for navigation
+  - "?" key opens help modal
+  - Global listeners with input field guards
+  - See `KeyboardShortcutsModal.tsx` component
 - [x] **Production-Quality Sample Datasets** (March 16, 2026) - Dramatically improved demo experience
   - Replaced toy datasets (150 rows, 5 cols) with realistic production data
   - **E-Commerce Customers**: 3,000 rows × 28 columns - revenue, engagement, segmentation
@@ -18,11 +22,6 @@ _None - ready for next feature!_
   - All datasets include realistic correlations, missing data patterns, and quality issues
   - Lazy-loaded from `/public` to keep bundle size small
   - Kept Iris dataset as instant-load demo option (no network request)
-- [x] **Keyboard Shortcuts** (March 15, 2026) - Power user navigation built-in
-  - ESC: Close modal or show clear confirmation
-  - Arrow keys (←/→): Navigate between tabs
-  - Number keys (1/2/3): Jump directly to Overview/Columns/Quality tabs
-  - Works throughout the app without needing focus
 - [x] **Sample Dataset Library** (March 15, 2026) - Multiple example datasets available
   - Pre-loaded datasets for instant demos
   - Easy selection via FileUpload component
@@ -51,7 +50,6 @@ _None - ready for next feature!_
   - Search icon + placeholder text
 
 ## Polish & UX
-- [ ] Keyboard shortcuts (Esc to clear, etc.)
 - [ ] Responsive design improvements for mobile
 
 ## Advanced Features

@@ -2,31 +2,54 @@ import { runPython } from './pyodide';
 import type { AnalysisResult } from '../types/analysis';
 
 /**
- * Analyze a CSV dataset using Python/pandas.
+ * Analyze a CSV or Excel dataset using Python/pandas.
  * Returns comprehensive statistics and quality metrics.
  */
-export async function analyzeData(csvData: string): Promise<AnalysisResult> {
+export async function analyzeData(
+  data: string,
+  fileType: 'csv' | 'xlsx' = 'csv'
+): Promise<AnalysisResult> {
   // Python analysis script
   const pythonCode = `
 import pandas as pd
 import numpy as np
-from io import StringIO
+from io import StringIO, BytesIO
 import json
 import sys
+import base64
 
-# Load CSV with better error handling
-csv_data = """${csvData.replace(/"/g, '\\"')}"""
+# Load data with better error handling
+file_type = "${fileType}"
 
 try:
-    df = pd.read_csv(StringIO(csv_data))
+    if file_type == "xlsx":
+        # Excel file - decode base64 and read with pandas
+        excel_data = """${data}"""
+        excel_bytes = base64.b64decode(excel_data)
+        df = pd.read_excel(BytesIO(excel_bytes), engine='openpyxl')
+        # Note: Uses first sheet by default
+    else:
+        # CSV file - read from string
+        csv_data = """${data.replace(/"/g, '\\"')}"""
+        df = pd.read_csv(StringIO(csv_data))
 except pd.errors.EmptyDataError:
-    raise ValueError("CSV file is empty or contains no data")
+    raise ValueError("File is empty or contains no data")
 except pd.errors.ParserError as e:
-    raise ValueError(f"CSV parsing failed: {str(e)}. Check that your file uses comma delimiters and proper quoting.")
+    raise ValueError(f"File parsing failed: {str(e)}. Check that your file uses comma delimiters and proper quoting.")
 except UnicodeDecodeError as e:
-    raise ValueError(f"File encoding error: {str(e)}. Save your CSV with UTF-8 encoding.")
+    raise ValueError(f"File encoding error: {str(e)}. Save your file with UTF-8 encoding.")
+except ValueError as e:
+    # Handle Excel-specific errors
+    if "Excel" in str(e) or "openpyxl" in str(e):
+        raise ValueError(f"Excel file could not be read: {str(e)}. File may be corrupted or not a valid Excel file.")
+    raise
 except Exception as e:
-    raise ValueError(f"Failed to read CSV: {str(e)}")
+    error_msg = str(e).lower()
+    if "no default engine" in error_msg or "openpyxl" in error_msg:
+        raise ValueError("Excel file could not be read. openpyxl package is required but not loaded.")
+    elif "worksheet" in error_msg and "not found" in error_msg:
+        raise ValueError("Excel file has no data sheets or sheets are empty.")
+    raise ValueError(f"Failed to read file: {str(e)}")
 
 # Validate we have data
 if df.empty:

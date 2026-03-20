@@ -51,15 +51,16 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
     }
   };
 
-  // Cell size calculation
-  const cellSize = Math.max(60, Math.min(100, 600 / columns.length));
-  const fontSize = cellSize > 80 ? 'text-xs' : 'text-[10px]';
+  // Cell size calculation - smaller on mobile
+  const baseCellSize = Math.max(60, Math.min(100, 600 / columns.length));
+  const mobileCellSize = Math.max(48, Math.min(80, 400 / columns.length));
+  const fontSize = baseCellSize > 80 ? 'text-xs' : 'text-[10px]';
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
       <div className="inline-block min-w-full">
         {/* Legend */}
-        <div className="mb-4 flex items-center gap-4 text-sm text-text-secondary">
+        <div className="mb-4 flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-xs md:text-sm text-text-secondary">
           <div className="flex items-center gap-2">
             <div className="w-12 h-4 rounded" style={{ background: `linear-gradient(to right, ${negativeColorHex}, #FFFFFF, ${positiveColorHex})` }} />
             <span>-1 (negative) → 0 → +1 (positive)</span>
@@ -70,8 +71,9 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
         <div
           className="grid border border-border-default rounded-lg overflow-hidden bg-bg-surface shadow-sm"
           style={{
-            gridTemplateColumns: `auto repeat(${columns.length}, ${cellSize}px)`,
-            gridTemplateRows: `auto repeat(${columns.length}, ${cellSize}px)`,
+            gridTemplateColumns: `auto repeat(${columns.length}, var(--cell-size, ${baseCellSize}px))`,
+            gridTemplateRows: `auto repeat(${columns.length}, var(--cell-size, ${baseCellSize}px))`,
+            ['--cell-size' as string]: window.innerWidth < 768 ? `${mobileCellSize}px` : `${baseCellSize}px`,
           }}
         >
           {/* Top-left corner (empty) */}

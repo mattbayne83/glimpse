@@ -260,25 +260,26 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
   return (
     <div className="w-full max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-4xl font-bold leading-snug text-text-primary">{datasetName}</h1>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="min-w-0">
+          <h1 className="text-3xl md:text-4xl font-bold leading-snug text-text-primary truncate">{datasetName}</h1>
           <p className="text-sm text-text-secondary mt-1">
             {overview.rows.toLocaleString()} rows × {overview.columns} columns
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={handleExportMarkdown}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm bg-primary text-white hover:bg-primary-hover rounded-md transition-colors duration-150 font-medium shadow-sm whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm bg-primary text-white hover:bg-primary-hover rounded-md transition-colors duration-150 font-medium shadow-sm whitespace-nowrap active:scale-95"
             title="Download complete analysis report as markdown file"
           >
             <Download className="w-4 h-4" />
-            Export Report
+            <span className="hidden sm:inline">Export Report</span>
+            <span className="sm:hidden">Export</span>
           </button>
           <button
             onClick={() => setShowClearModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-text-secondary hover:text-error hover:bg-error-bg border border-border-default rounded-md transition-colors duration-150 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-text-secondary hover:text-error hover:bg-error-bg border border-border-default rounded-md transition-colors duration-150 whitespace-nowrap active:scale-95"
             title="Remove current analysis and start over"
           >
             <X className="w-4 h-4" />

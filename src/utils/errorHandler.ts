@@ -30,6 +30,35 @@ export function categorizeError(error: unknown): ErrorInfo {
     };
   }
 
+  // Excel-specific errors
+  if (errorString.includes('excel') || errorString.includes('openpyxl') || errorString.includes('no default engine')) {
+    return {
+      title: 'Excel File Error',
+      message: 'The Excel file could not be read.',
+      suggestions: [
+        'Ensure the file is a valid Excel file (.xlsx format)',
+        'Try re-saving the file in Excel',
+        'Check that the file is not password-protected',
+        'As an alternative, export as CSV and upload that instead',
+      ],
+      canRetry: false,
+    };
+  }
+
+  // Excel worksheet errors
+  if (errorString.includes('worksheet') && errorString.includes('not found')) {
+    return {
+      title: 'Excel Sheet Not Found',
+      message: 'The Excel file has no data sheets or sheets are empty.',
+      suggestions: [
+        'Ensure the Excel file has at least one sheet with data',
+        'Check that the first sheet contains your data',
+        'Try re-saving the file',
+      ],
+      canRetry: false,
+    };
+  }
+
   // CSV parsing errors
   if (errorString.includes('csv') || errorString.includes('parse') || errorString.includes('delimiter')) {
     return {

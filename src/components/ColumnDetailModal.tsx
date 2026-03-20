@@ -207,9 +207,9 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
       />
 
       {/* Modal */}
-      <div className="fixed top-0 right-0 bottom-0 w-full max-w-[500px] bg-bg-surface/80 backdrop-blur-xl border-l border-border-default shadow-2xl z-50 overflow-y-auto animate-slide-in-right">
+      <div className="fixed top-0 right-0 bottom-0 w-full md:max-w-[500px] bg-bg-surface/80 backdrop-blur-xl md:border-l border-border-default shadow-2xl z-50 overflow-y-auto animate-slide-in-right">
         {/* Header */}
-        <div className="sticky top-0 bg-bg-surface/90 backdrop-blur-md border-b border-border-default px-8 py-6 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-bg-surface/90 backdrop-blur-md border-b border-border-default px-4 md:px-8 py-4 md:py-6 flex items-center justify-between z-10">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold text-text-primary truncate tracking-tight">{columnName}</h2>
             <div className="flex items-center gap-2 mt-2">
@@ -227,7 +227,7 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
           </div>
           <button
             onClick={onClose}
-            className="ml-4 p-2 text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-xl transition-all duration-200"
+            className="ml-2 md:ml-4 p-2 md:p-2.5 text-text-secondary hover:text-text-primary active:text-text-primary hover:bg-bg-hover active:bg-bg-hover rounded-xl transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95"
             aria-label="Close"
           >
             <X className="w-6 h-6" />
@@ -235,7 +235,7 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
         </div>
 
         {/* Content */}
-        <div className="p-8 space-y-8">
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8 overflow-x-hidden">
           {/* Statistics Section */}
           <section>
             <h3 className="text-sm font-semibold text-text-primary mb-3">Statistics</h3>
@@ -261,18 +261,20 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                   <div className="border-t border-border-default my-3" />
 
                   {/* Visual range indicator */}
-                  <div>
+                  <div className="overflow-x-auto">
                     <h4 className="text-xs font-medium text-text-secondary mb-3">Distribution Range</h4>
-                    <RangeIndicator
-                      min={analysis.stats.min}
-                      q25={analysis.stats.q25}
-                      q50={analysis.stats.q50}
-                      q75={analysis.stats.q75}
-                      max={analysis.stats.max}
-                      outlierCount={analysis.stats.boxPlot?.outliers.length || 0}
-                      width={400}
-                      height={120}
-                    />
+                    <div className="min-w-[300px] max-w-full">
+                      <RangeIndicator
+                        min={analysis.stats.min}
+                        q25={analysis.stats.q25}
+                        q50={analysis.stats.q50}
+                        q75={analysis.stats.q75}
+                        max={analysis.stats.max}
+                        outlierCount={analysis.stats.boxPlot?.outliers.length || 0}
+                        width={Math.min(400, (typeof window !== 'undefined' ? window.innerWidth : 400) - 120)}
+                        height={120}
+                      />
+                    </div>
                   </div>
 
                   {/* Divider */}
@@ -322,14 +324,16 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
               <h3 className="text-sm font-semibold text-text-primary mb-3">Distribution</h3>
 
               {/* Histogram with shape curve */}
-              <div className="bg-bg-page rounded-lg p-4">
+              <div className="bg-bg-page rounded-lg p-4 overflow-x-auto">
+                <div className="min-w-[300px] max-w-full">
                   <Histogram
                     bins={analysis.stats.histogram.bins}
                     counts={analysis.stats.histogram.counts}
-                    width={400}
+                    width={Math.min(400, (typeof window !== 'undefined' ? window.innerWidth : 400) - 120)}
                     height={200}
                     shapeLabel={distributionShape}
                   />
+                </div>
               </div>
             </section>
           )}

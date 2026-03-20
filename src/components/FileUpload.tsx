@@ -17,8 +17,8 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): string | null => {
-    if (!file.name.endsWith('.csv')) {
-      return 'Please upload a CSV file';
+    if (!file.name.endsWith('.csv') && !file.name.endsWith('.xlsx')) {
+      return 'Please upload a CSV or Excel file (.xlsx)';
     }
 
     if (file.size > MAX_FILE_SIZE) {
@@ -98,7 +98,7 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
         <input
           ref={fileInputRef}
           type="file"
-          accept=".csv"
+          accept=".csv,.xlsx"
           onChange={handleFileInputChange}
           className="hidden"
           disabled={isLoading}
@@ -122,7 +122,7 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
               </div>
               <div>
                 <p className="text-2xl font-bold text-text-primary tracking-tight">
-                  Drop your CSV file here
+                  Drop your CSV or Excel file here
                 </p>
                 <p className="text-text-secondary mt-2">
                   or click to browse your local files

@@ -9,12 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - Responsive mobile design
-- Keyboard shortcuts help modal (press "?")
 - Excel file support (.xlsx)
 
-## [0.8.0] - 2026-03-16
+## [0.8.0] - 2026-03-17
 
-### Added - Column Detail Modal & Enhanced UI
+### Added - Column Detail Modal & Enhanced UI & Keyboard Shortcuts
 - **Column Detail Modal** - Full-screen side modal for deep column analysis
   - Click any column in the Columns tab to open detailed view
   - Statistics section with smart insights (skewness, spread, completeness badges)
@@ -45,6 +44,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Box Plot Removal** - Deleted redundant box plot from detail modal
   - Range indicator already shows quartiles + outlier count
   - Reduced visual clutter while keeping all essential information
+- **Keyboard Shortcuts** - Power user navigation (March 17, 2026)
+  - `ESC` key closes modals or shows clear confirmation
+  - Arrow keys (`←`/`→`) navigate between tabs
+  - Number keys (`1`/`2`/`3`) jump to Overview/Columns/Quality tabs
+  - `?` key opens keyboard shortcuts help modal
+  - Global listeners with input field guards (doesn't interfere with typing)
 
 ### Changed
 - **Columns Tab** - Grid layout replaced vertical list for better engagement
@@ -57,9 +62,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Simplified UI while maintaining all information
 
 ### Technical
-- New components: `ColumnDetailModal.tsx` (427 lines), `ColumnPreviewCard.tsx` (205 lines), `RangeIndicator.tsx` (239 lines), `MiniHistogram.tsx` (52 lines)
+- New components: `ColumnDetailModal.tsx` (427 lines), `ColumnPreviewCard.tsx` (205 lines), `RangeIndicator.tsx` (239 lines), `MiniHistogram.tsx` (52 lines), `KeyboardShortcutsModal.tsx` (90 lines)
 - Enhanced: `Histogram.tsx` (40 → 235 lines) - complete rewrite with axes, gridlines, curve smoothing
-- Enhanced: `AnalysisView.tsx` - grid layout for Columns tab, modal state management
+- Enhanced: `AnalysisView.tsx` - grid layout for Columns tab, modal state management, keyboard navigation
+- Enhanced: `App.tsx` - keyboard shortcuts listener for "?" key
 - Distribution shape detection algorithm in `ColumnDetailModal.tsx`
 
 ## [0.7.0] - 2026-03-16
