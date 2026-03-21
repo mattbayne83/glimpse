@@ -18,7 +18,7 @@ export interface SampleDataset {
 export const ECOMMERCE_DATASET: SampleDataset = {
   name: 'E-Commerce Customers',
   description: 'Customer revenue, engagement & demographics',
-  filePath: '/ecommerce_customers.csv',
+  filePath: '/ecommerce_customers.csv.gz',
   rows: 3000,
   columns: 28,
 };
@@ -30,7 +30,7 @@ export const ECOMMERCE_DATASET: SampleDataset = {
 export const SAAS_DATASET: SampleDataset = {
   name: 'SaaS Product Usage',
   description: 'User retention, churn prediction & feature adoption',
-  filePath: '/saas_usage.csv',
+  filePath: '/saas_usage.csv.gz',
   rows: 5000,
   columns: 32,
 };
@@ -42,7 +42,7 @@ export const SAAS_DATASET: SampleDataset = {
 export const HEALTHCARE_DATASET: SampleDataset = {
   name: 'Healthcare Patient Visits',
   description: '4,000 patient encounters with vitals, labs & diagnoses',
-  filePath: '/healthcare_patient_visits.csv',
+  filePath: '/healthcare_patient_visits.csv.gz',
   rows: 4000,
   columns: 31,
 };
@@ -54,7 +54,7 @@ export const HEALTHCARE_DATASET: SampleDataset = {
 export const HR_DATASET: SampleDataset = {
   name: 'Employee HR Analytics',
   description: '2,500 employees with salary, performance & attrition data',
-  filePath: '/hr_analytics.csv',
+  filePath: '/hr_analytics.csv.gz',
   rows: 2500,
   columns: 33,
 };
@@ -66,7 +66,7 @@ export const HR_DATASET: SampleDataset = {
 export const RETAIL_SALES_DATASET: SampleDataset = {
   name: 'Retail Sales (Daily)',
   description: '2 years of daily sales with seasonality & trends',
-  filePath: '/retail_sales_daily.csv',
+  filePath: '/retail_sales_daily.csv.gz',
   rows: 731,
   columns: 9,
 };

@@ -92,7 +92,6 @@ export default function TimeSeriesSlide({ slide }: TimeSeriesSlideProps) {
 function TimeSeriesViz({
   periodLabel,
   confidence,
-  estimatedPeriod: _estimatedPeriod,
 }: {
   periodLabel: string;
   confidence: string;

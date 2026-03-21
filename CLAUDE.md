@@ -109,6 +109,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/components/AnalysisView.tsx` (~540 lines) - 3-tab results view: Overview (with correlation)/Columns (grid layout)/Quality + export/copy + clear modal + keyboard navigation
 - `src/components/ColumnDetailModal.tsx` (~415 lines) - Full-screen side modal with comprehensive column analysis (stats, distribution, correlations, time series)
 - `src/components/ColumnPreviewCard.tsx` (~205 lines) - Compact snapshot card for grid view (viz + key metrics)
+- `src/components/CategoryBarChart.tsx` (~65 lines) - Horizontal bar chart for top-N categorical values (used in Story Mode)
 - `src/components/Histogram.tsx` (~235 lines) - Professional statistical histogram with axes, gridlines, smooth curve, and shape detection
 - `src/components/DistributionFitOverlay.tsx` (~150 lines) - Normal distribution curve overlay on histograms for distribution comparison
 - `src/components/TimeSeriesPlot.tsx` (~295 lines) - Time series visualization with trend lines and seasonality detection (FFT-powered)
@@ -127,7 +128,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/components/ColumnMap.tsx` (~80 lines) - Visual column structure chart
 - `src/components/TabNavigation.tsx` (~50 lines) - Tab switcher with badge counts
 
-### Story Mode Components (~1,365 total lines) - **Theme-aware (March 21, 2026)**
+### Story Mode Components (~1,365 total lines) - **Interactive Visualizations (Phase 4, March 21, 2026)**
 - `src/components/story/StoryMode.tsx` (~350 lines) - Full-screen cinematic presentation container, slide navigation, keyboard shortcuts (←/→/ESC), progress tracking, **respects light/dark theme**
 - `src/components/story/StorySlide.tsx` (~100 lines) - Individual slide wrapper with fade-in animations and centered layout
 - `src/components/story/StoryProgress.tsx` (~50 lines) - Progress dot indicator showing current slide position, **theme-aware colors**
@@ -135,11 +136,11 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/components/story/slides/NarrativeText.tsx` (~45 lines) - Formatted narrative text with highlighting and emphasis, **theme-aware**
 - `src/components/story/slides/TitleSlide.tsx` (~90 lines) - Opening slide with dataset name, dimensions, and insight count teaser, **theme-aware**
 - `src/components/story/slides/InsightsPreviewSlide.tsx` (~150 lines) - Grid of insight type cards showing what was auto-detected, **theme-aware**
-- `src/components/story/slides/CorrelationSlide.tsx` (~130 lines) - Correlation narrative with strength, direction, and significance, **SVG uses `currentColor` pattern**
-- `src/components/story/slides/DistributionSlide.tsx` (~140 lines) - Distribution characteristics narrative (range, spread, outliers), **theme-aware**
-- `src/components/story/slides/TimeSeriesSlide.tsx` (~120 lines) - Temporal pattern narrative with seasonality period detection, **SVG uses `currentColor` pattern**
-- `src/components/story/slides/OutlierSlide.tsx` (~110 lines) - Extreme value analysis with z-score and impact metrics, **theme-aware**
-- `src/components/story/slides/CategorySlide.tsx` (~100 lines) - Dominant category analysis with concentration insights, **theme-aware gradients**
+- `src/components/story/slides/CorrelationSlide.tsx` (~130 lines) - Correlation narrative with strength, direction, and significance, **SVG scatter plot**
+- `src/components/story/slides/DistributionSlide.tsx` (~85 lines) - **Histogram + RangeIndicator** showing distribution shape and quartiles
+- `src/components/story/slides/TimeSeriesSlide.tsx` (~180 lines) - **TimeSeriesPlot** with trend lines and seasonality shading (fallback to SVG wave)
+- `src/components/story/slides/OutlierSlide.tsx` (~115 lines) - **RangeIndicator** visualizes outlier positions vs quartiles
+- `src/components/story/slides/CategorySlide.tsx` (~60 lines) - **CategoryBarChart** shows top 5 categories (not just #1)
 - `src/components/story/slides/QualitySlide.tsx` (~100 lines) - Data quality issues (duplicates, missing >50%, high cardinality >100), **uses semantic color tokens**
 - `src/components/story/slides/NextStepsSlide.tsx` (~90 lines) - Actionable recommendations based on detected patterns, **theme-aware**
 - `src/components/story/slides/MockInsightSlide.tsx` (~80 lines) - Phase 1 placeholder slide (deprecated)
@@ -224,13 +225,13 @@ Navigation: ←/→ arrows, ESC to exit, progress dots
 - **Slide transitions**: CSS fade-in animation on mount (300ms)
 - **Full-screen mode**: Fixed overlay (z-50) with theme-aware background (light or dark)
 
-### Current State (v0.12.0+)
+### Current State (v0.13.0+)
 - ✅ **Phase 1-2 Complete**: All slide components implemented with text-based narratives
 - ✅ **Dark mode integration** (March 21, 2026): All slides respect light/dark theme selection
+- ✅ **Phase 4 Complete** (March 21, 2026): Interactive chart visualizations integrated into slides
 - ✅ **Insight detection**: Smart pattern recognition from existing analysis data
 - ✅ **Navigation**: Full keyboard control + progress tracking
-- ⏸️ **Phase 3 Deferred**: Standalone HTML export (planned for v0.13.0)
-- ⏸️ **Phase 4 Deferred**: Interactive chart visualizations in slides (currently text narratives)
+- ⏸️ **Phase 3 Deferred**: Standalone HTML export (planned for v0.14.0)
 
 ### Key Gotchas
 - **JSX `>` escaping**: Use `&gt;` in text (e.g., ">50% missing" → "&gt;50% missing")
@@ -238,6 +239,7 @@ Navigation: ←/→ arrows, ESC to exit, progress dots
 - **No raw data access**: Story mode uses aggregated stats from `analysisResult` only
 - **Conditional rendering**: QualitySlide returns `null` if no issues detected
 - **Theme integration** (March 21, 2026): All slides use semantic Tailwind classes (`text-text-primary`, `bg-bg-elevated`, etc.) instead of hardcoded colors. SVG elements use `currentColor` pattern for automatic theme adaptation.
+- **Phase 4 Visualizations** (March 21, 2026): Hybrid approach - narratives ALONGSIDE charts (not replacing them). Detectors pass visualization data (histogram bins, quartiles, topValues arrays, time series data) to slides.
 
 ## Analysis Pipeline
 
@@ -469,6 +471,7 @@ npm run lint   # Run ESLint
 See [BACKLOG.md](BACKLOG.md) for full roadmap.
 
 **Recently Completed:**
+- ✅ **Story Mode Phase 4**: Interactive visualizations in slides (March 21, 2026)
 - ✅ Immersive Story Mode with auto-generated narratives (March 21, 2026)
 - ✅ Advanced statistical analysis (normality tests, correlation significance, FFT seasonality) (March 20, 2026)
 - ✅ Advanced visualizations (box plots, distribution fit, time series plots) (March 20, 2026)
@@ -478,6 +481,6 @@ See [BACKLOG.md](BACKLOG.md) for full roadmap.
 
 **Next Priority:**
 - Story Mode Phase 3: Standalone HTML export
-- Story Mode Phase 4: Interactive chart visualizations in slides
 - Multi-sheet Excel support
+- Performance optimizations (sample dataset compression, CDN fallbacks, bundle splitting)
 - Custom column transformations

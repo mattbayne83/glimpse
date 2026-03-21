@@ -5,16 +5,33 @@ _None - ready for next feature!_
 
 ## Next Up (Priority)
 - [ ] **Story Mode Phase 3: HTML Export** - Standalone shareable story files
-- [ ] **Story Mode Phase 4: Interactive Visualizations** - Replace text narratives with charts
-- See **Performance > From Elon Cleanup** section below for prioritized optimizations
+- [ ] **TypeScript Strict Mode** - Enable `strict: true` for compile-time error catching
+- [ ] **Pyodide CDN Fallback Chain** - Add fallback CDNs (cdnjs, unpkg) for 50% reduction in load failures
 
 ## Recently Added ✨
+- [x] **Performance Optimizations Phase 1-2** (March 21, 2026) - Sample dataset compression + bundle splitting
+  - **Sample Dataset Compression**: Gzipped all CSV files (2.5 MB → 561 KB, 78% reduction)
+  - **Bundle Splitting**: Lazy-loaded heavy components (ColumnDetailModal, StoryMode, KeyboardShortcutsModal)
+  - Main bundle reduced by 65.91 KB (16% reduction): 408.01 KB → 342.10 KB
+  - Initial gzipped bundle: 106.41 KB (was 122.10 KB, 13% reduction)
+  - Components load on-demand: StoryMode 27 KB, ColumnDetailModal 15.75 KB, TimeSeriesPlot 12.38 KB
+  - Added pako library for browser-based gzip decompression
+  - Deleted mockStoryGenerator.ts (dead code)
+- [x] **Story Mode Phase 4: Interactive Visualizations** (March 21, 2026) - Real charts in slides, not just text
+  - **Hybrid approach**: Kept narrative text for storytelling context, added interactive visualizations
+  - **DistributionSlide**: Histogram (600×300) + RangeIndicator showing quartiles and outliers
+  - **OutlierSlide**: RangeIndicator visualizes WHERE outliers sit relative to quartiles
+  - **CategorySlide**: CategoryBarChart shows top 5 categories (was single bar showing only #1)
+  - **TimeSeriesSlide**: TimeSeriesPlot with trend lines and seasonality shading (fallback to SVG wave if data missing)
+  - **New component**: CategoryBarChart.tsx (~65 lines) for top-N category display
+  - **Data plumbing**: Extended 4 insight data types (Distribution, Outlier, Category, TimeTrend) and 4 detector files
+  - All visualizations theme-aware, responsive, and use existing component library (Histogram, RangeIndicator, TimeSeriesPlot)
 - [x] **Immersive Story Mode (Phase 1-2)** (March 21, 2026) - Auto-generated visual narratives
   - Full-screen cinematic presentation with 9 specialized slide types
   - Smart insight detection from existing analysis data
   - Keyboard navigation (arrows/ESC), progress indicator, animated transitions
   - 1,365 lines across StoryMode core + slide components + insight generator
-  - Text-based narratives (interactive charts deferred to Phase 4)
+  - Text-based narratives (interactive charts added in Phase 4)
   - Standalone HTML export deferred to Phase 3
 - [x] **Elon's 5-Step Algorithm Cleanup** (March 20, 2026) - Questioned requirements, deleted ruthlessly
   - Removed 900+ lines of dead code (glossary system, unused components, Web Worker files)
@@ -109,10 +126,10 @@ _None - ready for next feature!_
 ## Performance
 
 ### From Elon Cleanup (March 2026)
-- [ ] **Sample dataset compression** - Compress CSVs to `.csv.gz` format (2.5 MB → ~500 KB, 80% reduction)
+- [x] **Sample dataset compression** - ✅ Compressed to `.csv.gz` (2.5 MB → 561 KB, 78% reduction)
+- [x] **Bundle splitting** - ✅ Lazy-loaded ColumnDetailModal, StoryMode, KeyboardShortcutsModal (66 KB reduction)
+- [x] **Icon tree-shaking** - ✅ Already using explicit imports (no action needed)
 - [ ] **Pyodide CDN fallback chain** - Add fallback CDNs (cdnjs, unpkg) for 50% reduction in load failures
-- [ ] **Bundle splitting** - Lazy-load ColumnDetailModal and advanced viz components (50-80 KB initial bundle reduction)
-- [ ] **Icon tree-shaking** - Import only used Lucide icons explicitly (20-30 KB savings)
 - [ ] **TypeScript strict mode** - Enable `strict: true` in tsconfig for compile-time error catching
 - [ ] **Bundle size monitoring** - Add size-limit to CI to prevent bloat regression
 - [ ] **Pre-commit hooks** - Unused export detection, TypeScript checks, ESLint

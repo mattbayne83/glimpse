@@ -1,10 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { FileUpload } from './components/FileUpload';
 import { AnalysisView } from './components/AnalysisView';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { MatrixBackground } from './components/MatrixBackground';
 import { ThemeToggle } from './components/ThemeToggle';
-import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { useAppStore } from './store/useAppStore';
 import { useThemeSync } from './hooks/useThemeSync';
 import { useThemeColors } from './hooks/useThemeColors';
@@ -13,6 +12,12 @@ import { analyzeData } from './utils/analyzeData';
 import { SAMPLE_DATASETS, type SampleDataset } from './data/sampleDatasets';
 import { categorizeError } from './utils/errorHandler';
 import { HelpCircle } from 'lucide-react';
+import * as pako from 'pako';
+
+// Lazy-load keyboard shortcuts modal (not needed until "?" key pressed)
+const KeyboardShortcutsModal = lazy(() =>
+  import('./components/KeyboardShortcutsModal').then(m => ({ default: m.KeyboardShortcutsModal }))
+);
 
 function App() {
   const {
@@ -106,7 +111,17 @@ function App() {
         if (!response.ok) {
           throw new Error(`Failed to load dataset: ${response.statusText}`);
         }
-        csvText = await response.text();
+
+        // Check if the file is gzipped
+        if (dataset.filePath.endsWith('.gz')) {
+          // Decompress gzipped file
+          const arrayBuffer = await response.arrayBuffer();
+          const decompressed = pako.inflate(new Uint8Array(arrayBuffer), { to: 'string' });
+          csvText = decompressed;
+        } else {
+          // Read as text for uncompressed files
+          csvText = await response.text();
+        }
       } else if (dataset.csv) {
         // Use embedded CSV
         csvText = dataset.csv;
@@ -262,10 +277,12 @@ function App() {
       </main>
 
       {/* Modals */}
-      <KeyboardShortcutsModal
-        isOpen={showShortcutsModal}
-        onClose={() => setShowShortcutsModal(false)}
-      />
+      <Suspense fallback={null}>
+        <KeyboardShortcutsModal
+          isOpen={showShortcutsModal}
+          onClose={() => setShowShortcutsModal(false)}
+        />
+      </Suspense>
 
       {/* Footer */}
       <footer className="relative border-t border-border-default px-6 py-4 bg-bg-surface overflow-hidden">

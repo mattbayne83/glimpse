@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Performance Optimizations (March 21, 2026)
+
+**Sample Dataset Compression:**
+- Compressed all 5 sample CSV files to .csv.gz format using gzip maximum compression
+- Total size reduction: 2.5 MB → 561 KB (78% reduction)
+- Added pako library (15 KB) for browser-based gzip decompression
+- Updated App.tsx to detect `.gz` extension and decompress with `pako.inflate()`
+- Updated sampleDatasets.ts file paths to use `.csv.gz` extensions
+- Removed original uncompressed CSV files from public/ directory
+- Users loading sample datasets now save ~2 MB of download time
+
+**Bundle Splitting (Lazy Loading):**
+- Lazy-loaded ColumnDetailModal using React.lazy() and Suspense (15.75 KB chunk)
+- Lazy-loaded StoryMode component (27 KB chunk, 7.10 KB gzipped)
+- Lazy-loaded KeyboardShortcutsModal (2.89 KB chunk, 1.10 KB gzipped)
+- Main bundle size reduced: 408.01 KB → 342.10 KB (65.91 KB / 16% reduction)
+- Initial gzipped bundle: 122.10 KB → 106.41 KB (15.69 KB / 13% reduction)
+- Components load on-demand only when user actually opens them (modal/story mode)
+- Added Suspense wrappers with appropriate fallbacks
+
+**Code Cleanup:**
+- Deleted mockStoryGenerator.ts (dead code, not imported anywhere)
+- Fixed TimeSeriesSlide.tsx unused parameter ESLint warning
+
+**Impact:**
+- 13% faster initial page load (smaller gzipped bundle)
+- 78% reduction in sample dataset download times
+- Better user experience with progressive component loading
+- Removed ~300 lines of dead code
+
+### Added - Story Mode Phase 4: Interactive Visualizations
+- **Interactive chart visualizations** integrated into 4 insight slides (hybrid approach: narratives + charts)
+  - **DistributionSlide**: Replaced range bar placeholder with professional Histogram (600×300) showing distribution curve + RangeIndicator below showing quartiles (Q1/Q2/Q3) and outlier count
+  - **OutlierSlide**: Added RangeIndicator below big number display to visualize WHERE outliers sit relative to quartiles
+  - **CategorySlide**: Replaced single bar (showing only #1 category) with CategoryBarChart showing top 5 categories with percentages
+  - **TimeSeriesSlide**: Replaced SVG wave placeholder with real TimeSeriesPlot showing trend lines and seasonality shading (with fallback to SVG if data missing)
+- **New Component**: `CategoryBarChart.tsx` (~65 lines) - Horizontal bar chart for top-N categorical display
+  - Dynamic bar height based on category count
+  - Top category highlighted with primary gradient
+  - Theme-aware via semantic Tailwind classes
+  - Used in CategorySlide to show distribution across top 5 values
+- **Data Plumbing**: Extended 4 insight data interfaces and detector files
+  - `DistributionInsightData` gains: `histogram`, `q25`, `q75`
+  - `OutlierInsightData` gains: `min`, `q25`, `q50`, `q75`, `max`
+  - `CategoryInsightData` gains: `topValues` array (top 5 categories with percentages)
+  - `TimeTrendInsightData` gains: `dates`, `values` arrays for TimeSeriesPlot
+  - Updated 4 detector files to extract and pass visualization data
+
 ### Changed
 - **Story Mode Dark Theme Integration** (March 21, 2026)
   - All 12 story slide components now respect light/dark theme selection

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { X, Search, Hash, CaseSensitive, CalendarClock, BookOpen } from 'lucide-react';
 import type { AnalysisResult, ColumnAnalysis } from '../types/analysis';
 import { TabNavigation } from './TabNavigation';
@@ -6,10 +6,14 @@ import { ColumnMap } from './ColumnMap';
 import { MissingDataTable } from './MissingDataTable';
 import { ConfirmModal } from './ConfirmModal';
 import { CorrelationMatrix } from './CorrelationMatrix';
-import { ColumnDetailModal } from './ColumnDetailModal';
 import { ColumnPreviewCard } from './ColumnPreviewCard';
-import StoryMode from './story/StoryMode';
 import { generateStory } from '../utils/story/storyGenerator';
+
+// Lazy-load heavy components for better initial bundle size
+const ColumnDetailModal = lazy(() =>
+  import('./ColumnDetailModal').then(m => ({ default: m.ColumnDetailModal }))
+);
+const StoryMode = lazy(() => import('./story/StoryMode'));
 
 interface AnalysisViewProps {
   datasetName: string;
@@ -171,13 +175,15 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
 
       {/* Story Mode */}
       {showStory && (
-        <StoryMode
-          slides={generateStory(result, datasetName)}
-          onClose={() => {
-            setShowStory(false);
-            setActiveTab('overview');
-          }}
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-bg-page z-50 flex items-center justify-center"><div className="text-text-secondary">Loading story...</div></div>}>
+          <StoryMode
+            slides={generateStory(result, datasetName)}
+            onClose={() => {
+              setShowStory(false);
+              setActiveTab('overview');
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Clear Confirmation Modal */}
@@ -196,14 +202,16 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
 
       {/* Column Detail Modal */}
       {selectedColumn && (
-        <ColumnDetailModal
-          columnName={selectedColumn}
-          result={result}
-          onClose={() => setSelectedColumn(null)}
-          columnIndex={filteredColumns.findIndex((col) => col.name === selectedColumn)}
-          totalColumns={filteredColumns.length}
-          onNavigate={handleColumnNavigation}
-        />
+        <Suspense fallback={null}>
+          <ColumnDetailModal
+            columnName={selectedColumn}
+            result={result}
+            onClose={() => setSelectedColumn(null)}
+            columnIndex={filteredColumns.findIndex((col) => col.name === selectedColumn)}
+            totalColumns={filteredColumns.length}
+            onNavigate={handleColumnNavigation}
+          />
+        </Suspense>
       )}
     </div>
   );
