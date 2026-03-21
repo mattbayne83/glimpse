@@ -1,30 +1,59 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- FOUC Prevention: Apply theme before CSS loads -->
-    <script>
-      (function() {
-        const theme = localStorage.getItem('glimpse-theme') || 'system';
-        if (theme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else if (theme === 'system') {
-          const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          if (isDark) document.documentElement.classList.add('dark');
-        }
-      })();
-    </script>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <title>Glimpse</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <!-- FOUC Prevention: Apply theme before CSS loads -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('glimpse-theme') || 'system';
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else if (theme === 'system') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (isDark) document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+
+  <!-- Open Graph / Social Media Preview -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://glimpse-e5e.pages.dev/" />
+  <meta property="og:title" content="Glimpse — Privacy-First Data Analysis" />
+  <meta property="og:description"
+    content="Exploratory data analysis that runs entirely in your browser. Upload CSV or Excel files, get instant insights, all without sending your data anywhere." />
+  <meta property="og:image" content="https://glimpse-e5e.pages.dev/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://glimpse-e5e.pages.dev/" />
+  <meta name="twitter:title" content="Glimpse — Privacy-First Data Analysis" />
+  <meta name="twitter:description"
+    content="Exploratory data analysis that runs entirely in your browser. Upload CSV or Excel files, get instant insights, all without sending your data anywhere." />
+  <meta name="twitter:image" content="https://glimpse-e5e.pages.dev/og-image.png" />
+
+  <!-- Standard Meta -->
+  <meta name="description"
+    content="Privacy-first exploratory data analysis tool. Upload CSV or Excel files and analyze your data entirely in your browser with pandas and Python." />
+  <meta name="keywords"
+    content="data analysis, CSV, Excel, pandas, Python, privacy, exploratory data analysis, statistics, data science" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <title>Glimpse — Privacy-First Data Analysis</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
