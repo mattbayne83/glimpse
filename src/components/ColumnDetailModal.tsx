@@ -1,8 +1,10 @@
-import { X, TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle, Hash, CaseSensitive, CalendarClock } from 'lucide-react';
 import { useEffect } from 'react';
 import type { AnalysisResult } from '../types/analysis';
 import { Histogram } from './Histogram';
 import { RangeIndicator } from './RangeIndicator';
+import { TimeSeriesPlot } from './TimeSeriesPlot';
+import { BoxPlotVisualization } from './BoxPlotVisualization';
 
 interface ColumnDetailModalProps {
   columnName: string;
@@ -214,8 +216,11 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
             <h2 className="text-2xl font-bold text-text-primary truncate tracking-tight">{columnName}</h2>
             <div className="flex items-center gap-2 mt-2">
               <span
-                className={`inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm ${typeColors[type]}`}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm ${typeColors[type]}`}
               >
+                {type === 'numeric' && <Hash className="w-3.5 h-3.5" />}
+                {type === 'categorical' && <CaseSensitive className="w-3.5 h-3.5" />}
+                {type === 'datetime' && <CalendarClock className="w-3.5 h-3.5" />}
                 {type}
               </span>
               {distributionShape && (
@@ -286,6 +291,43 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                     value={`${missingCount.toLocaleString()} (${((missingCount / totalRows) * 100).toFixed(1)}%)`}
                     insight={missingInsight}
                   />
+
+                  {/* Normality Test */}
+                  {analysis.stats.normalityTest && (
+                    <>
+                      <div className="border-t border-border-default my-3" />
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-text-secondary font-medium">Normality Test</span>
+                          <span className="text-text-tertiary text-[10px]">{analysis.stats.normalityTest.test}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-text-secondary">p-value</span>
+                          <span className="text-xs font-mono text-text-primary">{analysis.stats.normalityTest.pValue.toFixed(4)}</span>
+                        </div>
+                        <div className={`p-2 rounded-lg border ${
+                          analysis.stats.normalityTest.isNormal
+                            ? 'bg-success-bg border-success-border'
+                            : 'bg-warning-bg border-warning-border'
+                        }`}>
+                          <div className="flex items-center gap-2">
+                            {analysis.stats.normalityTest.isNormal ? (
+                              <CheckCircle className="w-4 h-4 text-success flex-shrink-0" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4 text-warning-text flex-shrink-0" />
+                            )}
+                            <p className={`text-xs ${
+                              analysis.stats.normalityTest.isNormal ? 'text-success' : 'text-warning-text'
+                            }`}>
+                              {analysis.stats.normalityTest.isNormal
+                                ? 'Distribution appears normal (p > 0.05)'
+                                : 'Distribution deviates from normal (p < 0.05)'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
 
@@ -329,12 +371,27 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                   <Histogram
                     bins={analysis.stats.histogram.bins}
                     counts={analysis.stats.histogram.counts}
+                    stats={analysis.stats}
                     width={Math.min(400, (typeof window !== 'undefined' ? window.innerWidth : 400) - 120)}
                     height={200}
                     shapeLabel={distributionShape}
                   />
                 </div>
               </div>
+
+              {/* Box Plot for outlier visualization */}
+              {analysis.stats.boxPlot && (
+                <div className="mt-6 bg-bg-page rounded-lg p-4 overflow-x-auto">
+                  <div className="min-w-[340px] max-w-full">
+                    <BoxPlotVisualization
+                      stats={analysis.stats}
+                      columnName={columnName}
+                      width={Math.min(400, (typeof window !== 'undefined' ? window.innerWidth : 400) - 120)}
+                      height={300}
+                    />
+                  </div>
+                </div>
+              )}
             </section>
           )}
 
@@ -357,6 +414,34 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                   </div>
                 ))}
               </div>
+            </section>
+          )}
+
+          {/* Time Series Section (DateTime only) */}
+          {type === 'datetime' && result.timeSeriesAnalysis && result.timeSeriesAnalysis.length > 0 && (
+            <section>
+              <h3 className="text-sm font-semibold text-text-primary mb-3">Time Series Analysis</h3>
+              {result.timeSeriesAnalysis
+                .filter(ts => ts.dateColumn === columnName)
+                .map((ts, idx) => (
+                  <div key={idx} className="mb-6 last:mb-0">
+                    <h4 className="text-xs font-medium text-text-secondary mb-3">
+                      {columnName} × {ts.valueColumn}
+                    </h4>
+                    <div className="bg-bg-page rounded-lg p-4 overflow-x-auto">
+                      <div className="min-w-[500px] max-w-full">
+                        <TimeSeriesPlot
+                          dates={ts.dates}
+                          values={ts.values}
+                          columnName={ts.valueColumn}
+                          seasonality={ts}
+                          width={Math.min(600, (typeof window !== 'undefined' ? window.innerWidth : 600) - 140)}
+                          height={250}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
             </section>
           )}
 

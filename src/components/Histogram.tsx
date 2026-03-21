@@ -1,12 +1,16 @@
+import type { NumericColumnStats } from '../types/analysis';
+import { DistributionFitOverlay } from './DistributionFitOverlay';
+
 interface HistogramProps {
   bins: number[];
   counts: number[];
+  stats?: NumericColumnStats;
   width?: number;
   height?: number;
   shapeLabel?: string;
 }
 
-export function Histogram({ bins, counts, width = 300, height = 200, shapeLabel }: HistogramProps) {
+export function Histogram({ bins, counts, stats, width = 300, height = 200, shapeLabel }: HistogramProps) {
   if (bins.length === 0 || counts.length === 0) {
     return (
       <div
@@ -170,6 +174,17 @@ export function Histogram({ bins, counts, width = 300, height = 200, shapeLabel 
             opacity="0.9"
             strokeLinecap="round"
             strokeLinejoin="round"
+          />
+        )}
+
+        {/* Normal distribution fit overlay */}
+        {stats && (
+          <DistributionFitOverlay
+            histogram={{ bins, counts }}
+            stats={stats}
+            width={width}
+            height={height}
+            padding={{ top: topPadding, right: rightPadding, bottom: bottomPadding, left: leftPadding }}
           />
         )}
 

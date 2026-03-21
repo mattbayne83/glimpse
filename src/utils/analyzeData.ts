@@ -17,6 +17,7 @@ from io import StringIO, BytesIO
 import json
 import sys
 import base64
+from scipy import stats
 
 # Load data with better error handling
 file_type = "${fileType}"
@@ -32,6 +33,20 @@ try:
         # CSV file - read from string
         csv_data = """${data.replace(/"/g, '\\"')}"""
         df = pd.read_csv(StringIO(csv_data))
+
+        # Try to auto-detect and convert datetime columns
+        # pandas doesn't auto-detect datetime in CSV, so we do it manually
+        for col in df.columns:
+            # Only try to convert object (string) columns
+            if df[col].dtype == 'object':
+                try:
+                    # Attempt to convert to datetime
+                    converted = pd.to_datetime(df[col], errors='coerce')
+                    # If >50% of non-null values converted successfully, use it
+                    if converted.notna().sum() > len(df) * 0.5:
+                        df[col] = converted
+                except Exception:
+                    pass  # Keep as object if conversion fails
 except pd.errors.EmptyDataError:
     raise ValueError("File is empty or contains no data")
 except pd.errors.ParserError as e:
@@ -176,6 +191,21 @@ for col in df.columns:
         else:
             stats["histogram"] = {"bins": [], "counts": []}
 
+        # Normality test (Shapiro-Wilk for sample sizes 3 to 5000)
+        clean_data = col_data.dropna()
+        if 3 <= len(clean_data) <= 5000:
+            try:
+                shapiro_stat, shapiro_p = stats.shapiro(clean_data)
+                stats["normalityTest"] = {
+                    "test": "Shapiro-Wilk",
+                    "statistic": float(shapiro_stat),
+                    "pValue": float(shapiro_p),
+                    "isNormal": shapiro_p > 0.05
+                }
+            except Exception:
+                # If Shapiro-Wilk fails (e.g., constant data), skip normality test
+                pass
+
         columns_analysis.append({
             "name": col,
             "analysis": {
@@ -243,6 +273,7 @@ quality = {
 
 # Correlation matrix (only for numeric columns with 2+ columns)
 correlation = None
+correlation_significance = []
 numeric_df = df.select_dtypes(include=[np.number])
 if numeric_df.shape[1] >= 2:
     corr_matrix = numeric_df.corr()
@@ -250,6 +281,129 @@ if numeric_df.shape[1] >= 2:
         "columns": list(corr_matrix.columns),
         "matrix": [[float(val) if not pd.isna(val) else 0 for val in row] for row in corr_matrix.values]
     }
+
+    # Calculate correlation significance (p-values)
+    for i, col1 in enumerate(numeric_df.columns):
+        for j, col2 in enumerate(numeric_df.columns):
+            if i < j:  # Upper triangle only (avoid duplicates and diagonal)
+                # Get clean data (drop NaN values pairwise)
+                clean_df = numeric_df[[col1, col2]].dropna()
+
+                if len(clean_df) > 2:  # Need at least 3 points for correlation
+                    try:
+                        r, p_value = stats.pearsonr(clean_df[col1], clean_df[col2])
+                        correlation_significance.append({
+                            "column1": col1,
+                            "column2": col2,
+                            "r": float(r),
+                            "pValue": float(p_value),
+                            "significant": p_value < 0.05
+                        })
+                    except Exception:
+                        # If pearsonr fails (e.g., constant columns), skip
+                        pass
+
+# Time series analysis (FFT seasonality detection)
+time_series_analyses = []
+datetime_cols = df.select_dtypes(include=['datetime64']).columns
+
+if len(datetime_cols) > 0 and len(numeric_df.columns) > 0:
+    # For each datetime column, analyze with numeric columns
+    for date_col in datetime_cols:
+        # Sort by date to ensure proper time series
+        df_sorted = df[[date_col] + list(numeric_df.columns)].sort_values(by=date_col).dropna(subset=[date_col])
+
+        for value_col in numeric_df.columns:
+            # Get clean time series (no missing values in either column)
+            ts_df = df_sorted[[date_col, value_col]].dropna()
+
+            if len(ts_df) < 14:  # Need at least 2 weeks of data for meaningful FFT
+                continue
+
+            try:
+                # Check if data is evenly spaced (required for FFT)
+                time_diff = ts_df[date_col].diff().dropna()
+                is_evenly_spaced = time_diff.nunique() <= 2  # Allow some tolerance
+
+                if not is_evenly_spaced:
+                    continue  # Skip unevenly spaced data
+
+                # Get the time series values
+                values = ts_df[value_col].values
+                n = len(values)
+
+                # Detrend the data (remove linear trend)
+                from scipy import signal
+                detrended = signal.detrend(values)
+
+                # Apply FFT
+                from scipy.fft import fft, fftfreq
+                fft_vals = fft(detrended)
+                freqs = fftfreq(n)
+
+                # Only look at positive frequencies
+                pos_mask = freqs > 0
+                freqs_pos = freqs[pos_mask]
+                fft_pos = np.abs(fft_vals[pos_mask])
+
+                # Find the dominant frequency (excluding DC component)
+                if len(fft_pos) > 0:
+                    # Get the strongest peak
+                    peak_idx = np.argmax(fft_pos)
+                    peak_freq = freqs_pos[peak_idx]
+                    peak_power = fft_pos[peak_idx]
+
+                    # Convert frequency to period (in samples)
+                    if peak_freq > 0:
+                        period_samples = 1.0 / peak_freq
+
+                        # Calculate confidence based on peak prominence
+                        mean_power = np.mean(fft_pos)
+                        peak_prominence = peak_power / mean_power if mean_power > 0 else 0
+
+                        # Sample data points for visualization (max 200 points)
+                        max_points = 200
+                        if n <= max_points:
+                            sample_dates = ts_df[date_col].astype(str).tolist()
+                            sample_values = ts_df[value_col].tolist()
+                        else:
+                            # Evenly sample points across the time range
+                            indices = np.linspace(0, n - 1, max_points, dtype=int)
+                            sample_dates = ts_df[date_col].iloc[indices].astype(str).tolist()
+                            sample_values = ts_df[value_col].iloc[indices].tolist()
+
+                        # Only report if there's a clear peak
+                        if peak_prominence > 2.0:  # Peak must be 2x stronger than average
+                            # Determine confidence level
+                            if peak_prominence > 5.0:
+                                confidence = "high"
+                            elif peak_prominence > 3.0:
+                                confidence = "medium"
+                            else:
+                                confidence = "low"
+
+                            time_series_analyses.append({
+                                "dateColumn": date_col,
+                                "valueColumn": value_col,
+                                "seasonalityDetected": True,
+                                "estimatedPeriod": int(round(period_samples)),
+                                "confidence": confidence,
+                                "dates": sample_dates,
+                                "values": sample_values
+                            })
+                        else:
+                            # No clear seasonality detected, still include data for visualization
+                            time_series_analyses.append({
+                                "dateColumn": date_col,
+                                "valueColumn": value_col,
+                                "seasonalityDetected": False,
+                                "confidence": "low",
+                                "dates": sample_dates,
+                                "values": sample_values
+                            })
+            except Exception:
+                # If FFT fails, skip this combination
+                pass
 
 # Combine results
 result = {
@@ -261,6 +415,14 @@ result = {
 # Only add correlation if it exists
 if correlation is not None:
     result["correlation"] = correlation
+
+# Only add correlation significance if there are significant correlations
+if len(correlation_significance) > 0:
+    result["correlationSignificance"] = correlation_significance
+
+# Only add time series analysis if detected
+if len(time_series_analyses) > 0:
+    result["timeSeriesAnalysis"] = time_series_analyses
 
 json.dumps(result)
 `;

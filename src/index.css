@@ -45,6 +45,11 @@
   --color-error-text: #991B1B;
 
   /* Quality Indicators (Data Completeness) */
+  --color-quality-excellent: #10B981;
+  --color-quality-good: #F59E0B;
+  --color-quality-fair: #E11D48;
+  --color-quality-poor: #9F1239;
+  
   --color-quality-excellent-bg: #D1FAE5;
   --color-quality-excellent-text: #065F46;
   --color-quality-good-bg: #FED7AA;
@@ -100,12 +105,12 @@
   --color-text-secondary: #CBD5E1; /* slate-300 */
   --color-text-tertiary: #94A3B8;  /* slate-400 */
 
-  --color-primary: #3B9EFF;        /* lighter for contrast */
-  --color-primary-hover: #60B0FF;
-  --color-primary-light: #1E3A5F;
-  --color-primary-border: #60A5FA;
-  --color-secondary: #14B8A6;
-  --color-secondary-light: #134E4A;
+  --color-primary: #60A5FA;        /* lighter for contrast (blue-400) */
+  --color-primary-hover: #93C5FD;  /* blue-300 */
+  --color-primary-light: #1E3A8A;  /* deeper bg for contrast (blue-900) */
+  --color-primary-border: #3B82F6; /* blue-500 */
+  --color-secondary: #2DD4BF;      /* teal-400 */
+  --color-secondary-light: #134E4A; /* teal-900 */
 
   --color-success: #34D399;
   --color-success-bg: #064E3B;
@@ -119,6 +124,11 @@
   --color-error-bg: #7F1D1D;
   --color-error-border: #991B1B;
   --color-error-text: #FEE2E2;
+
+  --color-quality-excellent: #34D399; /* emerald-400 */
+  --color-quality-good: #FBBF24;      /* amber-400 */
+  --color-quality-fair: #FB7185;      /* rose-400 */
+  --color-quality-poor: #E11D48;      /* rose-600 */
 
   --color-quality-excellent-bg: #064E3B;
   --color-quality-excellent-text: #D1FAE5;

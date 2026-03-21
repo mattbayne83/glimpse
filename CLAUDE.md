@@ -22,8 +22,8 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - **Zero config**: Drop a CSV, get insights immediately
 
 ### Component Structure
-- **App.tsx** - Main application, file upload orchestration, Pyodide initialization (main thread), error handling, Matrix background in header/footer, theme sync, keyboard shortcuts listener
-- **FileUpload** - Drag-and-drop CSV uploader with validation (max 10MB) + 3 horizontal sample dataset cards (Iris, E-Commerce, SaaS)
+- **App.tsx** - Main application, file upload orchestration, Pyodide initialization (main thread + openpyxl), error handling, Matrix background in header/footer, theme sync, keyboard shortcuts listener
+- **FileUpload** - Drag-and-drop CSV/Excel uploader with validation (max 10MB, .csv or .xlsx) + 3 horizontal sample dataset cards (Iris, E-Commerce, SaaS)
 - **ErrorDisplay** - Rich error UI with categorized messages, suggestions, and retry button
 - **ThemeToggle** - 3-state theme switcher (Light/Dark/System) with persistence
 - **KeyboardShortcutsModal** - Help modal showing all keyboard shortcuts (triggered by "?" key)
@@ -56,14 +56,17 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - **TabNavigation** - Reusable tab switcher with counts
 
 ### Pyodide Integration (Main Thread - March 2026)
-- Loaded on-demand when first CSV is uploaded (~30MB total)
+- Loaded on-demand when first CSV/Excel is uploaded (~30MB total)
 - Runs pandas/numpy for statistical analysis
 - **Python executes on main thread** - brief UI freeze during analysis (~1-2s for small datasets)
 - **Retry Logic** - Automatically retries up to 3 times with exponential backoff (1s, 2s, 4s) on load failure
 - **Staged Progress Bar** - Shows determinate progress through loading stages:
   - 0-60%: Loading Pyodide runtime core
-  - 60-100%: Loading pandas and numpy packages
+  - 60-80%: Loading pandas and numpy packages
+  - 80-90%: Installing openpyxl via micropip (for Excel support)
+  - 90-100%: Finalizing setup
   - Real-time percentage indicator and smooth animated progress
+- **Excel Support** - openpyxl installed dynamically via micropip when needed
 - Results serialized to JSON and stored in Zustand
 - **Note**: Web Workers attempted but blocked by browser security policy (CSP)
 
@@ -104,13 +107,17 @@ Upload CSV files and get instant statistical insights — all processed locally 
 
 ### Components
 - `src/components/AnalysisView.tsx` (~540 lines) - 3-tab results view: Overview (with correlation)/Columns (grid layout)/Quality + export/copy + clear modal + keyboard navigation
-- `src/components/ColumnDetailModal.tsx` (~427 lines) - Full-screen side modal with comprehensive column analysis (stats, distribution, correlations)
+- `src/components/ColumnDetailModal.tsx` (~427 lines) - Full-screen side modal with comprehensive column analysis (stats, distribution, correlations, time series)
 - `src/components/ColumnPreviewCard.tsx` (~205 lines) - Compact snapshot card for grid view (viz + key metrics)
 - `src/components/Histogram.tsx` (~235 lines) - Professional statistical histogram with axes, gridlines, smooth curve, and shape detection
+- `src/components/BoxPlotVisualization.tsx` (~280 lines) - Box-and-whisker plot showing quartiles, outliers, and distribution shape
+- `src/components/DistributionFitOverlay.tsx` (~150 lines) - Normal distribution curve overlay on histograms for distribution comparison
+- `src/components/TimeSeriesPlot.tsx` (~295 lines) - Time series visualization with trend lines and seasonality detection (FFT-powered)
+- `src/components/DateRangeViz.tsx` (~90 lines) - Timeline visualization for datetime columns (used in snapshot cards)
 - `src/components/RangeIndicator.tsx` (~239 lines) - Visual quartile display (box plot style) with min/Q1/Q2/Q3/max + outlier count
 - `src/components/MiniHistogram.tsx` (~52 lines) - Simplified histogram for snapshot cards (no axes, compact)
 - `src/components/ErrorDisplay.tsx` (~60 lines) - Rich error UI with categorization, suggestions, and optional retry button
-- `src/components/CorrelationMatrix.tsx` (~140 lines) - Interactive correlation heatmap with blue-white-red gradient scale (theme-aware)
+- `src/components/CorrelationMatrix.tsx` (~140 lines) - Interactive correlation heatmap with blue-white-red gradient scale (theme-aware, significance markers)
 - `src/components/MissingDataTable.tsx` (~230 lines) - Comprehensive sortable missing data analysis table
 - `src/components/ConfirmModal.tsx` (~60 lines) - Reusable confirmation dialog with backdrop
 - `src/components/KeyboardShortcutsModal.tsx` (~90 lines) - Help modal showing keyboard shortcuts (triggered by "?" key)
@@ -134,10 +141,9 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/data/sampleDatasets.ts` (~180 lines) - Sample dataset registry with lazy-loading support (4 production datasets + Iris)
 
 ### Sample Datasets
+- `public/retail_sales_daily.csv` (54 KB) - 731 days × 6 columns - daily sales with strong seasonality (weekly + annual patterns)
 - `public/ecommerce_customers.csv` (565 KB) - 3,000 customers × 28 columns - revenue, engagement, demographics
 - `public/saas_usage.csv` (831 KB) - 5,000 users × 32 columns - retention, churn, feature adoption
-- `public/healthcare_patient_visits.csv` (630 KB) - 4,000 encounters × 31 columns - vitals, labs, diagnoses
-- `public/hr_analytics.csv` (477 KB) - 2,500 employees × 33 columns - salary, performance, attrition
 
 ### Configuration
 - `tailwind.config.ts` - Tailwind CSS 4 config mapping CSS variables to semantic classes (dark mode via `.dark` selector)
@@ -247,6 +253,45 @@ Overview / Columns / Quality Tabs
 - **Fallback**: For numeric columns, manually calculate stats instead of using `.describe()` to handle edge cases
 - **Impact**: Prevents KeyError when analyzing datasets with boolean flags (e.g., `premium_member`, `email_subscribed`)
 
+### Excel File Support (March 2026)
+- **Implementation**: openpyxl installed via micropip during Pyodide initialization
+- **Detection**: File extension check (.xlsx) → use `pd.read_excel()` instead of `pd.read_csv()`
+- **Limitation**: Currently reads first sheet only (multi-sheet support planned)
+- **Error Handling**: Excel-specific errors categorized with "try saving as CSV" suggestion
+- **Progress**: openpyxl installation shown at 80-90% in staged progress bar
+
+### Advanced Statistical Analysis (March 2026)
+- **scipy Integration**: scipy package (~3MB) installed via micropip for statistical tests and FFT
+- **Normality Testing**: Shapiro-Wilk test on numeric columns (p < 0.05 flags non-normal distributions)
+  - Green checkmark badge for normal distributions, yellow warning for non-normal
+  - Displayed in ColumnDetailModal statistics section
+- **Correlation Significance**: Pearson correlation p-values calculated via scipy.stats
+  - Asterisk (*) markers on CorrelationMatrix for statistically significant correlations (p < 0.05)
+  - Helps distinguish real patterns from random noise in correlation heatmap
+- **Box Plots**: Box-and-whisker plots (BoxPlotVisualization.tsx) show quartiles, median, and outliers
+  - Integrated into ColumnDetailModal for numeric columns
+  - Complements histogram with different perspective on distribution shape
+- **Distribution Fit**: Normal curve overlay (DistributionFitOverlay.tsx) on histograms
+  - Shows how closely data matches normal distribution
+  - Visual comparison helps identify skewness and kurtosis
+- **Time Series Analysis**: FFT-based seasonality detection for datetime columns
+  - TimeSeriesPlot.tsx renders trend lines and seasonality shading
+  - Detects periodic patterns (daily, weekly, monthly, annual cycles)
+  - Integrated into ColumnDetailModal when datetime column detected
+  - Retail Sales dataset specifically designed to showcase this feature
+- **DateRangeViz**: Timeline visualization for datetime column snapshot cards
+  - Shows temporal extent of data at a glance in grid view
+
+### Sample Dataset Updates (March 2026)
+- **Retail Sales Daily** (March 2026): Replaced Iris as primary demo dataset
+  - 731 rows (2 years of daily data) × 6 columns
+  - Strong weekly seasonality (weekends vs weekdays) + annual patterns (holiday spikes)
+  - Designed to showcase time series analysis and FFT seasonality detection
+  - Multiple numeric columns for correlation analysis
+  - Instant-load demo (embedded, not lazy-loaded)
+- **Iris dataset deprecated**: Removed from sample dataset cards (too small, limited correlation patterns)
+  - Can still be used for testing but not featured in UI
+
 ### UI/UX Enhancements
 - **Keyboard Shortcuts** (March 2026): Power user navigation
   - `ESC` - Close modal or show clear confirmation
@@ -335,6 +380,14 @@ npm run lint   # Run ESLint
 
 See [BACKLOG.md](BACKLOG.md) for full roadmap.
 
+**Recently Completed:**
+- ✅ Advanced statistical analysis (normality tests, correlation significance, FFT seasonality) (March 20, 2026)
+- ✅ Advanced visualizations (box plots, distribution fit, time series plots) (March 20, 2026)
+- ✅ Responsive mobile design (March 20, 2026)
+- ✅ Excel file support via openpyxl (March 20, 2026)
+- ✅ Keyboard shortcuts (March 17, 2026)
+
 **Next Priority:**
-- Responsive mobile design (better tablet/phone experience)
-- Keyboard shortcuts help modal (press "?" to see available shortcuts)
+- Scatter plot matrix (requires raw data pipeline - currently only aggregated stats)
+- Multi-sheet Excel support
+- Custom column transformations

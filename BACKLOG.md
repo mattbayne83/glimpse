@@ -4,10 +4,28 @@
 _None - ready for next feature!_
 
 ## Next Up (Priority)
-1. **Responsive Mobile Design** - Better experience on tablets/phones
-2. **Excel File Support** - Upload and analyze .xlsx files via Pyodide openpyxl
+_To be determined - current roadmap complete!_
 
 ## Recently Added ✨
+- [x] **Phase 1-3: Advanced Statistical Analysis & Visualizations** (March 20, 2026) - Professional statistical capabilities
+  - **Statistical Significance**: scipy integration, Shapiro-Wilk normality tests, correlation p-values with significance markers
+  - **Advanced Visualizations**: Box plots, distribution fit overlays on histograms
+  - **Time Series Analysis**: FFT-based seasonality detection, trend lines, periodic pattern highlighting
+  - **Retail Sales Dataset**: 2-year daily sales data (731 rows) with strong seasonality patterns
+  - **DateRangeViz**: Timeline visualization for datetime columns in snapshot cards
+  - Components: BoxPlotVisualization, DistributionFitOverlay, TimeSeriesPlot, DateRangeViz
+  - scipy.fft for frequency analysis, scipy.stats for normality and significance tests
+- [x] **Excel File Support** (March 20, 2026) - Upload and analyze .xlsx files
+  - Extended file validation to accept `.xlsx` files alongside `.csv`
+  - Pyodide loads openpyxl package via micropip for Excel parsing
+  - pandas `read_excel()` converts Excel → DataFrame for analysis
+  - Enhanced error handling with Excel-specific troubleshooting
+  - All existing analysis features work with Excel files
+- [x] **Responsive Mobile Design** (March 20, 2026) - Enhanced mobile experience
+  - ColumnDetailModal responsive: full-width on mobile, side panel on desktop
+  - Touch-friendly interactions throughout
+  - Improved spacing and sizing for small screens
+  - Body scroll lock prevents background scrolling in modals
 - [x] **Keyboard Shortcuts** (March 17, 2026) - Power user navigation
   - ESC, arrow keys, number keys for navigation
   - "?" key opens help modal
@@ -49,16 +67,10 @@ _None - ready for next feature!_
   - Clear button for quick reset
   - Search icon + placeholder text
 
-## Polish & UX
-- [ ] Responsive design improvements for mobile
-
 ## Advanced Features
 
 ### Visualizations
-- [ ] Scatter plot matrix for numeric columns (matplotlib via Pyodide)
-- [ ] Box plots for outlier detection
-- [ ] Time series plots for datetime columns with trend lines
-- [ ] Distribution comparison overlays
+- [ ] Scatter plot matrix for numeric columns (requires raw data pipeline - currently only aggregated stats)
 
 ### Export & Sharing
 - [ ] Export analysis as PDF report (with charts embedded)
@@ -66,16 +78,15 @@ _None - ready for next feature!_
 - [ ] Copy analysis as formatted text for Slack/Teams
 
 ### Data Processing
-- [ ] Support Excel files (.xlsx) via Pyodide openpyxl
+- [ ] Multi-sheet Excel support (currently reads first sheet only)
 - [ ] Support JSON files (auto-flatten nested structures)
 - [ ] Support Parquet files via Pyodide pyarrow
 - [ ] Column transformation suggestions (normalize, bin, encode)
 - [ ] Data cleaning wizard (handle missing values, remove duplicates)
 
 ### Analysis Depth
-- [ ] Statistical significance tests (t-test, chi-square, ANOVA)
+- [ ] Additional statistical tests (t-test, chi-square, ANOVA)
 - [ ] Automatic anomaly detection with confidence scores
-- [ ] Seasonality detection for time series
 - [ ] Data profiling report (comprehensive multi-page PDF)
 - [ ] Column type inference improvements (detect emails, phone numbers, IDs)
 

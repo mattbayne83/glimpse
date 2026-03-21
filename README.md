@@ -17,6 +17,7 @@ Get instant insights from CSV files with beautiful visualizations and comprehens
 - **Categorical Analysis** - Unique values, top frequencies with bar charts
 - **DateTime Support** - Date ranges and frequency analysis
 - **Data Quality Checks** - Duplicate detection, missing data warnings, cardinality alerts
+- **Excel Support** - Full .xlsx file analysis via Pyodide openpyxl
 
 ### 🎨 Visual Insights
 - **Column Map** - Visual representation of dataset structure
@@ -127,10 +128,15 @@ npm run lint
 
 See [BACKLOG.md](BACKLOG.md) for full feature list.
 
+**Recently Shipped:**
+- ✅ Excel file support (.xlsx) - Full openpyxl integration
+- ✅ Responsive mobile design - Touch-optimized layouts
+- ✅ Keyboard shortcuts - Power user navigation
+
 **Coming Soon:**
-- Responsive mobile design
-- Excel file support (.xlsx)
 - Advanced visualizations (scatter plots, time series)
+- Multi-sheet Excel support
+- Custom column transformations
 
 ## Contributing
 

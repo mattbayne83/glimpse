@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { ColumnAnalysis } from '../types/analysis';
+import { Hash, CaseSensitive, CalendarClock } from 'lucide-react';
 
 interface ColumnMapProps {
   columns: ColumnAnalysis[];
@@ -17,6 +18,12 @@ export function ColumnMap({ columns, totalRows, onColumnClick }: ColumnMapProps)
     numeric: getComputedStyle(document.documentElement).getPropertyValue('--color-secondary').trim(),
     categorical: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim(),
     datetime: getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary').trim(),
+  };
+
+  const TYPE_ICONS = {
+    numeric: Hash,
+    categorical: CaseSensitive,
+    datetime: CalendarClock,
   };
 
   const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--color-border-default').trim();
@@ -73,13 +80,19 @@ export function ColumnMap({ columns, totalRows, onColumnClick }: ColumnMapProps)
 
               {/* Tooltip on hover */}
               {isHovered && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-bg-elevated text-text-primary text-xs rounded whitespace-nowrap z-10 pointer-events-none shadow-lg">
-                  <div className="font-medium font-mono">{col.name}</div>
-                  <div className="text-text-secondary">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-bg-elevated text-text-primary text-xs rounded-lg whitespace-nowrap z-10 pointer-events-none shadow-xl border border-border-default">
+                  <div className="flex items-center gap-1.5 font-medium font-mono mb-1">
+                    {(() => {
+                      const Icon = TYPE_ICONS[col.analysis.type];
+                      return <Icon className="w-3.5 h-3.5" style={{ color }} />;
+                    })()}
+                    {col.name}
+                  </div>
+                  <div className="text-text-secondary ml-5">
                     {col.analysis.type} · {completeness.toFixed(1)}% complete
                   </div>
                   {missingCount > 0 && (
-                    <div className="text-text-secondary">{missingCount} missing</div>
+                    <div className="text-text-secondary ml-5">{missingCount} missing</div>
                   )}
                 </div>
               )}
@@ -90,20 +103,23 @@ export function ColumnMap({ columns, totalRows, onColumnClick }: ColumnMapProps)
 
       {/* Legend */}
       <div className="flex gap-4 text-xs">
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded" style={{ backgroundColor: TYPE_COLORS.numeric }} />
-          <span className="text-text-secondary">Numeric</span>
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-center w-5 h-5 rounded opacity-80" style={{ backgroundColor: TYPE_COLORS.numeric }}>
+            <Hash className="w-3.5 h-3.5 text-bg-surface" />
+          </div>
+          <span className="text-text-secondary font-medium">Numeric</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div
-            className="w-3 h-3 rounded"
-            style={{ backgroundColor: TYPE_COLORS.categorical }}
-          />
-          <span className="text-text-secondary">Categorical</span>
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-center w-5 h-5 rounded opacity-80" style={{ backgroundColor: TYPE_COLORS.categorical }}>
+            <CaseSensitive className="w-3.5 h-3.5 text-bg-surface" />
+          </div>
+          <span className="text-text-secondary font-medium">Categorical</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded" style={{ backgroundColor: TYPE_COLORS.datetime }} />
-          <span className="text-text-secondary">DateTime</span>
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-center w-5 h-5 rounded opacity-80" style={{ backgroundColor: TYPE_COLORS.datetime }}>
+            <CalendarClock className="w-3.5 h-3.5 text-bg-surface" />
+          </div>
+          <span className="text-text-secondary font-medium">DateTime</span>
         </div>
       </div>
     </div>

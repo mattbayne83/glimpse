@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Download, Copy, Check, Search } from 'lucide-react';
+import { X, Download, Copy, Check, Search, Hash, CaseSensitive, CalendarClock } from 'lucide-react';
 import type { AnalysisResult, ColumnAnalysis } from '../types/analysis';
 import { TabNavigation } from './TabNavigation';
 import { ColumnMap } from './ColumnMap';
@@ -302,6 +302,7 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
             overview={overview}
             columns={columns}
             correlation={result.correlation}
+            correlationSignificance={result.correlationSignificance}
             datasetName={datasetName}
             onCopy={copyToClipboard}
             copiedId={copiedId}
@@ -355,13 +356,14 @@ interface OverviewTabProps {
   overview: AnalysisResult['overview'];
   columns: ColumnAnalysis[];
   correlation?: AnalysisResult['correlation'];
+  correlationSignificance?: AnalysisResult['correlationSignificance'];
   datasetName: string;
   onCopy: (text: string, id: string) => void;
   copiedId: string | null;
   onColumnClick: (columnName: string) => void;
 }
 
-function OverviewTab({ overview, columns, correlation, datasetName, onCopy, copiedId, onColumnClick }: OverviewTabProps) {
+function OverviewTab({ overview, columns, correlation, correlationSignificance, datasetName, onCopy, copiedId, onColumnClick }: OverviewTabProps) {
   // Format overview as markdown
   const formatOverviewMarkdown = () => {
     return `# ${datasetName} - Dataset Overview
@@ -419,18 +421,33 @@ function OverviewTab({ overview, columns, correlation, datasetName, onCopy, copi
       </div>
 
       <div className="p-4 bg-bg-hover rounded-lg">
-        <p className="text-sm font-medium text-text-primary mb-2">Column Types</p>
-        <div className="flex gap-4 text-sm">
-          <span className="text-text-secondary">
-            Numeric: <span className="font-medium text-text-primary">{overview.columnTypes.numeric}</span>
-          </span>
-          <span className="text-text-secondary">
-            Categorical:{' '}
-            <span className="font-medium text-text-primary">{overview.columnTypes.categorical}</span>
-          </span>
-          <span className="text-text-secondary">
-            DateTime: <span className="font-medium text-text-primary">{overview.columnTypes.datetime}</span>
-          </span>
+        <p className="text-sm font-medium text-text-primary mb-3">Column Types</p>
+        <div className="flex flex-wrap gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-secondary/10 rounded-md text-secondary">
+              <Hash className="w-4 h-4" />
+            </div>
+            <span className="text-text-secondary">
+              Numeric: <span className="font-medium text-text-primary">{overview.columnTypes.numeric}</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-primary/10 rounded-md text-primary">
+              <CaseSensitive className="w-4 h-4" />
+            </div>
+            <span className="text-text-secondary">
+              Categorical:{' '}
+              <span className="font-medium text-text-primary">{overview.columnTypes.categorical}</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-text-secondary/10 rounded-md text-text-secondary">
+              <CalendarClock className="w-4 h-4" />
+            </div>
+            <span className="text-text-secondary">
+              DateTime: <span className="font-medium text-text-primary">{overview.columnTypes.datetime}</span>
+            </span>
+          </div>
         </div>
       </div>
 
@@ -441,7 +458,10 @@ function OverviewTab({ overview, columns, correlation, datasetName, onCopy, copi
           <p className="text-sm text-text-secondary mb-4">
             Shows relationships between {correlation.columns.length} numeric columns
           </p>
-          <CorrelationMatrix data={correlation} />
+          <CorrelationMatrix
+            data={correlation}
+            significance={correlationSignificance}
+          />
         </div>
       )}
     </div>
@@ -467,6 +487,15 @@ function ColumnsTab({ columns, filter, onFilterChange, searchQuery, onSearchChan
     { value: 'datetime', label: 'DateTime' },
   ];
 
+  const getFilterIcon = (type: ColumnFilter) => {
+    switch (type) {
+      case 'numeric': return <Hash className="w-3.5 h-3.5" />;
+      case 'categorical': return <CaseSensitive className="w-3.5 h-3.5" />;
+      case 'datetime': return <CalendarClock className="w-3.5 h-3.5" />;
+      default: return null;
+    }
+  };
+
   return (
     <div className="min-w-0">
       {/* Search Input */}
@@ -490,14 +519,13 @@ function ColumnsTab({ columns, filter, onFilterChange, searchQuery, onSearchChan
         )}
       </div>
 
-      {/* Filter Buttons */}
       <div className="flex gap-2 mb-4">
         {filters.map((f) => (
           <button
             key={f.value}
             onClick={() => onFilterChange(f.value)}
             className={`
-              px-3 py-1.5 text-sm rounded-md transition-colors duration-150
+              flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors duration-150
               ${
                 filter === f.value
                   ? 'bg-primary-light text-primary font-medium'
@@ -505,6 +533,7 @@ function ColumnsTab({ columns, filter, onFilterChange, searchQuery, onSearchChan
               }
             `}
           >
+            {getFilterIcon(f.value)}
             {f.label}
           </button>
         ))}
@@ -603,7 +632,7 @@ function QualityTab({ quality, columns, totalRows, onColumnClick }: QualityTabPr
                   {quality.highCardinalityColumns.map((col) => (
                     <span
                       key={col}
-                      className="px-2 py-1 bg-primary-border text-primary text-xs rounded font-mono"
+                      className="px-2 py-1 bg-bg-surface text-primary text-xs rounded font-mono border border-primary/20"
                     >
                       {col}
                     </span>

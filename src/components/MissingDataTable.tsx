@@ -75,10 +75,10 @@ export function MissingDataTable({ columns, totalRows, onColumnClick }: MissingD
 
   // Get color based on missing percentage
   const getColorClasses = (missingPercent: number) => {
-    if (missingPercent >= 75) return 'bg-quality-poor-bg text-quality-poor-text'; // Red
-    if (missingPercent >= 50) return 'bg-quality-fair-bg text-quality-fair-text'; // Yellow
-    if (missingPercent >= 25) return 'bg-quality-good-bg text-quality-good-text'; // Orange
-    return 'bg-quality-excellent-bg text-quality-excellent-text'; // Green
+    if (missingPercent >= 75) return 'bg-[var(--color-quality-poor)]'; // Red
+    if (missingPercent >= 50) return 'bg-[var(--color-quality-fair)]'; // Orange
+    if (missingPercent >= 25) return 'bg-[var(--color-quality-good)]'; // Yellow
+    return 'bg-[var(--color-quality-excellent)]'; // Green
   };
 
   if (columnsWithMissing.length === 0) {
@@ -137,19 +137,19 @@ export function MissingDataTable({ columns, totalRows, onColumnClick }: MissingD
       <div className="flex flex-wrap items-center gap-4 text-xs text-text-secondary">
         <span className="font-medium text-text-primary">Color Guide:</span>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-quality-excellent-bg" />
+          <div className="w-3 h-3 rounded bg-[var(--color-quality-excellent)]" />
           <span>&gt;75% complete</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-quality-good-bg" />
+          <div className="w-3 h-3 rounded bg-[var(--color-quality-good)]" />
           <span>50-75% complete</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-quality-fair-bg" />
+          <div className="w-3 h-3 rounded bg-[var(--color-quality-fair)]" />
           <span>25-50% complete</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-quality-poor-bg" />
+          <div className="w-3 h-3 rounded bg-[var(--color-quality-poor)]" />
           <span>&lt;25% complete</span>
         </div>
       </div>

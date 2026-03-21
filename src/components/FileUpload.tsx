@@ -71,9 +71,10 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
 
   // Helper to get icon for dataset
   const getDatasetIcon = (name: string) => {
-    if (name.includes('Iris')) return Flower2;
+    if (name.includes('Retail') || name.includes('Sales')) return TrendingUp;
     if (name.includes('Commerce')) return ShoppingCart;
     if (name.includes('SaaS')) return TrendingUp;
+    if (name.includes('Iris')) return Flower2;
     return FileSpreadsheet;
   };
 
@@ -174,7 +175,7 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
                     {/* Dataset Name */}
                     <h3 className="font-semibold text-text-primary mb-0.5 truncate">
                       {dataset.name
-                        .replace('Iris Flowers', 'Iris')
+                        .replace('Retail Sales (Daily)', 'Retail Sales')
                         .replace('E-Commerce Customers', 'E-Commerce')
                         .replace('SaaS Product Usage', 'SaaS Usage')}
                     </h3>

@@ -1,0 +1,177 @@
+import { useMemo } from 'react';
+import type { NumericColumnStats } from '../types/analysis';
+
+interface DistributionFitOverlayProps {
+  histogram: {
+    bins: number[];
+    counts: number[];
+  };
+  stats: NumericColumnStats;
+  width?: number;
+  height?: number;
+  padding?: { top: number; right: number; bottom: number; left: number };
+}
+
+/**
+ * Overlays a theoretical normal distribution curve on a histogram.
+ * Compares actual data distribution to an ideal normal distribution N(μ, σ).
+ */
+export function DistributionFitOverlay({
+  histogram,
+  stats,
+  width = 400,
+  height = 200,
+  padding = { top: 48, right: 48, bottom: 48, left: 48 },
+}: DistributionFitOverlayProps) {
+  const { bins, counts } = histogram;
+  const { mean, std } = stats;
+
+  if (mean === undefined || std === undefined || std === 0) {
+    return null; // Can't fit distribution without mean/std
+  }
+
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+
+  // Calculate normal distribution curve points
+  const normalCurve = useMemo(() => {
+    const numPoints = 100;
+    const minX = Math.min(...bins);
+    const maxX = Math.max(...bins);
+    const step = (maxX - minX) / (numPoints - 1);
+
+    // Normal PDF: (1 / (σ√(2π))) * e^(-0.5 * ((x - μ) / σ)^2)
+    const normalPDF = (x: number): number => {
+      const coefficient = 1 / (std * Math.sqrt(2 * Math.PI));
+      const exponent = -0.5 * Math.pow((x - mean) / std, 2);
+      return coefficient * Math.exp(exponent);
+    };
+
+    // Generate points along the curve
+    const points = Array.from({ length: numPoints }, (_, i) => {
+      const x = minX + step * i;
+      const y = normalPDF(x);
+      return { x, y };
+    });
+
+    // Scale curve to match histogram height (approximate integral)
+    const binWidth = bins[1] - bins[0];
+    const totalCount = counts.reduce((sum, c) => sum + c, 0);
+    const scaleFactor = totalCount * binWidth;
+
+    return points.map(p => ({ x: p.x, y: p.y * scaleFactor }));
+  }, [bins, counts, mean, std]);
+
+  // Calculate scales
+  const { xScale, yScale } = useMemo(() => {
+    const minX = Math.min(...bins);
+    const maxX = Math.max(...bins);
+    const maxCount = Math.max(...counts);
+    const maxNormalY = Math.max(...normalCurve.map(p => p.y));
+    const maxY = Math.max(maxCount, maxNormalY);
+
+    const xScale = (value: number) =>
+      ((value - minX) / (maxX - minX)) * plotWidth;
+
+    const yScale = (value: number) =>
+      plotHeight - (value / maxY) * plotHeight;
+
+    return { xScale, yScale };
+  }, [bins, counts, normalCurve, plotWidth, plotHeight]);
+
+  // Generate SVG path for normal curve
+  const normalPath = useMemo(() => {
+    return normalCurve
+      .map((point, i) => {
+        const x = padding.left + xScale(point.x);
+        const y = padding.top + yScale(point.y);
+        return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+      })
+      .join(' ');
+  }, [normalCurve, xScale, yScale, padding]);
+
+  return (
+    <g>
+      {/* Normal distribution curve (dashed orange line) */}
+      <path
+        d={normalPath}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeDasharray="4,4"
+        className="text-warning"
+        opacity="0.8"
+      />
+
+      {/* Legend */}
+      <g transform={`translate(${padding.left + 10}, ${padding.top + 10})`}>
+        {/* Actual data legend */}
+        <rect
+          x={0}
+          y={0}
+          width={12}
+          height={12}
+          fill="currentColor"
+          className="text-primary"
+          opacity="0.6"
+        />
+        <text
+          x={18}
+          y={10}
+          className="text-[10px] font-medium text-text-primary fill-current"
+        >
+          Actual
+        </text>
+
+        {/* Normal fit legend */}
+        <line
+          x1={0}
+          y1={24}
+          x2={12}
+          y2={24}
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeDasharray="2,2"
+          className="text-warning"
+        />
+        <text
+          x={18}
+          y={28}
+          className="text-[10px] font-medium text-text-primary fill-current"
+        >
+          Normal Fit
+        </text>
+      </g>
+
+      {/* P-value badge (if available) */}
+      {stats.normalityTest && (
+        <g transform={`translate(${width - padding.right - 100}, ${padding.top + 10})`}>
+          <rect
+            x={0}
+            y={0}
+            width={95}
+            height={24}
+            rx={4}
+            fill="currentColor"
+            className={
+              stats.normalityTest.isNormal
+                ? 'text-success-bg'
+                : 'text-warning-bg'
+            }
+            opacity="0.9"
+          />
+          <text
+            x={48}
+            y={15}
+            textAnchor="middle"
+            className={`text-[10px] font-semibold fill-current ${
+              stats.normalityTest.isNormal ? 'text-success' : 'text-warning-text'
+            }`}
+          >
+            p = {stats.normalityTest.pValue.toFixed(3)}
+          </text>
+        </g>
+      )}
+    </g>
+  );
+}

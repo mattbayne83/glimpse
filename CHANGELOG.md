@@ -8,8 +8,107 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Responsive mobile design
-- Excel file support (.xlsx)
+_Current roadmap complete - planning next features_
+
+## [0.10.0] - 2026-03-20
+
+### Added - Advanced Analysis & Visualizations
+- **Phase 1: Statistical Significance** - scipy integration for robust statistical testing
+  - scipy package (~3MB) installed via micropip during Pyodide initialization
+  - **Normality tests**: Shapiro-Wilk test on all numeric columns (p < 0.05 threshold)
+    - Green checkmark badge for normal distributions
+    - Yellow warning badge for non-normal distributions
+    - Displayed in ColumnDetailModal statistics section
+  - **Correlation significance**: Pearson correlation p-values calculated via scipy.stats
+    - Asterisk (*) markers on CorrelationMatrix cells for p < 0.05
+    - Helps distinguish real patterns from random noise
+    - Significance markers theme-aware (white/black based on cell background)
+- **Phase 2: Advanced Visualizations** - Professional statistical charts
+  - **BoxPlotVisualization.tsx** (~280 lines): Box-and-whisker plots
+    - Shows quartiles (Q1, Q2/median, Q3), whiskers (1.5×IQR), and outliers
+    - Visual distribution shape complement to histograms
+    - Integrated into ColumnDetailModal for numeric columns
+  - **DistributionFitOverlay.tsx** (~150 lines): Normal distribution curve overlay
+    - Renders theoretical normal curve over histograms
+    - Uses mean and std dev from actual data
+    - Visual comparison shows skewness and kurtosis at a glance
+    - SVG path with theme-aware stroke color
+  - Both components integrated into ColumnDetailModal below histogram
+- **Phase 3: Time Series Analysis** - FFT-based seasonality detection
+  - **TimeSeriesPlot.tsx** (~295 lines): Interactive time series visualization
+    - Scatter plot with trend line (linear regression via numpy polyfit)
+    - Seasonality shading highlights periodic patterns detected via FFT
+    - Detects daily, weekly, monthly, and annual cycles
+    - Shows detected period (e.g., "7-day cycle detected") with badge
+    - Integrated into ColumnDetailModal when datetime column detected
+  - **DateRangeViz.tsx** (~90 lines): Timeline visualization for snapshot cards
+    - Horizontal bar showing temporal extent of data
+    - Start/end date labels with formatted ranges
+    - Used in ColumnPreviewCard for datetime columns
+  - scipy.fft module used for Fast Fourier Transform seasonality detection
+- **Retail Sales Dataset** - Time series showcase (replaced Iris as primary demo)
+  - 731 rows (2 years of daily data) × 6 columns
+  - Strong weekly seasonality (weekends vs weekdays) patterns
+  - Annual patterns with holiday spikes (Q4 surge)
+  - Multiple numeric columns for correlation analysis
+  - Instant-load (embedded) for zero-latency demo
+  - File: `public/retail_sales_daily.csv` (54 KB)
+
+### Changed
+- Sample dataset registry: Retail Sales replaces Iris as first option
+- ColumnDetailModal: New sections for box plot, distribution fit, and time series (conditional on column type)
+- CorrelationMatrix: Asterisk markers for significant correlations (p < 0.05)
+- Pyodide initialization: scipy installed alongside pandas/numpy/openpyxl
+- FileUpload: Updated sample dataset cards (Retail Sales, E-Commerce, SaaS)
+
+### Removed
+- Iris dataset removed from sample dataset cards (deprecated in favor of Retail Sales)
+
+### Technical
+- New components: `BoxPlotVisualization.tsx`, `DistributionFitOverlay.tsx`, `TimeSeriesPlot.tsx`, `DateRangeViz.tsx`
+- Updated: `analyzeData.ts` - normality tests, correlation p-values, time series detection
+- Updated: `pyodide.ts` - scipy installation via micropip
+- Updated: `ColumnDetailModal.tsx` - conditional rendering for new visualization components
+- Updated: `CorrelationMatrix.tsx` - significance markers with asterisks
+- Updated: `sampleDatasets.ts` - Retail Sales dataset added, Iris deprecated
+- scipy.stats.shapiro: normality test (returns test statistic + p-value)
+- scipy.stats.pearsonr: correlation significance (returns r + p-value)
+- scipy.fft.fft: frequency domain analysis for seasonality detection
+- numpy.polyfit: linear regression for trend lines in time series plots
+
+### Notes
+- **ScatterPlotMatrix NOT integrated**: Component created but requires raw data pipeline (currently only aggregated stats available). Deferred to future release.
+- Total bundle size impact: ~3MB for scipy (acceptable for advanced statistical capabilities)
+- FFT seasonality detection threshold: power spectral density > 2× median to filter noise
+- Time series plot limited to first 1000 points for performance (samples if larger dataset)
+
+## [0.9.0] - 2026-03-20
+
+### Added - Excel Support & Mobile Responsiveness
+- **Excel File Support** - Full .xlsx file support via Pyodide openpyxl
+  - FileUpload component accepts both `.csv` and `.xlsx` files
+  - Pyodide loads openpyxl package dynamically via micropip
+  - pandas `read_excel()` parses Excel files into DataFrames
+  - Enhanced error messages for Excel-specific issues
+  - Progress indicator during openpyxl installation (80-90%)
+  - All analysis features work identically for Excel and CSV
+- **Responsive Mobile Design** - Improved experience on tablets and phones
+  - ColumnDetailModal: full-width on mobile (<768px), side panel on desktop
+  - Touch-optimized interactions throughout the UI
+  - Body scroll lock prevents background scrolling when modals open
+  - Better spacing and touch targets for small screens
+
+### Changed
+- ColumnDetailModal width: `w-full md:w-[480px]` for responsive behavior
+- FileUpload validation message: "CSV or Excel file (.xlsx)"
+- Pyodide loading includes openpyxl installation step
+
+### Technical
+- Updated: `analyzeData.ts` - Excel file detection and `pd.read_excel()` support
+- Updated: `pyodide.ts` - openpyxl installation via micropip
+- Updated: `errorHandler.ts` - Excel-specific error categorization
+- Updated: `FileUpload.tsx` - `.xlsx` validation
+- Updated: `ColumnDetailModal.tsx` - responsive width classes
 
 ## [0.8.0] - 2026-03-17
 

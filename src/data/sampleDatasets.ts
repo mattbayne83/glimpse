@@ -60,10 +60,22 @@ export const HR_DATASET: SampleDataset = {
 };
 
 /**
- * Classic Iris dataset - small embedded dataset for instant demo (no network request)
+ * Daily Retail Sales - 2 years of daily sales data with time series patterns
+ * Showcases: weekly/annual seasonality, trend analysis, revenue correlations
+ */
+export const RETAIL_SALES_DATASET: SampleDataset = {
+  name: 'Retail Sales (Daily)',
+  description: '2 years of daily sales with seasonality & trends',
+  filePath: '/retail_sales_daily.csv',
+  rows: 731,
+  columns: 9,
+};
+
+/**
+ * Classic Iris dataset - DEPRECATED, kept for reference
  * Source: Fisher's 1936 paper on discriminant analysis
  */
-export const IRIS_DATASET: SampleDataset = {
+const IRIS_DATASET_DEPRECATED: SampleDataset = {
   name: 'Iris Flowers',
   description: 'Classic ML demo dataset',
   rows: 150,
@@ -222,7 +234,7 @@ export const IRIS_DATASET: SampleDataset = {
 };
 
 export const SAMPLE_DATASETS = [
-  IRIS_DATASET,       // First: instant demo, zero friction
-  ECOMMERCE_DATASET,  // Second: broadest appeal
-  SAAS_DATASET,       // Third: tech/product focus
+  RETAIL_SALES_DATASET,  // First: time series with seasonality for FFT testing
+  ECOMMERCE_DATASET,     // Second: broadest appeal
+  SAAS_DATASET,          // Third: tech/product focus
 ];

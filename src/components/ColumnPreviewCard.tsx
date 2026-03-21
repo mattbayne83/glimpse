@@ -1,6 +1,7 @@
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Hash, CaseSensitive, CalendarClock } from 'lucide-react';
 import type { ColumnAnalysis } from '../types/analysis';
 import { MiniHistogram } from './MiniHistogram';
+import { DateRangeViz } from './DateRangeViz';
 
 interface ColumnPreviewCardProps {
   column: ColumnAnalysis;
@@ -33,11 +34,32 @@ export function ColumnPreviewCard({ column, totalRows, onClick }: ColumnPreviewC
           <h3 className="font-bold text-sm text-text-primary font-mono truncate flex-1 tracking-tight" title={name}>
             {name}
           </h3>
-          <span
-            className={`px-2 py-0.5 text-[10px] font-bold rounded-lg uppercase tracking-wider ${typeColors[type]} flex-shrink-0 shadow-sm`}
-          >
-            {type.charAt(0)}
-          </span>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Normality Badge (for numeric columns only) */}
+            {type === 'numeric' && analysis.stats.normalityTest && (
+              <span
+                className={`px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider shadow-sm ${
+                  analysis.stats.normalityTest.isNormal
+                    ? 'bg-success-bg text-success border border-success-border'
+                    : 'bg-warning-bg text-warning-text border border-warning-border'
+                }`}
+                title={`${analysis.stats.normalityTest.test}: p=${analysis.stats.normalityTest.pValue.toFixed(4)} ${
+                  analysis.stats.normalityTest.isNormal ? '(Normal)' : '(Non-normal)'
+                }`}
+              >
+                {analysis.stats.normalityTest.isNormal ? '✓' : '!'}
+              </span>
+            )}
+            {/* Type Badge */}
+            <div
+              className={`flex items-center justify-center w-6 h-6 rounded-lg ${typeColors[type]} shadow-sm`}
+              title={type.charAt(0).toUpperCase() + type.slice(1)}
+            >
+              {type === 'numeric' && <Hash className="w-3.5 h-3.5" />}
+              {type === 'categorical' && <CaseSensitive className="w-3.5 h-3.5" />}
+              {type === 'datetime' && <CalendarClock className="w-3.5 h-3.5" />}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -57,9 +79,11 @@ export function ColumnPreviewCard({ column, totalRows, onClick }: ColumnPreviewC
         )}
 
         {type === 'datetime' && (
-          <div className="h-14 flex items-center justify-center text-xs text-text-tertiary italic">
-            Date range visualization
-          </div>
+          <DateRangeViz
+            stats={analysis.stats}
+            width={200}
+            height={56}
+          />
         )}
       </div>
 

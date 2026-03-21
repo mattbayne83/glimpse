@@ -1,16 +1,27 @@
-import type { CorrelationMatrix as CorrelationMatrixData } from '../types/analysis';
+import type { CorrelationMatrix as CorrelationMatrixData, CorrelationSignificance } from '../types/analysis';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 interface CorrelationMatrixProps {
   data: CorrelationMatrixData;
+  significance?: CorrelationSignificance[];
 }
 
 /**
  * Visualize correlation matrix as a heatmap.
  * Correlations range from -1 (negative) to +1 (positive).
+ * Shows (*) markers for statistically significant correlations (p < 0.05).
  */
-export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
+export function CorrelationMatrix({ data, significance }: CorrelationMatrixProps) {
   const { columns, matrix } = data;
+
+  // Helper to check if correlation is significant
+  const isSignificant = (col1: string, col2: string): boolean => {
+    if (!significance) return false;
+    return significance.some(
+      sig => (sig.column1 === col1 && sig.column2 === col2) ||
+             (sig.column1 === col2 && sig.column2 === col1)
+    );
+  };
 
   // Get current theme colors
   const colors = useThemeColors();
@@ -124,27 +135,30 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
                 </div>
 
                 {/* Data cells */}
-                {row.map((value, j) => (
-                  <div
-                    key={`cell-${i}-${j}`}
-                    className="relative flex items-center justify-center p-1 transition-all duration-150 hover:ring-2 hover:ring-inset hover:z-10 cursor-help"
-                    style={{
-                      backgroundColor: getColor(value),
-                      borderRight: j < row.length - 1 ? `1px solid ${borderColor}` : 'none',
-                      borderBottom: i < matrix.length - 1 ? `1px solid ${borderColor}` : 'none',
-                      '--tw-ring-color': primaryColor,
-                    } as React.CSSProperties}
-                    title={`${columns[i]} × ${columns[j]}: ${value.toFixed(3)}`}
-                  >
-                    <span
-                      className={`${fontSize} font-mono font-medium ${
-                        Math.abs(value) > 0.7 ? 'text-text-primary' : 'text-text-secondary'
-                      }`}
+                {row.map((value, j) => {
+                  const significant = i !== j && isSignificant(columns[i], columns[j]);
+                  return (
+                    <div
+                      key={`cell-${i}-${j}`}
+                      className="relative flex items-center justify-center p-1 transition-all duration-150 hover:ring-2 hover:ring-inset hover:z-10 cursor-help"
+                      style={{
+                        backgroundColor: getColor(value),
+                        borderRight: j < row.length - 1 ? `1px solid ${borderColor}` : 'none',
+                        borderBottom: i < matrix.length - 1 ? `1px solid ${borderColor}` : 'none',
+                        '--tw-ring-color': primaryColor,
+                      } as React.CSSProperties}
+                      title={`${columns[i]} × ${columns[j]}: ${value.toFixed(3)}${significant ? ' (statistically significant, p<0.05)' : ''}`}
                     >
-                      {value.toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+                      <span
+                        className={`${fontSize} font-mono font-medium ${
+                          Math.abs(value) > 0.7 ? 'text-text-primary' : 'text-text-secondary'
+                        }`}
+                      >
+                        {value.toFixed(2)}{significant ? '*' : ''}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
@@ -157,6 +171,9 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
             <li>• <strong className="text-text-primary">±0.7-1.0:</strong> Strong correlation (red/blue)</li>
             <li>• <strong className="text-text-primary">±0.4-0.7:</strong> Moderate correlation</li>
             <li>• <strong className="text-text-primary">±0.0-0.4:</strong> Weak correlation (white)</li>
+            {significance && significance.length > 0 && (
+              <li>• <strong className="text-text-primary">* marker:</strong> Statistically significant (p &lt; 0.05)</li>
+            )}
             <li>• Diagonal is always 1.0 (perfect self-correlation)</li>
           </ul>
         </div>
