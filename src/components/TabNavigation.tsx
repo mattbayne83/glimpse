@@ -19,15 +19,16 @@ export function TabNavigation({ tabs, activeTab, onTabChange }: TabNavigationPro
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             className={`
-              px-3 py-2 md:px-4 md:py-2.5 text-sm md:text-base font-medium border-b-2 transition-all duration-150 active:scale-95 min-w-0
+              relative px-3 py-2 md:px-4 md:py-2.5 text-sm md:text-base font-medium transition-colors duration-150 active:scale-95 min-w-0
+              before:absolute before:inset-x-0 before:bottom-0 before:h-0.5 before:bg-primary before:transition-transform before:duration-300 before:ease-out
               ${
                 activeTab === tab.id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-text-secondary hover:text-text-primary active:text-text-primary'
+                  ? 'text-primary before:scale-x-100'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover/50 before:scale-x-0'
               }
             `}
           >
-            <span className="whitespace-nowrap">{tab.label}</span>
+            <span className="whitespace-nowrap relative z-10">{tab.label}</span>
             {tab.count !== undefined && (
               <span
                 className={`

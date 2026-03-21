@@ -7,8 +7,124 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Story Mode Dark Theme Integration** (March 21, 2026)
+  - All 12 story slide components now respect light/dark theme selection
+  - Replaced hardcoded colors (`text-white`, `bg-white/10`) with semantic Tailwind classes (`text-text-primary`, `bg-bg-elevated`)
+  - SVG visualizations use `currentColor` pattern for automatic theme adaptation
+  - Progress dots, navigation hints, and close button all theme-aware
+  - Story Mode background automatically switches between light and dark modes
+  - Files updated: StoryMode.tsx, StoryProgress.tsx, all slide components (TitleSlide, InsightsPreviewSlide, CorrelationSlide, DistributionSlide, TimeSeriesSlide, OutlierSlide, CategorySlide, QualitySlide, NextStepsSlide), SlideLayout.tsx, NarrativeText.tsx
+
+### Removed
+- **BoxPlotVisualization component** - Redundant with RangeIndicator (March 21, 2026)
+  - Removed 280-line component that duplicated quartile information already shown in RangeIndicator
+  - RangeIndicator provides all quartile data (Q1, Q3, median, min, max, IQR, outliers) in more compact format
+  - Histogram already visualizes distribution shape, making second quartile view unnecessary
+  - Reduces ColumnDetailModal complexity and vertical scrolling
+- **Export Report and Copy Stats buttons** - Simplified UI (March 21, 2026)
+  - Removed "Export Report" button from AnalysisView header
+  - Removed "Copy Stats" button from Overview tab
+  - Removed ~200 lines of export/copy code
+  - Cleaner, more focused interface with just "Tell the Story" and "Clear" buttons
+
 ### Planned
-_Current roadmap complete - planning next features_
+See **Performance > From Elon Cleanup** in BACKLOG.md for prioritized optimizations.
+
+## [0.12.0] - 2026-03-21
+
+### Added - Immersive Story Mode (Phase 3)
+- **Story Mode** - Auto-generated cinematic presentation of dataset insights
+  - Full-screen slide deck interface with keyboard navigation (←/→ arrows, ESC to exit)
+  - Animated transitions between slides with fade-in effects
+  - Smart insight detection automatically surfaces interesting patterns
+  - 9 specialized slide types for different insight categories
+  - Progress indicator showing current slide position
+  - Launched via "Tell the Story" button in AnalysisView header
+- **Slide Components** (~1,365 total lines) - Professional narrative visualizations
+  - **TitleSlide**: Dataset overview with row/column counts and insight preview
+  - **InsightsPreviewSlide**: Grid of insight type cards showing what was detected
+  - **CorrelationSlide**: Scatter plot placeholder + correlation narrative text
+  - **DistributionSlide**: Range stats + distribution characteristics narrative
+  - **TimeSeriesSlide**: Temporal pattern narrative with period detection
+  - **OutlierSlide**: Extreme value analysis with impact metrics
+  - **CategorySlide**: Dominant category analysis with concentration insights
+  - **QualitySlide**: Data quality issues (duplicates, missing values, high cardinality)
+  - **NextStepsSlide**: Actionable recommendations based on detected patterns
+- **Core Story Components**
+  - **StoryMode.tsx** (~350 lines): Full-screen container, slide management, keyboard shortcuts
+  - **StorySlide.tsx** (~100 lines): Animated slide wrapper with transition effects
+  - **StoryProgress.tsx** (~50 lines): Dot navigation indicator
+  - **SlideLayout.tsx** (~80 lines): Reusable slide structure with title/insight/children pattern
+  - **NarrativeText.tsx** (~45 lines): Formatted narrative text component
+- **Insight Generation Engine** (`generateStory.ts` ~280 lines)
+  - Analyzes existing analysisResult to detect noteworthy patterns
+  - Threshold-based detection for correlations, distributions, outliers, quality issues
+  - Smart insight prioritization (shows most interesting findings first)
+  - Type-based slide routing (maps insights to appropriate slide components)
+
+### Changed
+- AnalysisView header: Added "Tell the Story" button (book icon) next to Export/Copy
+- Type system: Added `src/types/story.ts` with Slide, InsightType, and slide data interfaces
+- All slide components use `as unknown as` type casting pattern for type safety
+
+### Technical
+- New files:
+  - `src/components/story/StoryMode.tsx`
+  - `src/components/story/StorySlide.tsx`
+  - `src/components/story/StoryProgress.tsx`
+  - `src/components/story/slides/TitleSlide.tsx`
+  - `src/components/story/slides/InsightsPreviewSlide.tsx`
+  - `src/components/story/slides/CorrelationSlide.tsx`
+  - `src/components/story/slides/DistributionSlide.tsx`
+  - `src/components/story/slides/TimeSeriesSlide.tsx`
+  - `src/components/story/slides/OutlierSlide.tsx`
+  - `src/components/story/slides/CategorySlide.tsx`
+  - `src/components/story/slides/QualitySlide.tsx`
+  - `src/components/story/slides/NextStepsSlide.tsx`
+  - `src/components/story/slides/SlideLayout.tsx`
+  - `src/components/story/slides/NarrativeText.tsx`
+  - `src/components/story/slides/MockInsightSlide.tsx` (Phase 1 placeholder)
+  - `src/utils/generateStory.ts`
+  - `src/types/story.ts`
+- Pattern: JSX text with `>` must use `&gt;` HTML entity
+- Pattern: Type casting from base SlideData requires `as unknown as SpecificType`
+
+### Notes
+- **Phase 1-2 Complete**: Core story infrastructure + all slide components implemented
+- **Phase 3 Deferred**: Standalone HTML export (planned for v0.13.0)
+- Story mode currently displays insights based on existing analysis data (no new Python computation)
+- Visualization components in slides are text-based narratives (Phase 3 interactive charts deferred)
+
+## [0.11.0] - 2026-03-20
+
+### Changed - Elon's Algorithm Cleanup
+- **Applied Elon Musk's 5-Step Engineering Algorithm** to question requirements, delete ruthlessly, and simplify
+  - **Step 1: Questioned** - Challenged glossary system (4 components for simple help tooltips), ScatterPlotMatrix (violates privacy architecture), 10MB file limit (too restrictive)
+  - **Step 2: Deleted** - Removed 900+ lines of dead code:
+    - Glossary system: GlossaryModal.tsx, GlossaryTooltip.tsx, InfoIcon.tsx, glossary.ts (350+ lines)
+    - Unused components: ScatterPlotMatrix.tsx (250 lines), BoxPlot.tsx (100 lines)
+    - Web Worker files: pyodide.worker.ts, test.worker.ts, usePyodideWorker.ts (200+ lines)
+    - IRIS_DATASET_DEPRECATED constant (160 lines)
+  - **Step 3: Simplified** - Help system now uses Tooltip component directly with inline term definitions (Option B pattern)
+  - **Steps 4-5: Deferred** - Performance optimizations documented in BACKLOG.md for future implementation
+
+### Added
+- **Tooltip.tsx**: Educational tooltip component with term/content/example props (simplified from 4-component abstraction)
+- **File size warning**: Large file detection (10-50 MB) now shows warning message about longer processing times
+- **TERM_DEFINITIONS constants**: Inline statistical term definitions in ColumnDetailModal, MissingDataTable, CorrelationMatrix (replaces glossary system)
+
+### Improved
+- **File upload limit increased** from 10MB → 50MB with warning for files >10MB
+- **Zero TypeScript errors** after cleanup (was 5+ errors before)
+- **Component count reduced** from 29 → 23 files (21% reduction)
+- **Cleaner architecture** - removed components that violated privacy-first design or duplicated functionality
+
+### Removed
+- **GlossaryModal** and "G" keyboard shortcut (never used, over-engineered)
+- **ScatterPlotMatrix** (required raw data access, incompatible with privacy architecture)
+- **InfoIcon wrapper** (unnecessary abstraction, replaced with direct Tooltip usage)
+- **Web Worker files** (already noted as unused in v0.9.0, now deleted)
 
 ## [0.10.0] - 2026-03-20
 

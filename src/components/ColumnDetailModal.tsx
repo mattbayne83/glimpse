@@ -1,54 +1,128 @@
-import { X, TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle, Hash, CaseSensitive, CalendarClock } from 'lucide-react';
-import { useEffect } from 'react';
+import { X, TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle, Hash, CaseSensitive, CalendarClock, HelpCircle } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import type { AnalysisResult } from '../types/analysis';
 import { Histogram } from './Histogram';
 import { RangeIndicator } from './RangeIndicator';
 import { TimeSeriesPlot } from './TimeSeriesPlot';
-import { BoxPlotVisualization } from './BoxPlotVisualization';
+import { Tooltip } from './Tooltip';
+
+// Statistical term definitions for inline help tooltips
+const TERM_DEFINITIONS = {
+  normal: {
+    term: 'Normal',
+    content: 'A bell-shaped distribution where data clusters symmetrically around the mean. Also called a "normal curve" or "bell curve".',
+    example: 'Human height follows a normal distribution: most people are near average height, fewer are very tall or very short.',
+  },
+  'right-skewed': {
+    term: 'Right-Skewed',
+    content: 'A distribution where most values cluster on the left, with a long tail extending to the right.',
+    example: 'Income data is often right-skewed: most people earn moderate amounts, a few earn very high amounts.',
+  },
+  'left-skewed': {
+    term: 'Left-Skewed',
+    content: 'A distribution where most values cluster on the right, with a long tail extending to the left.',
+    example: 'Test scores might be left-skewed if most students score high with a few low outliers.',
+  },
+  bimodal: {
+    term: 'Bimodal',
+    content: 'A distribution with two distinct peaks, suggesting two separate groups in your data.',
+    example: 'Employee ages might show peaks at 25-35 (young professionals) and 55-65 (senior staff).',
+  },
+  uniform: {
+    term: 'Uniform',
+    content: 'A distribution where all values occur with roughly equal frequency. The histogram appears flat.',
+    example: 'Rolling a fair die produces a uniform distribution: each number (1-6) appears equally often.',
+  },
+  quartiles: {
+    term: 'Quartiles',
+    content: 'Values that divide your data into four equal parts. Q1 (25th percentile), Q2 (median/50th), Q3 (75th percentile).',
+    example: 'If Q1 = $40k and Q3 = $80k, 50% of salaries fall between $40k and $80k.',
+  },
+  'p-value': {
+    term: 'P-Value',
+    content: 'The probability that the observed pattern could have occurred by random chance. Lower values (< 0.05) suggest the pattern is statistically significant.',
+    example: "p = 0.001 means there's only a 0.1% chance this correlation happened randomly—very likely a real relationship.",
+  },
+  correlation: {
+    term: 'Correlation',
+    content: 'A measure of how two variables change together. Ranges from -1 (perfect negative) to +1 (perfect positive).',
+    example: 'Height and weight have positive correlation: taller people tend to weigh more.',
+  },
+} as const;
 
 interface ColumnDetailModalProps {
   columnName: string;
   result: AnalysisResult;
   onClose: () => void;
+  // Navigation support
+  columnIndex?: number;
+  totalColumns?: number;
+  onNavigate?: (direction: 'prev' | 'next') => void;
 }
 
-export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailModalProps) {
+export function ColumnDetailModal({
+  columnName,
+  result,
+  onClose,
+  columnIndex,
+  totalColumns,
+  onNavigate,
+}: ColumnDetailModalProps) {
   const column = result.columns.find((col) => col.name === columnName);
 
-  // Lock body scroll when modal is open
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close (without blocking interaction with the main view)
   useEffect(() => {
-    // Save current scroll position
-    const scrollY = window.scrollY;
-
-    // Lock body scroll
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
-
-    return () => {
-      // Restore body scroll
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-
-      // Restore scroll position
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
-
-  // ESC key support
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+    const handleClickOutside = (e: MouseEvent) => {
+      // Check if click was outside the drawer
+      if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
+        // If they click on another column card, we don't want to prevent that action,
+        // but we do want to dismiss the current view.
         onClose();
       }
     };
 
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    // Use a slight delay before attaching to prevent immediate close on the click that opened it
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [onClose]);
+
+  // Removed scroll lock to allow interaction with main view while drawer is open
+
+  // Keyboard navigation support (ESC + arrow keys)
+  useEffect(() => {
+    const handleKeyboard = (e: KeyboardEvent) => {
+      // Don't interfere with text inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        onClose();
+      }
+
+      // Arrow key navigation (if navigation is enabled)
+      if (onNavigate) {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          onNavigate('prev');
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          onNavigate('next');
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyboard);
+    return () => document.removeEventListener('keydown', handleKeyboard);
+  }, [onClose, onNavigate]);
 
   if (!column) {
     return null;
@@ -202,18 +276,24 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300"
-        onClick={onClose}
-      />
+      {/* No backdrop - allows interacting with main content behind the drawer */}
 
       {/* Modal */}
-      <div className="fixed top-0 right-0 bottom-0 w-full md:max-w-[500px] bg-bg-surface/80 backdrop-blur-xl md:border-l border-border-default shadow-2xl z-50 overflow-y-auto animate-slide-in-right">
+      <div 
+        ref={drawerRef}
+        className="fixed top-0 right-0 bottom-0 w-full md:max-w-[500px] bg-bg-surface/80 backdrop-blur-xl md:border-l border-border-default shadow-2xl z-50 overflow-y-auto animate-slide-in-right"
+      >
         {/* Header */}
         <div className="sticky top-0 bg-bg-surface/90 backdrop-blur-md border-b border-border-default px-4 md:px-8 py-4 md:py-6 flex items-center justify-between z-10">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold text-text-primary truncate tracking-tight">{columnName}</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-text-primary truncate tracking-tight">{columnName}</h2>
+              {columnIndex !== undefined && totalColumns !== undefined && (
+                <span className="text-sm text-text-secondary whitespace-nowrap flex-shrink-0">
+                  {columnIndex + 1} / {totalColumns}
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2 mt-2">
               <span
                 className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm ${typeColors[type]}`}
@@ -223,11 +303,6 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                 {type === 'datetime' && <CalendarClock className="w-3.5 h-3.5" />}
                 {type}
               </span>
-              {distributionShape && (
-                <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-primary/10 text-primary border border-primary/20">
-                  {distributionShape}
-                </span>
-              )}
             </div>
           </div>
           <button
@@ -254,11 +329,18 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                       label="Mean"
                       value={analysis.stats.mean?.toFixed(2) || 'N/A'}
                       insight={skewnessInsight}
+                      infoTerm="mean"
+                    />
+                    <StatRowWithInsight
+                      label="Median"
+                      value={analysis.stats.q50?.toFixed(2) || 'N/A'}
+                      infoTerm="median"
                     />
                     <StatRowWithInsight
                       label="Std Dev"
                       value={analysis.stats.std?.toFixed(2) || 'N/A'}
                       insight={spreadInsight}
+                      infoTerm="standard deviation"
                     />
                   </div>
 
@@ -267,7 +349,12 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
 
                   {/* Visual range indicator */}
                   <div className="overflow-x-auto">
-                    <h4 className="text-xs font-medium text-text-secondary mb-3">Distribution Range</h4>
+                    <h4 className="text-xs font-medium text-text-secondary mb-3 inline-flex items-center gap-1.5">
+                      Distribution Range
+                      <Tooltip {...TERM_DEFINITIONS.quartiles}>
+                        <HelpCircle className="w-4 h-4 text-text-secondary hover:text-text-primary cursor-help transition-colors" />
+                      </Tooltip>
+                    </h4>
                     <div className="min-w-[300px] max-w-full">
                       <RangeIndicator
                         min={analysis.stats.min}
@@ -290,6 +377,7 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                     label="Missing"
                     value={`${missingCount.toLocaleString()} (${((missingCount / totalRows) * 100).toFixed(1)}%)`}
                     insight={missingInsight}
+                    infoTerm="missing values"
                   />
 
                   {/* Normality Test */}
@@ -302,7 +390,12 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                           <span className="text-text-tertiary text-[10px]">{analysis.stats.normalityTest.test}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-text-secondary">p-value</span>
+                          <span className="text-xs text-text-secondary inline-flex items-center gap-1.5">
+                            p-value
+                            <Tooltip {...TERM_DEFINITIONS['p-value']}>
+                              <HelpCircle className="w-4 h-4 text-text-secondary hover:text-text-primary cursor-help transition-colors" />
+                            </Tooltip>
+                          </span>
                           <span className="text-xs font-mono text-text-primary">{analysis.stats.normalityTest.pValue.toFixed(4)}</span>
                         </div>
                         <div className={`p-2 rounded-lg border ${
@@ -333,13 +426,14 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
 
               {type === 'categorical' && (
                 <>
-                  <StatRow label="Unique Values" value={analysis.stats.uniqueCount.toLocaleString()} />
+                  <StatRow label="Unique Values" value={analysis.stats.uniqueCount.toLocaleString()} infoTerm="cardinality" />
                   <StatRow label="Total Count" value={totalRows.toLocaleString()} />
                   <div className="border-t border-border-default my-2" />
                   <StatRowWithInsight
                     label="Missing"
                     value={`${missingCount.toLocaleString()} (${((missingCount / totalRows) * 100).toFixed(1)}%)`}
                     insight={missingInsight}
+                    infoTerm="missing values"
                   />
                 </>
               )}
@@ -375,23 +469,10 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
                     width={Math.min(400, (typeof window !== 'undefined' ? window.innerWidth : 400) - 120)}
                     height={200}
                     shapeLabel={distributionShape}
+                    shapeTooltip={distributionShape ? TERM_DEFINITIONS[distributionShape.toLowerCase() as keyof typeof TERM_DEFINITIONS] : undefined}
                   />
                 </div>
               </div>
-
-              {/* Box Plot for outlier visualization */}
-              {analysis.stats.boxPlot && (
-                <div className="mt-6 bg-bg-page rounded-lg p-4 overflow-x-auto">
-                  <div className="min-w-[340px] max-w-full">
-                    <BoxPlotVisualization
-                      stats={analysis.stats}
-                      columnName={columnName}
-                      width={Math.min(400, (typeof window !== 'undefined' ? window.innerWidth : 400) - 120)}
-                      height={300}
-                    />
-                  </div>
-                </div>
-              )}
             </section>
           )}
 
@@ -448,7 +529,12 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
           {/* Correlations Section (Numeric only) */}
           {type === 'numeric' && correlations.length > 0 && (
             <section>
-              <h3 className="text-sm font-semibold text-text-primary mb-3">Correlations</h3>
+              <h3 className="text-sm font-semibold text-text-primary mb-3 inline-flex items-center gap-1.5">
+                Correlations
+                <Tooltip {...TERM_DEFINITIONS.correlation}>
+                  <HelpCircle className="w-4 h-4 text-text-secondary hover:text-text-primary cursor-help transition-colors" />
+                </Tooltip>
+              </h3>
               <div className="bg-bg-page rounded-lg p-4 space-y-2">
                 {correlations.slice(0, 5).map((corr, idx) => (
                   <div key={idx} className="flex items-center justify-between text-sm">
@@ -486,10 +572,18 @@ export function ColumnDetailModal({ columnName, result, onClose }: ColumnDetailM
 }
 
 // Helper component for stat rows
-function StatRow({ label, value }: { label: string; value: string }) {
+function StatRow({ label, value, infoTerm }: { label: string; value: string; infoTerm?: string }) {
+  const termDef = infoTerm ? TERM_DEFINITIONS[infoTerm.toLowerCase() as keyof typeof TERM_DEFINITIONS] : null;
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-text-secondary">{label}</span>
+      <span className="text-text-secondary inline-flex items-center gap-1.5">
+        {label}
+        {termDef && (
+          <Tooltip {...termDef}>
+            <HelpCircle className="w-4 h-4 text-text-secondary hover:text-text-primary cursor-help transition-colors" />
+          </Tooltip>
+        )}
+      </span>
       <span className="text-text-primary font-medium">{value}</span>
     </div>
   );
@@ -500,14 +594,24 @@ function StatRowWithInsight({
   label,
   value,
   insight,
+  infoTerm,
 }: {
   label: string;
   value: string;
   insight?: { icon: React.ComponentType<{ className?: string }>; color: string; label: string; detail?: string } | null;
+  infoTerm?: string;
 }) {
+  const termDef = infoTerm ? TERM_DEFINITIONS[infoTerm.toLowerCase() as keyof typeof TERM_DEFINITIONS] : null;
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-text-secondary">{label}</span>
+      <span className="text-text-secondary inline-flex items-center gap-1.5">
+        {label}
+        {termDef && (
+          <Tooltip {...termDef}>
+            <HelpCircle className="w-4 h-4 text-text-secondary hover:text-text-primary cursor-help transition-colors" />
+          </Tooltip>
+        )}
+      </span>
       <div className="flex items-center gap-2">
         <span className="text-text-primary font-medium font-mono">{value}</span>
         {insight && (

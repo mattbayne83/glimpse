@@ -4,9 +4,25 @@
 _None - ready for next feature!_
 
 ## Next Up (Priority)
-_To be determined - current roadmap complete!_
+- [ ] **Story Mode Phase 3: HTML Export** - Standalone shareable story files
+- [ ] **Story Mode Phase 4: Interactive Visualizations** - Replace text narratives with charts
+- See **Performance > From Elon Cleanup** section below for prioritized optimizations
 
 ## Recently Added ✨
+- [x] **Immersive Story Mode (Phase 1-2)** (March 21, 2026) - Auto-generated visual narratives
+  - Full-screen cinematic presentation with 9 specialized slide types
+  - Smart insight detection from existing analysis data
+  - Keyboard navigation (arrows/ESC), progress indicator, animated transitions
+  - 1,365 lines across StoryMode core + slide components + insight generator
+  - Text-based narratives (interactive charts deferred to Phase 4)
+  - Standalone HTML export deferred to Phase 3
+- [x] **Elon's 5-Step Algorithm Cleanup** (March 20, 2026) - Questioned requirements, deleted ruthlessly
+  - Removed 900+ lines of dead code (glossary system, unused components, Web Worker files)
+  - Increased file limit to 50MB with warning for large files (was 10MB)
+  - Simplified help tooltips (native HTML instead of 4-component abstraction)
+  - Zero TypeScript errors after cleanup
+  - Components deleted: GlossaryModal, GlossaryTooltip, InfoIcon, ScatterPlotMatrix, BoxPlot, Web Worker files
+  - Deferred optimizations documented in Performance section below
 - [x] **Phase 1-3: Advanced Statistical Analysis & Visualizations** (March 20, 2026) - Professional statistical capabilities
   - **Statistical Significance**: scipy integration, Shapiro-Wilk normality tests, correlation p-values with significance markers
   - **Advanced Visualizations**: Box plots, distribution fit overlays on histograms
@@ -91,6 +107,17 @@ _To be determined - current roadmap complete!_
 - [ ] Column type inference improvements (detect emails, phone numbers, IDs)
 
 ## Performance
+
+### From Elon Cleanup (March 2026)
+- [ ] **Sample dataset compression** - Compress CSVs to `.csv.gz` format (2.5 MB → ~500 KB, 80% reduction)
+- [ ] **Pyodide CDN fallback chain** - Add fallback CDNs (cdnjs, unpkg) for 50% reduction in load failures
+- [ ] **Bundle splitting** - Lazy-load ColumnDetailModal and advanced viz components (50-80 KB initial bundle reduction)
+- [ ] **Icon tree-shaking** - Import only used Lucide icons explicitly (20-30 KB savings)
+- [ ] **TypeScript strict mode** - Enable `strict: true` in tsconfig for compile-time error catching
+- [ ] **Bundle size monitoring** - Add size-limit to CI to prevent bloat regression
+- [ ] **Pre-commit hooks** - Unused export detection, TypeScript checks, ESLint
+
+### Original Backlog
 - [ ] Lazy-load Pyodide only when needed (reduce initial bundle)
 - [ ] Show Pyodide download progress bar
 - [ ] Cache analysis results more aggressively

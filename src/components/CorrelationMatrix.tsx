@@ -1,5 +1,21 @@
+import { HelpCircle } from 'lucide-react';
 import type { CorrelationMatrix as CorrelationMatrixData, CorrelationSignificance } from '../types/analysis';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { Tooltip } from './Tooltip';
+
+// Statistical term definitions for inline help tooltips
+const TERM_DEFINITIONS = {
+  'pearson r': {
+    term: 'Pearson r',
+    content: 'The most common correlation coefficient. Measures the strength and direction of a linear relationship between two variables.',
+    example: 'r = 0.9 means strong positive relationship. r = -0.8 means strong negative relationship. r = 0.1 means weak relationship.',
+  },
+  significance: {
+    term: 'Significance',
+    content: "A correlation is 'significant' if it's unlikely to have occurred by chance (typically p < 0.05). Marked with asterisks (*) in the app.",
+    example: 'A correlation of 0.7 with p = 0.02 is significant (*), while 0.7 with p = 0.15 is not.',
+  },
+} as const;
 
 interface CorrelationMatrixProps {
   data: CorrelationMatrixData;
@@ -74,7 +90,12 @@ export function CorrelationMatrix({ data, significance }: CorrelationMatrixProps
         <div className="mb-4 flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-xs md:text-sm text-text-secondary">
           <div className="flex items-center gap-2">
             <div className="w-12 h-4 rounded" style={{ background: `linear-gradient(to right, ${negativeColorHex}, #FFFFFF, ${positiveColorHex})` }} />
-            <span>-1 (negative) → 0 → +1 (positive)</span>
+            <span className="inline-flex items-center gap-1.5">
+              -1 (negative) → 0 → +1 (positive)
+              <Tooltip {...TERM_DEFINITIONS['pearson r']}>
+                <HelpCircle className="w-4 h-4 text-text-secondary hover:text-text-primary cursor-help transition-colors" />
+              </Tooltip>
+            </span>
           </div>
         </div>
 
@@ -172,7 +193,12 @@ export function CorrelationMatrix({ data, significance }: CorrelationMatrixProps
             <li>• <strong className="text-text-primary">±0.4-0.7:</strong> Moderate correlation</li>
             <li>• <strong className="text-text-primary">±0.0-0.4:</strong> Weak correlation (white)</li>
             {significance && significance.length > 0 && (
-              <li>• <strong className="text-text-primary">* marker:</strong> Statistically significant (p &lt; 0.05)</li>
+              <li className="inline-flex items-center gap-1.5">
+                • <strong className="text-text-primary">* marker:</strong> Statistically significant (p &lt; 0.05)
+                <Tooltip {...TERM_DEFINITIONS.significance}>
+                  <HelpCircle className="w-4 h-4 text-text-secondary hover:text-text-primary cursor-help transition-colors" />
+                </Tooltip>
+              </li>
             )}
             <li>• Diagonal is always 1.0 (perfect self-correlation)</li>
           </ul>

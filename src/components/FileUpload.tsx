@@ -9,11 +9,13 @@ interface FileUploadProps {
   isLoading?: boolean;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024; // 10MB
 
 export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [], isLoading = false }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): string | null => {
@@ -22,7 +24,14 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      return 'File exceeds 10MB limit. For larger datasets, try sampling or filtering your data first.';
+      return 'File exceeds 50MB limit. For very large datasets, try sampling or filtering your data first.';
+    }
+
+    // Warning for large files (10-50 MB)
+    if (file.size > LARGE_FILE_THRESHOLD) {
+      setWarning(`Large file detected (${(file.size / 1024 / 1024).toFixed(1)}MB). Analysis may take longer than usual.`);
+    } else {
+      setWarning(null);
     }
 
     return null;
@@ -138,6 +147,13 @@ export function FileUpload({ onFileSelect, onExampleSelect, sampleDatasets = [],
           )}
         </div>
       </div>
+
+      {warning && !error && (
+        <div className="mt-4 p-3 bg-warning-bg border border-warning-border rounded-lg text-sm text-warning flex items-start gap-2">
+          <span className="text-warning">⚠️</span>
+          <span>{warning}</span>
+        </div>
+      )}
 
       {error && (
         <div className="mt-4 p-3 bg-error-bg border border-error-border rounded-lg text-sm text-error">

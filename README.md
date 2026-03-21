@@ -129,13 +129,16 @@ npm run lint
 See [BACKLOG.md](BACKLOG.md) for full feature list.
 
 **Recently Shipped:**
+- ✅ Story Mode dark theme - All slides respect light/dark theme selection
+- ✅ Immersive Story Mode - Auto-generated visual narratives with cinematic presentation
+- ✅ Advanced statistical analysis - Normality tests, correlation significance, FFT seasonality
 - ✅ Excel file support (.xlsx) - Full openpyxl integration
 - ✅ Responsive mobile design - Touch-optimized layouts
 - ✅ Keyboard shortcuts - Power user navigation
 
 **Coming Soon:**
-- Advanced visualizations (scatter plots, time series)
 - Multi-sheet Excel support
+- Standalone HTML story export
 - Custom column transformations
 
 ## Contributing

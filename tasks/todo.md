@@ -1,346 +1,594 @@
-# Implementation Plan: Keyboard Shortcuts Help Modal + Responsive Mobile Design + Excel Support
+# Implementation Plan: Phase 1 Features
 
-## Goal
-Add three UX enhancements: (1) keyboard shortcuts help modal triggered by "?" key, (2) responsive mobile design across all components, and (3) Excel file upload support (.xlsx) via Pyodide openpyxl.
-
-## Acceptance Criteria
-- [ ] Pressing "?" key opens a help modal showing all keyboard shortcuts
-- [ ] Help modal dismisses with ESC or backdrop click
-- [ ] All UI components are fully responsive on mobile (320px+), tablet (768px+), and desktop (1024px+)
-- [ ] Critical interactions work with touch (no hover-only UX)
-- [ ] Excel files (.xlsx) can be uploaded alongside CSV files
-- [ ] Excel files are parsed correctly via Pyodide openpyxl
-- [ ] File validation supports both .csv and .xlsx extensions
-- [ ] All existing keyboard shortcuts, modals, and features still work
+**Status:** Ready for Implementation
+**Created:** March 20, 2026
+**Features:** Statistics Explanations + Arrow Key Column Navigation
 
 ---
 
-## Feature 1: Keyboard Shortcuts Help Modal
+## Plan: Statistics Glossary & Power User Navigation
 
-### Steps
+### Goal
+Empower non-technical users with inline help tooltips and a glossary modal, while enabling power users to rapidly explore columns using keyboard shortcuts.
 
-#### 1.1. Create KeyboardShortcutsModal component (Complexity: Low)
-- **Files**: Create `src/components/KeyboardShortcutsModal.tsx`
-- **Pattern**: Follow `ConfirmModal.tsx` structure (fixed overlay, backdrop, centered content)
-- **Props**: `{ isOpen: boolean; onClose: () => void }`
-- **Content**:
-  - Title: "Keyboard Shortcuts"
-  - Grid layout with shortcut key badges (left) + description (right)
-  - Sections: Navigation, Actions
-  - Shortcuts to document:
-    - `ESC` - Close modal or show clear confirmation
-    - `←` / `→` - Navigate between tabs
-    - `1` / `2` / `3` - Jump to Overview/Columns/Quality
-    - `?` - Show this help (meta!)
-- **Styling**:
-  - Fixed overlay (`z-50`)
-  - Backdrop: `bg-black/50 backdrop-blur-sm` (match ConfirmModal)
-  - Modal: `max-w-lg` (slightly wider than ConfirmModal for 2-column layout)
-  - Keyboard badges: monospace font, rounded border, subtle shadow
-- **Risk**: None — simple presentational component
-
-#### 1.2. Add global "?" key listener in App.tsx (Complexity: Low)
-- **Files**: `src/App.tsx`
-- **Logic**:
-  - Add state: `const [showShortcutsModal, setShowShortcutsModal] = useState(false)`
-  - Add `useEffect` with `keydown` listener on `document`
-  - Check: `e.key === '?' && !isInputFocused` (guard against input fields)
-  - Call: `setShowShortcutsModal(true)`
-  - Cleanup: remove listener on unmount
-- **Guard Clause**: Reuse same pattern from AnalysisView.tsx (check `e.target instanceof HTMLInputElement/HTMLTextAreaElement`)
-- **Risk**: None — same pattern already proven in AnalysisView
-
-#### 1.3. Render modal in App.tsx (Complexity: Low)
-- **Files**: `src/App.tsx`
-- **Location**: After `</main>`, before `</footer>`
-- **Code**: `<KeyboardShortcutsModal isOpen={showShortcutsModal} onClose={() => setShowShortcutsModal(false)} />`
-- **Risk**: None
+### Acceptance Criteria
+- [ ] Info icons appear next to all technical terms with hover tooltips
+- [ ] Global glossary modal opens via `g` key shortcut
+- [ ] Arrow keys (←/→) navigate between columns when detail modal is open
+- [ ] Column position indicator shows "Column X/Y" in modal header
+- [ ] All new shortcuts documented in KeyboardShortcutsModal
+- [ ] Zero visual regressions in light/dark modes
+- [ ] No performance impact on dataset analysis
 
 ---
 
-## Feature 2: Responsive Mobile Design
+## Steps
 
-### Mobile Audit (Current Issues)
+### 1. Create Tooltip Component (Complexity: Low)
 
-**Known Breakpoints:**
-- Mobile: 320px - 767px (base styles, no prefix)
-- Tablet: 768px+ (`md:`)
-- Desktop: 1024px+ (`lg:`)
-- Large: 1280px+ (`xl:`)
+**Files:**
+- `src/components/Tooltip.tsx` (new)
 
-**Components to Fix:**
+**Implementation:**
+```typescript
+interface TooltipProps {
+  term: string;           // Technical term to display
+  children: React.ReactNode;  // Trigger element (e.g., info icon)
+}
+```
 
-#### 2.1. Fix AnalysisView header overflow (Complexity: Low)
-- **File**: `src/components/AnalysisView.tsx`
-- **Issue**: Header with dataset name + metadata + Clear/Export buttons may overflow on narrow screens
-- **Fix**:
-  - Wrap header in flex column on mobile: `flex flex-col md:flex-row md:items-center md:justify-between gap-4`
-  - Dataset metadata: `flex flex-wrap gap-x-4 gap-y-1` (wrap on overflow)
-  - Actions: full-width buttons on mobile `w-full md:w-auto`, stack vertically `flex flex-col md:flex-row gap-2`
-- **Risk**: Low — flex wrapping is safe
+**Design:**
+- Use native browser `title` attribute for simplicity (Phase 1)
+- Or build custom positioned tooltip with `absolute` positioning + `onMouseEnter`/`onMouseLeave`
+- Recommendation: Start with simple approach, enhance later if needed
+- Dark mode: Use `bg-bg-surface`, `border-border-default`, `text-text-primary` tokens
+- Positioning: Top-center by default, flip if too close to viewport edge
 
-#### 2.2. Fix ColumnDetailModal on mobile (Complexity: Medium)
-- **File**: `src/components/ColumnDetailModal.tsx`
-- **Issue**: Fixed 500px width might be too narrow on phones (need full-width), body scroll lock may interfere with mobile Safari
-- **Fix**:
-  - Width: `w-full` on all screens (remove max-width on mobile), or use `max-w-full md:max-w-[500px]`
-  - Padding: reduce from `p-8` to `p-4 md:p-8` for more screen real estate
-  - Header: ensure X button is large enough for touch (`min-w-[44px] min-h-[44px]` — iOS guideline)
-  - Histogram: ensure min-height doesn't cause overflow (`min-h-[150px] md:min-h-[200px]`)
-- **Test**: iOS Safari body scroll lock (may need `-webkit-overflow-scrolling: touch`)
-- **Risk**: Medium — body scroll lock can be finicky on mobile browsers
-
-#### 2.3. Fix CorrelationMatrix on mobile (Complexity: Medium)
-- **File**: `src/components/CorrelationMatrix.tsx`
-- **Issue**: Large correlation matrices (10+ columns) will overflow horizontally on mobile
-- **Fix**:
-  - Wrap in `overflow-x-auto` container
-  - Add horizontal scroll indicator: subtle gradient fade on edges
-  - Cell size: reduce from current size on mobile (`text-xs md:text-sm`, `w-12 h-12 md:w-16 md:h-16`)
-  - Headers: rotate text on mobile (already rotated, but ensure readable)
-  - Interpretation guide: stack vertically on mobile (`flex flex-col md:flex-row`)
-- **Risk**: Medium — need to balance readability vs scrolling
-
-#### 2.4. Fix MissingDataTable on mobile (Complexity: Low)
-- **File**: `src/components/MissingDataTable.tsx`
-- **Issue**: Table columns may be too narrow on mobile
-- **Fix**:
-  - Summary stats grid: already responsive (`grid-cols-1 md:grid-cols-4`)
-  - Table: wrap in `overflow-x-auto` for horizontal scroll if needed
-  - Consider: card layout on mobile instead of table (one card per column)
-  - Bars: ensure minimum width for touch interaction
-- **Risk**: Low — tables naturally scroll horizontally
-
-#### 2.5. Fix Tab navigation on mobile (Complexity: Low)
-- **File**: `src/components/AnalysisView.tsx` (TabNavigation inline)
-- **Issue**: Tab labels may be too long on narrow screens ("Overview", "Columns", "Quality")
-- **Fix**:
-  - Reduce padding: `px-3 py-2 md:px-6 md:py-3`
-  - Font size: `text-sm md:text-base`
-  - Consider: icons only on mobile (Chart for Overview, Grid for Columns, AlertCircle for Quality)
-  - Alternative: scrollable tabs if needed (`overflow-x-auto snap-x`)
-- **Risk**: Low — simple responsive adjustments
-
-#### 2.6. Fix FileUpload on mobile (Complexity: Low)
-- **File**: `src/components/FileUpload.tsx`
-- **Issue**: Sample dataset cards may be cramped in 3-column grid on mobile
-- **Fix**:
-  - Already responsive: `grid-cols-1 md:grid-cols-3` ✅
-  - Ensure tap targets are large enough: `min-h-[60px]` on cards
-  - Icon size: reduce on mobile if needed
-- **Risk**: Low — mostly already responsive
-
-#### 2.7. Fix Histogram on mobile (Complexity: Low)
-- **File**: `src/components/Histogram.tsx`
-- **Issue**: Axis labels may overlap on narrow width
-- **Fix**:
-  - Reduce padding: `p-4 md:p-8` (less space for axes on mobile)
-  - Font size: `text-[8px] md:text-[10px]` for axis labels
-  - X-axis labels: rotate 45deg on mobile if needed, or show fewer labels
-- **Risk**: Low — SVG scales naturally
-
-#### 2.8. Add mobile-specific touch interactions (Complexity: Low)
-- **Files**: All clickable components (cards, buttons, tabs)
-- **Fix**:
-  - Ensure all tap targets ≥44px (iOS guideline)
-  - Remove hover-only UX (use `active:` states for touch feedback)
-  - Add `-webkit-tap-highlight-color: transparent` to avoid blue flash on iOS
-  - Consider: swipe gestures for tab navigation (optional, nice-to-have)
-- **Risk**: Low — CSS-only changes
-
-#### 2.9. Test on actual devices (Complexity: Low)
-- **Devices**:
-  - iPhone SE (375px width) — smallest modern phone
-  - iPad (768px width) — tablet breakpoint
-  - Desktop (1280px+)
-- **Browsers**: Safari iOS, Chrome Android, Firefox Android
-- **Test cases**:
-  - Upload file (drag-drop on desktop, file picker on mobile)
-  - View all tabs (Overview, Columns, Quality)
-  - Open column detail modal
-  - Scroll correlation matrix
-  - Use keyboard shortcuts (desktop only)
-- **Risk**: Low — verification step
+**Risk:** Custom tooltips can be complex. Mitigation: Use Radix UI Tooltip or similar library if building from scratch proves fragile.
 
 ---
 
-## Feature 3: Excel File Support
+### 2. Create Glossary Data Structure (Complexity: Low)
 
-### Steps
+**Files:**
+- `src/data/glossary.ts` (new)
 
-#### 3.1. Research openpyxl in Pyodide (Complexity: Low)
-- **Goal**: Confirm openpyxl is available in Pyodide 0.29.3
-- **Method**:
-  - Check Pyodide package list: https://pyodide.org/en/stable/usage/packages-in-pyodide.html
-  - Alternative: Test `pyodide.loadPackage('openpyxl')` in browser console
-- **Risk**: Low — openpyxl is likely available, fallback is micropip install
+**Structure:**
+```typescript
+export interface GlossaryTerm {
+  term: string;
+  definition: string;
+  category: 'distribution' | 'statistics' | 'correlation' | 'quality';
+  example?: string;  // Optional example for clarity
+}
 
-#### 3.2. Update FileUpload validation to accept .xlsx (Complexity: Low)
-- **File**: `src/components/FileUpload.tsx`
-- **Changes**:
-  - Line 20: Update extension check: `if (!file.name.endsWith('.csv') && !file.name.endsWith('.xlsx'))`
-  - Error message: "Please upload a CSV or Excel file (.xlsx)"
-  - Accept attribute: `<input accept=".csv,.xlsx" />`
-- **Risk**: None — simple condition change
+export const glossary: GlossaryTerm[] = [
+  {
+    term: 'Bimodal',
+    definition: 'A distribution with two distinct peaks, suggesting two separate groups in your data.',
+    category: 'distribution',
+    example: 'Ages might show peaks at 25-35 (young professionals) and 55-65 (senior staff).'
+  },
+  // ... 20-25 terms total
+];
+```
 
-#### 3.3. Load openpyxl package in Pyodide loader (Complexity: Low)
-- **File**: `src/utils/pyodide.ts`
-- **Changes**:
-  - Line 78: Add 'openpyxl' to package array: `await pyodide.loadPackage(['pandas', 'numpy', 'openpyxl'])`
-  - Update progress message: "Loading pandas, numpy, and openpyxl..."
-- **Risk**: Low — same pattern as pandas/numpy loading
+**Terms to Include:**
 
-#### 3.4. Update analyzeData to handle both CSV and Excel (Complexity: Medium)
-- **File**: `src/utils/analyzeData.ts`
-- **Strategy**: Detect file type, read accordingly, then use same analysis pipeline
-- **Changes**:
-  - Add parameter: `fileType: 'csv' | 'xlsx'` to `analyzeData(csvData: string, fileType: 'csv' | 'xlsx')`
-  - Python code:
-    ```python
-    if file_type == 'xlsx':
-        import openpyxl
-        from io import BytesIO
-        # Excel data comes as base64, decode first
-        excel_bytes = base64.b64decode(excel_data)
-        df = pd.read_excel(BytesIO(excel_bytes))
-    else:
-        df = pd.read_csv(StringIO(csv_data))
-    ```
-  - For Excel: convert File to base64 in App.tsx (use FileReader API)
-- **Edge Cases**:
-  - Multiple sheets: default to first sheet (add comment in code)
-  - Empty sheets: same validation as CSV
-  - Formulas: pandas reads values, not formulas (document in error message if needed)
-- **Risk**: Medium — base64 encoding adds complexity, need to test with real Excel files
+**Distribution Shapes:**
+- Bimodal, Right-skewed, Left-skewed, Normal, Uniform
 
-#### 3.5. Update App.tsx to detect file type and encode Excel (Complexity: Medium)
-- **File**: `src/App.tsx`
-- **Changes in handleFileSelect**:
-  ```typescript
-  const handleFileSelect = useCallback(async (file: File) => {
-    try {
-      const fileType = file.name.endsWith('.xlsx') ? 'xlsx' : 'csv';
+**Statistical Measures:**
+- Mean, Median, Standard Deviation (Std Dev), Interquartile Range (IQR), Quartiles (Q1/Q2/Q3), Kurtosis, Skewness, Outliers
 
-      if (fileType === 'xlsx') {
-        // Convert to base64 for Pyodide
-        const arrayBuffer = await file.arrayBuffer();
-        const base64 = btoa(
-          new Uint8Array(arrayBuffer)
-            .reduce((data, byte) => data + String.fromCharCode(byte), '')
-        );
-        await runAnalysis(file.name, base64, 'xlsx');
-      } else {
-        const text = await file.text();
-        await runAnalysis(file.name, text, 'csv');
-      }
-    } catch (error) {
-      console.error('File read failed:', error);
-      setError(new Error('Failed to read file...'));
+**Correlation:**
+- Pearson r, P-value, Significance, Correlation coefficient
+
+**Data Quality:**
+- Completeness, Cardinality, Missing values
+
+**Risk:** Definitions too technical. Mitigation: Review against non-technical audience, use analogies.
+
+---
+
+### 3. Create GlossaryModal Component (Complexity: Low-Medium)
+
+**Files:**
+- `src/components/GlossaryModal.tsx` (new)
+
+**Structure:**
+```typescript
+interface GlossaryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+```
+
+**Design:**
+- Follow KeyboardShortcutsModal pattern (centered, max-w-2xl, categorized sections)
+- Group terms by category with expandable/collapsible sections
+- Search input to filter terms (optional for Phase 1)
+- ESC to close
+- Sticky header with close button
+- Footer: "Press G to toggle • ESC to close"
+
+**Layout:**
+```
+┌─────────────────────────────────────┐
+│ Statistics Glossary            [X]  │ ← Header
+├─────────────────────────────────────┤
+│ [Search terms...] (optional)        │ ← Search input
+│                                     │
+│ Distribution Shapes                 │ ← Category
+│   Bimodal                           │
+│   A distribution with two peaks...  │
+│   Example: Ages at 25-35 and 55-65  │
+│                                     │
+│   Normal                            │
+│   Bell curve, data clusters...      │
+│                                     │
+│ Statistical Measures                │
+│   ...                               │
+└─────────────────────────────────────┘
+```
+
+**Risk:** Modal content too long. Mitigation: Categorize clearly, add search if > 25 terms.
+
+---
+
+### 4. Add InfoIcon Helper Component (Complexity: Low)
+
+**Files:**
+- `src/components/InfoIcon.tsx` (new)
+
+**Implementation:**
+```typescript
+interface InfoIconProps {
+  term: keyof typeof glossaryTerms;  // Type-safe term keys
+  className?: string;
+}
+
+export function InfoIcon({ term, className }: InfoIconProps) {
+  const definition = glossaryTerms[term];
+
+  return (
+    <Tooltip term={definition}>
+      <HelpCircle className={cn("w-4 h-4 text-text-secondary hover:text-text-primary cursor-help inline-block", className)} />
+    </Tooltip>
+  );
+}
+```
+
+**Usage:**
+```tsx
+<span>
+  Bimodal <InfoIcon term="bimodal" />
+</span>
+```
+
+**Risk:** None.
+
+---
+
+### 5. Integrate InfoIcon into Components (Complexity: Low)
+
+**Files to Update:**
+
+**ColumnDetailModal.tsx** (~490 lines):
+- Line ~235: Distribution shape badge (e.g., "Bimodal")
+- Line ~245-280: Statistics section (mean, median, std, IQR)
+- Line ~400-420: Correlations section (Pearson r, p-value)
+
+**ColumnPreviewCard.tsx** (~205 lines):
+- Line ~140-160: Stats display (mean, median, unique)
+- Line ~90-100: Completeness badge
+
+**CorrelationMatrix.tsx** (~140 lines):
+- Line ~40-60: Header explaining correlation coefficient
+
+**MissingDataTable.tsx** (~230 lines):
+- Line ~80: Completeness header
+
+**Changes:**
+```tsx
+// Before
+<div className="...">Mean: {mean}</div>
+
+// After
+<div className="...">
+  Mean <InfoIcon term="mean" />: {mean}
+</div>
+```
+
+**Risk:** Visual clutter if too many icons. Mitigation: Only add to non-obvious terms (skip "Count", keep "Kurtosis").
+
+---
+
+### 6. Add Global Glossary Shortcut to App.tsx (Complexity: Low)
+
+**Files:**
+- `src/App.tsx`
+
+**Changes:**
+```typescript
+// Add state (line ~22)
+const [showGlossaryModal, setShowGlossaryModal] = useState(false);
+
+// Update keyboard handler (line ~131-148)
+useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
     }
-  }, [runAnalysis]);
+
+    if (e.key === '?') {
+      e.preventDefault();
+      setShowShortcutsModal(true);
+    }
+
+    // NEW: Global glossary shortcut
+    if (e.key === 'g' || e.key === 'G') {
+      e.preventDefault();
+      setShowGlossaryModal(true);
+    }
+  };
+
+  document.addEventListener('keydown', handleKeyDown);
+  return () => document.removeEventListener('keydown', handleKeyDown);
+}, []);
+
+// Add modal render (line ~220+)
+{showGlossaryModal && (
+  <GlossaryModal
+    isOpen={showGlossaryModal}
+    onClose={() => setShowGlossaryModal(false)}
+  />
+)}
+```
+
+**Risk:** `g` key conflicts with typing. Mitigation: Input field guard prevents this.
+
+---
+
+### 7. Add Glossary Button to Header (Complexity: Low)
+
+**Files:**
+- `src/App.tsx`
+
+**Changes:**
+Add button next to "?" help icon (line ~177-186):
+
+```tsx
+<button
+  onClick={() => setShowGlossaryModal(true)}
+  className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors duration-150 active:scale-95"
+  title="Statistics Glossary (G)"
+  aria-label="Show statistics glossary"
+>
+  <BookOpen className="w-5 h-5" />
+</button>
+```
+
+**Risk:** Header crowding. Mitigation: Use Lucide `BookOpen` icon, visually distinct from `HelpCircle`.
+
+---
+
+### 8. Update ColumnDetailModal Props for Navigation (Complexity: Medium)
+
+**Files:**
+- `src/components/ColumnDetailModal.tsx`
+
+**New Props:**
+```typescript
+interface ColumnDetailModalProps {
+  columnName: string;
+  result: AnalysisResult;
+  onClose: () => void;
+  // NEW: Navigation support
+  columnIndex: number;      // Current column position (0-based)
+  totalColumns: number;     // Total number of columns
+  onNavigate: (direction: 'prev' | 'next') => void;  // Callback to change column
+}
+```
+
+**Changes:**
+- Header (line ~205-220): Add position indicator
+  ```tsx
+  <div className="flex items-center gap-2">
+    <h2 className="text-2xl font-bold text-text-primary truncate">{columnName}</h2>
+    <span className="text-sm text-text-secondary whitespace-nowrap">
+      {columnIndex + 1} / {totalColumns}
+    </span>
+  </div>
   ```
-- **Changes in runAnalysis signature**:
-  - Add parameter: `fileType: 'csv' | 'xlsx' = 'csv'`
-  - Pass to analyzeData: `await analyzeData(csvText, fileType)`
-- **Risk**: Medium — base64 encoding large files may cause memory issues (same 10MB limit applies)
 
-#### 3.6. Update error messages for Excel-specific issues (Complexity: Low)
-- **File**: `src/utils/errorHandler.ts`
-- **Changes**:
-  - Add Excel-specific error patterns:
-    - `"no default engine"` → "Excel file could not be read. Ensure openpyxl is loaded."
-    - `"Excel file format cannot be determined"` → "File may be corrupted or not a valid Excel file."
-    - `"Worksheet .* not found"` → "Excel file has no data sheets."
-  - Add to suggestions: "Try re-saving the Excel file or exporting as CSV first."
-- **Risk**: Low — just better error messaging
+- Add navigation listener (new useEffect):
+  ```typescript
+  useEffect(() => {
+    const handleNavigation = (e: KeyboardEvent) => {
+      // Don't interfere with text inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
 
-#### 3.7. Test with real Excel files (Complexity: Low)
-- **Test Cases**:
-  1. Simple Excel file (single sheet, numeric/categorical columns)
-  2. Excel with formulas (should read calculated values)
-  3. Excel with multiple sheets (should use first sheet)
-  4. Corrupted Excel file (should show error)
-  5. Large Excel file (should respect 10MB limit)
-- **Datasets**: Use existing sample datasets but export to .xlsx format
-- **Risk**: Low — verification step
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        onNavigate('prev');
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        onNavigate('next');
+      }
+    };
+
+    document.addEventListener('keydown', handleNavigation);
+    return () => document.removeEventListener('keydown', handleNavigation);
+  }, [onNavigate]);
+  ```
+
+**Risk:** Arrow keys conflict with existing tab navigation. Mitigation: AnalysisView.tsx already has `if (!selectedColumn)` guard.
+
+---
+
+### 9. Update AnalysisView Navigation Logic (Complexity: Medium)
+
+**Files:**
+- `src/components/AnalysisView.tsx`
+
+**Changes:**
+
+1. Track column list order (line ~80-120, after filtering logic):
+```typescript
+// Get ordered column list (respects current filter/search)
+const orderedColumns = useMemo(() => {
+  return columns.filter((col) => {
+    // Apply existing filter logic
+    if (columnFilter === 'numeric' && col.analysis.type !== 'numeric') return false;
+    if (columnFilter === 'categorical' && col.analysis.type !== 'categorical') return false;
+    if (columnFilter === 'datetime' && col.analysis.type !== 'datetime') return false;
+
+    // Apply search filter
+    if (columnSearch && !col.name.toLowerCase().includes(columnSearch.toLowerCase())) {
+      return false;
+    }
+
+    return true;
+  });
+}, [columns, columnFilter, columnSearch]);
+```
+
+2. Add navigation handler:
+```typescript
+const handleColumnNavigation = useCallback((direction: 'prev' | 'next') => {
+  if (!selectedColumn) return;
+
+  const currentIndex = orderedColumns.findIndex((col) => col.name === selectedColumn);
+  if (currentIndex === -1) return;
+
+  let newIndex: number;
+  if (direction === 'prev') {
+    // Wrap to end if at start
+    newIndex = currentIndex === 0 ? orderedColumns.length - 1 : currentIndex - 1;
+  } else {
+    // Wrap to start if at end
+    newIndex = currentIndex === orderedColumns.length - 1 ? 0 : currentIndex + 1;
+  }
+
+  setSelectedColumn(orderedColumns[newIndex].name);
+}, [selectedColumn, orderedColumns]);
+```
+
+3. Update modal props (line ~342-349):
+```tsx
+{selectedColumn && (
+  <ColumnDetailModal
+    columnName={selectedColumn}
+    result={result}
+    onClose={() => setSelectedColumn(null)}
+    // NEW
+    columnIndex={orderedColumns.findIndex((col) => col.name === selectedColumn)}
+    totalColumns={orderedColumns.length}
+    onNavigate={handleColumnNavigation}
+  />
+)}
+```
+
+**Risk:** Navigation breaks when filter changes mid-navigation. Mitigation: `orderedColumns` recalculates via useMemo, navigation respects current filter.
+
+---
+
+### 10. Update KeyboardShortcutsModal Documentation (Complexity: Low)
+
+**Files:**
+- `src/components/KeyboardShortcutsModal.tsx`
+
+**Changes:**
+Update shortcuts array (line ~8-30):
+
+```typescript
+const shortcuts: { category: string; items: Shortcut[] }[] = [
+  {
+    category: 'Navigation',
+    items: [
+      { keys: ['←', '→'], description: 'Navigate between tabs (or columns in detail view)' },  // UPDATED
+      { keys: ['1'], description: 'Jump to Overview tab' },
+      { keys: ['2'], description: 'Jump to Columns tab' },
+      { keys: ['3'], description: 'Jump to Quality tab' },
+    ],
+  },
+  {
+    category: 'Actions',
+    items: [
+      { keys: ['Esc'], description: 'Close modal or show clear confirmation' },
+      { keys: ['?'], description: 'Show keyboard shortcuts' },
+      { keys: ['G'], description: 'Show statistics glossary' },  // NEW
+    ],
+  },
+];
+```
+
+**Risk:** None.
+
+---
+
+### 11. Test Dark Mode Compatibility (Complexity: Low)
+
+**Files:**
+- All new components (Tooltip, GlossaryModal, InfoIcon)
+
+**Testing:**
+1. Toggle dark mode via header button
+2. Verify all new components use semantic tokens:
+   - `bg-bg-surface` (NOT `bg-white`)
+   - `text-text-primary` (NOT `text-gray-900`)
+   - `border-border-default` (NOT `border-gray-300`)
+3. Verify InfoIcon hover states work in both modes
+4. Check glossary modal backdrop in dark mode (should be `bg-black/50`)
+
+**Risk:** Hardcoded colors break dark mode. Mitigation: Use ONLY semantic Tailwind tokens from `@theme` block.
+
+---
+
+### 12. Accessibility Audit (Complexity: Low)
+
+**Checks:**
+- [ ] All InfoIcons have `aria-label` or tooltip text for screen readers
+- [ ] GlossaryModal has `role="dialog"` and `aria-modal="true"`
+- [ ] All interactive elements meet 44×44px min touch target (mobile)
+- [ ] Keyboard navigation works without mouse (tab, enter, esc)
+- [ ] Focus visible states on all new interactive elements
+
+**Files to Audit:**
+- Tooltip.tsx
+- GlossaryModal.tsx
+- InfoIcon.tsx
+
+**Risk:** Screen readers can't access tooltip content. Mitigation: Use `aria-describedby` to link tooltip text.
 
 ---
 
 ## Open Questions
-**None** — all features are well-scoped and follow existing patterns.
+
+1. **Tooltip Implementation Choice:**
+   - Option A: Native browser `title` attribute (simple, zero dependencies)
+   - Option B: Custom React tooltip (better UX, more control)
+   - Option C: Radix UI Tooltip (accessible, battle-tested)
+
+   **Recommendation:** Start with Option A for speed, upgrade to C if needed.
+
+2. **Glossary Search:**
+   - Include in Phase 1 or defer to Phase 2?
+   - 20-25 terms might not need search immediately.
+
+   **Recommendation:** Defer. Categorization is sufficient for Phase 1.
+
+3. **Column Navigation Order:**
+   - Should arrow keys respect current filter/search?
+   - Or navigate through ALL columns regardless?
+
+   **Recommendation:** Respect filters (implemented in Step 9). More intuitive UX.
+
+4. **InfoIcon Placement:**
+   - Add to ALL technical terms or only non-obvious ones?
+   - Risk of visual clutter vs. comprehensive help.
+
+   **Recommendation:** Start conservative (10-12 terms), expand based on user feedback.
 
 ---
 
 ## Verification
 
-### Feature 1: Keyboard Shortcuts Help Modal
-- [ ] Press "?" key → modal appears
-- [ ] Modal shows all shortcuts with clear descriptions
-- [ ] ESC key closes modal
-- [ ] Backdrop click closes modal
-- [ ] Modal doesn't interfere with other keyboard shortcuts
-- [ ] Typing "?" in search box doesn't trigger modal (guard clause works)
+### Manual Testing
+- [ ] Open Glimpse with sample dataset (E-Commerce)
+- [ ] Press `G` → glossary modal opens
+- [ ] Hover over InfoIcon → tooltip appears
+- [ ] Click column card → detail modal opens
+- [ ] Press `→` → next column loads
+- [ ] Press `←` from first column → wraps to last column
+- [ ] Press `?` → keyboard shortcuts show new `G` entry
+- [ ] Toggle dark mode → all new UI elements render correctly
+- [ ] ESC closes modals appropriately
 
-### Feature 2: Responsive Mobile Design
-- [ ] Test on iPhone SE (375px): all UI visible, no horizontal scroll
-- [ ] Test on iPad (768px): optimal layout utilization
-- [ ] Test on desktop (1280px+): no regressions
-- [ ] All tap targets ≥44px on mobile
-- [ ] No hover-only UX (all interactions work via touch)
-- [ ] Column detail modal: full-width on mobile, slides in smoothly
-- [ ] Correlation matrix: scrolls horizontally on mobile if needed
-- [ ] Tab navigation: readable and tappable on narrow screens
-- [ ] File upload: sample dataset cards not cramped
+### Automated Testing (Optional)
+- [ ] Unit test: glossary data has all required fields
+- [ ] Unit test: navigation wraps correctly at boundaries
+- [ ] Visual regression test: snapshot new components in light/dark
 
-### Feature 3: Excel File Support
-- [ ] Upload .xlsx file → analysis runs successfully
-- [ ] Excel results match CSV results for same data
-- [ ] Upload CSV file → still works (no regression)
-- [ ] Upload .xlsx with formulas → values are analyzed (not formulas)
-- [ ] Upload .xlsx with multiple sheets → uses first sheet
-- [ ] Upload corrupted .xlsx → shows helpful error message
-- [ ] File picker shows "CSV or Excel (.xlsx)" in validation message
-- [ ] openpyxl loads without errors (check browser console)
-- [ ] Large Excel file (>10MB) → rejected with clear message
-
----
-
-## Risk Assessment
-
-| Feature | Complexity | Main Risk | Mitigation |
-|---------|------------|-----------|------------|
-| Keyboard Shortcuts Modal | **Low** | None | Reuse ConfirmModal pattern |
-| Responsive Mobile - Headers/Tabs | **Low** | Layout shifts | Test on real devices |
-| Responsive Mobile - ColumnDetailModal | **Medium** | Body scroll lock on iOS Safari | Test extensively on iOS |
-| Responsive Mobile - CorrelationMatrix | **Medium** | Readability at small sizes | Allow horizontal scroll |
-| Excel Support - openpyxl loading | **Low** | Package not available | Check docs first |
-| Excel Support - base64 encoding | **Medium** | Memory issues with large files | Keep 10MB limit |
-| Excel Support - multi-sheet files | **Low** | User expects specific sheet | Document behavior |
+### Performance
+- [ ] Measure dataset load time before/after changes
+- [ ] Ensure no regression (should be < 5ms difference)
+- [ ] InfoIcon tooltips don't cause layout thrashing
 
 ---
 
 ## Implementation Order
 
-1. **Keyboard Shortcuts Help Modal** (1-2 hours)
-   - Quick win, high visibility, low risk
-   - Steps: 1.1 → 1.2 → 1.3
+1. **Day 1: Glossary Infrastructure**
+   - Create glossary.ts data (Step 2)
+   - Create Tooltip component (Step 1)
+   - Create InfoIcon component (Step 4)
+   - Test in isolation
 
-2. **Excel File Support** (2-3 hours)
-   - Core functionality, medium complexity
-   - Steps: 3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7
+2. **Day 2: Glossary Modal**
+   - Create GlossaryModal component (Step 3)
+   - Add global `G` shortcut to App.tsx (Step 6)
+   - Add glossary button to header (Step 7)
+   - Update KeyboardShortcutsModal (Step 10)
 
-3. **Responsive Mobile Design** (4-6 hours)
-   - Most time-consuming, requires device testing
-   - Steps: 2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9
+3. **Day 3: InfoIcon Integration**
+   - Add InfoIcons to ColumnDetailModal (Step 5)
+   - Add InfoIcons to ColumnPreviewCard (Step 5)
+   - Add InfoIcons to CorrelationMatrix (Step 5)
+   - Add InfoIcons to MissingDataTable (Step 5)
 
-**Total Estimated Time:** 7-11 hours
+4. **Day 4: Column Navigation**
+   - Update ColumnDetailModal props + navigation (Step 8)
+   - Update AnalysisView navigation logic (Step 9)
+   - Update KeyboardShortcutsModal (Step 10)
+   - Test wrap-around behavior
+
+5. **Day 5: Polish & Testing**
+   - Dark mode testing (Step 11)
+   - Accessibility audit (Step 12)
+   - Manual verification checklist
+   - Fix any issues found
 
 ---
 
-## Notes
+## Risks & Mitigations
 
-- All three features are **additive** — no breaking changes to existing functionality
-- Each feature can be implemented and tested independently
-- Responsive design is the most iterative (requires real device testing)
-- Excel support reuses existing CSV analysis pipeline (just different parsing)
-- Keyboard shortcuts modal is the smallest, highest-impact feature (do first for quick win)
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Tooltip implementation fragile | Medium | Use proven library (Radix UI) if custom breaks |
+| Arrow keys conflict with tab navigation | High | AnalysisView already guards with `!selectedColumn` |
+| Visual clutter from too many InfoIcons | Medium | Start conservative, iterate based on feedback |
+| Performance regression from tooltips | Low | Use CSS-only hover if JS tooltips cause issues |
+| Glossary definitions too technical | Medium | Review with non-technical user before finalizing |
+| Dark mode color bugs | Low | Use ONLY semantic tokens, never hardcode colors |
+| Navigation breaks with filters | Medium | Use `orderedColumns` from filtered list |
+
+---
+
+## Success Metrics
+
+**Quantitative:**
+- Zero ESLint errors
+- Zero TypeScript errors
+- < 5ms performance regression on dataset load
+- 100% dark mode visual parity with light mode
+
+**Qualitative:**
+- Non-technical users understand all statistical terms without external resources
+- Power users can explore 10+ columns faster with keyboard than with mouse
+- No user confusion about new shortcuts (clear documentation)
+- New UI feels "native" to existing design system
+
+---
+
+## Follow-up Ideas (Phase 2+)
+
+- Visual examples in glossary (e.g., show bimodal histogram diagram)
+- Search/filter in glossary modal
+- "Related terms" links in glossary entries
+- Contextual glossary (e.g., open to "bimodal" if clicking from bimodal badge)
+- Keyboard shortcut to jump to specific column by number (1-9)
+- Column navigation preview (show next column name on hover)

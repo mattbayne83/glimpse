@@ -34,11 +34,11 @@ export function ColumnPreviewCard({ column, totalRows, onClick }: ColumnPreviewC
           <h3 className="font-bold text-sm text-text-primary font-mono truncate flex-1 tracking-tight" title={name}>
             {name}
           </h3>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center flex-shrink-0">
             {/* Normality Badge (for numeric columns only) */}
             {type === 'numeric' && analysis.stats.normalityTest && (
               <span
-                className={`px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider shadow-sm ${
+                className={`mr-1.5 px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider shadow-sm ${
                   analysis.stats.normalityTest.isNormal
                     ? 'bg-success-bg text-success border border-success-border'
                     : 'bg-warning-bg text-warning-text border border-warning-border'
@@ -58,6 +58,11 @@ export function ColumnPreviewCard({ column, totalRows, onClick }: ColumnPreviewC
               {type === 'numeric' && <Hash className="w-3.5 h-3.5" />}
               {type === 'categorical' && <CaseSensitive className="w-3.5 h-3.5" />}
               {type === 'datetime' && <CalendarClock className="w-3.5 h-3.5" />}
+            </div>
+
+            {/* Hover indicator (sliding from right) */}
+            <div className="w-0 opacity-0 group-hover:w-4 group-hover:ml-1.5 group-hover:opacity-100 transition-all duration-300 flex items-center overflow-hidden">
+              <ChevronRight className="w-4 h-4 text-primary flex-shrink-0" />
             </div>
           </div>
         </div>
@@ -102,10 +107,6 @@ export function ColumnPreviewCard({ column, totalRows, onClick }: ColumnPreviewC
         )}
       </div>
 
-      {/* Hover indicator */}
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <ChevronRight className="w-4 h-4 text-primary" />
-      </div>
     </div>
   );
 }

@@ -30,8 +30,14 @@ export function MiniHistogram({ bins, counts, width = 200, height = 24 }: MiniHi
 
   return (
     <svg width={width} height={height} className="rounded">
+      <defs>
+        <linearGradient id="bar-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={fillColor} stopOpacity={0.8} />
+          <stop offset="100%" stopColor={fillColor} stopOpacity={0.4} />
+        </linearGradient>
+      </defs>
       {counts.map((count, i) => {
-        const barHeight = (count / maxCount) * (height - padding * 2);
+        const barHeight = Math.max((count / maxCount) * (height - padding * 2), 2); // Minimum 2px height
         const x = i * barWidth;
         const y = height - barHeight - padding;
 
@@ -42,8 +48,9 @@ export function MiniHistogram({ bins, counts, width = 200, height = 24 }: MiniHi
             y={y}
             width={Math.max(barWidth - 1, 1)}
             height={barHeight}
-            fill={fillColor}
-            opacity={0.7}
+            rx={2}
+            ry={2}
+            fill="url(#bar-grad)"
           />
         );
       })}

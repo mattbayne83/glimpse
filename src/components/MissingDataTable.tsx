@@ -1,5 +1,16 @@
 import { useMemo, useState } from 'react';
+import { HelpCircle } from 'lucide-react';
 import type { ColumnAnalysis } from '../types/analysis';
+import { Tooltip } from './Tooltip';
+
+// Statistical term definitions for inline help tooltips
+const TERM_DEFINITIONS = {
+  completeness: {
+    term: 'Completeness',
+    content: 'The percentage of non-missing values in a column. Higher is better.',
+    example: 'A column with 950 filled values out of 1,000 rows has 95% completeness.',
+  },
+} as const;
 
 interface MissingDataTableProps {
   columns: ColumnAnalysis[];
@@ -116,7 +127,12 @@ export function MissingDataTable({ columns, totalRows, onColumnClick }: MissingD
           </p>
         </div>
         <div className="p-3 bg-bg-surface border border-border-default rounded-lg">
-          <p className="text-xs text-text-secondary mb-1">Avg Completeness</p>
+          <p className="text-xs text-text-secondary mb-1 inline-flex items-center gap-1.5">
+            Avg Completeness
+            <Tooltip {...TERM_DEFINITIONS.completeness}>
+              <HelpCircle className="w-4 h-4 text-text-secondary hover:text-text-primary cursor-help transition-colors" />
+            </Tooltip>
+          </p>
           <p className="text-xl font-bold text-text-primary">{avgCompleteness.toFixed(1)}%</p>
         </div>
         <div className="p-3 bg-bg-surface border border-border-default rounded-lg">
@@ -196,7 +212,12 @@ export function MissingDataTable({ columns, totalRows, onColumnClick }: MissingD
                   </div>
                 </th>
                 <th className="px-4 py-3 text-left font-medium text-text-primary min-w-[200px]">
-                  Completeness
+                  <span className="inline-flex items-center gap-1.5">
+                    Completeness
+                    <Tooltip {...TERM_DEFINITIONS.completeness}>
+                      <HelpCircle className="w-4 h-4 text-text-secondary hover:text-text-primary cursor-help transition-colors" />
+                    </Tooltip>
+                  </span>
                 </th>
               </tr>
             </thead>

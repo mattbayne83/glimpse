@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { X, Download, Copy, Check, Search, Hash, CaseSensitive, CalendarClock } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { X, Search, Hash, CaseSensitive, CalendarClock, BookOpen } from 'lucide-react';
 import type { AnalysisResult, ColumnAnalysis } from '../types/analysis';
 import { TabNavigation } from './TabNavigation';
 import { ColumnMap } from './ColumnMap';
@@ -8,6 +8,8 @@ import { ConfirmModal } from './ConfirmModal';
 import { CorrelationMatrix } from './CorrelationMatrix';
 import { ColumnDetailModal } from './ColumnDetailModal';
 import { ColumnPreviewCard } from './ColumnPreviewCard';
+import StoryMode from './story/StoryMode';
+import { generateStory } from '../utils/story/storyGenerator';
 
 interface AnalysisViewProps {
   datasetName: string;
@@ -24,8 +26,8 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
   const [columnFilter, setColumnFilter] = useState<ColumnFilter>('all');
   const [columnSearch, setColumnSearch] = useState('');
   const [showClearModal, setShowClearModal] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
+  const [showStory, setShowStory] = useState(false);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -35,10 +37,7 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
         return;
       }
 
-      // Esc: Close modal (if open) or show clear confirmation
-      if (e.key === 'Escape' && !selectedColumn) {
-        setShowClearModal(true);
-      }
+      // Removed Escape key mapping for 'Clear Analysis' as it conflicts with closing modals.
 
       // Arrow keys: Navigate tabs (only when no modal open)
       if (!selectedColumn) {
@@ -65,175 +64,6 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [activeTab, selectedColumn]);
 
-  // Format complete markdown report
-  const formatMarkdownReport = (): string => {
-    const lines: string[] = [];
-
-    // Header
-    lines.push(`# ${datasetName} - Data Analysis Report`);
-    lines.push('');
-    lines.push(`**Generated:** ${new Date().toLocaleString()}`);
-    lines.push('');
-
-    // Overview Section
-    lines.push('## Overview');
-    lines.push('');
-    lines.push('### Dataset Statistics');
-    lines.push(`- **Rows:** ${overview.rows.toLocaleString()}`);
-    lines.push(`- **Columns:** ${overview.columns}`);
-    lines.push(`- **Memory:** ${(overview.memoryBytes / 1024 / 1024).toFixed(2)} MB`);
-    lines.push(`- **Missing Values:** ${overview.missingPercentage.toFixed(1)}%`);
-    lines.push('');
-
-    lines.push('### Column Types');
-    lines.push(`- **Numeric:** ${overview.columnTypes.numeric}`);
-    lines.push(`- **Categorical:** ${overview.columnTypes.categorical}`);
-    lines.push(`- **DateTime:** ${overview.columnTypes.datetime}`);
-    lines.push('');
-
-    // Correlation Matrix
-    if (result.correlation && result.correlation.columns.length > 0) {
-      lines.push('## Correlation Analysis');
-      lines.push('');
-      lines.push(`Showing relationships between ${result.correlation.columns.length} numeric columns.`);
-      lines.push('');
-      lines.push('| Column | ' + result.correlation.columns.join(' | ') + ' |');
-      lines.push('|--------|' + result.correlation.columns.map(() => '--------').join('|') + '|');
-      result.correlation.matrix.forEach((row, i) => {
-        const colName = result.correlation!.columns[i];
-        const values = row.map(v => v.toFixed(2)).join(' | ');
-        lines.push(`| ${colName} | ${values} |`);
-      });
-      lines.push('');
-      lines.push('**Interpretation Guide:**');
-      lines.push('- Strong: |r| > 0.7');
-      lines.push('- Moderate: 0.4 < |r| ≤ 0.7');
-      lines.push('- Weak: |r| ≤ 0.4');
-      lines.push('');
-    }
-
-    // Column Details
-    lines.push('## Column Details');
-    lines.push('');
-    columns.forEach((col) => {
-      lines.push(`### ${col.name}`);
-      lines.push('');
-      lines.push(`**Type:** ${col.analysis.type}`);
-
-      if (col.analysis.type === 'numeric') {
-        const stats = col.analysis.stats;
-        const missingPct = (stats.missing / overview.rows) * 100;
-        lines.push(`**Missing:** ${stats.missing.toLocaleString()} (${missingPct.toFixed(1)}%)`);
-        lines.push('');
-        lines.push('**Statistics:**');
-        lines.push(`- Mean: ${stats.mean.toFixed(2)}`);
-        lines.push(`- Std Dev: ${stats.std.toFixed(2)}`);
-        lines.push(`- Min: ${stats.min.toFixed(2)}`);
-        lines.push(`- 25th percentile: ${stats.q25.toFixed(2)}`);
-        lines.push(`- Median: ${stats.q50.toFixed(2)}`);
-        lines.push(`- 75th percentile: ${stats.q75.toFixed(2)}`);
-        lines.push(`- Max: ${stats.max.toFixed(2)}`);
-      } else if (col.analysis.type === 'categorical') {
-        const stats = col.analysis.stats;
-        const missingPct = (stats.missing / overview.rows) * 100;
-        lines.push(`**Missing:** ${stats.missing.toLocaleString()} (${missingPct.toFixed(1)}%)`);
-        lines.push(`**Unique Values:** ${stats.uniqueCount.toLocaleString()}`);
-        if (stats.topValues && stats.topValues.length > 0) {
-          lines.push('');
-          lines.push('**Top Values:**');
-          stats.topValues.forEach(({ value, count }) => {
-            lines.push(`- ${value}: ${count.toLocaleString()}`);
-          });
-        }
-      } else if (col.analysis.type === 'datetime') {
-        const stats = col.analysis.stats;
-        const missingPct = (stats.missing / overview.rows) * 100;
-        lines.push(`**Missing:** ${stats.missing.toLocaleString()} (${missingPct.toFixed(1)}%)`);
-        lines.push(`**Unique Values:** ${stats.uniqueCount.toLocaleString()}`);
-        lines.push(`**Date Range:** ${stats.minDate} to ${stats.maxDate}`);
-      }
-      lines.push('');
-    });
-
-    // Quality Issues
-    lines.push('## Data Quality');
-    lines.push('');
-
-    const hasIssues = quality.duplicateRows > 0 ||
-                      quality.highMissingColumns.length > 0 ||
-                      quality.highCardinalityColumns.length > 0;
-
-    if (!hasIssues) {
-      lines.push('✅ **No issues found!** Your dataset looks clean and ready to use.');
-      lines.push('');
-    } else {
-      // Duplicate rows
-      if (quality.duplicateRows > 0) {
-        lines.push('### Duplicate Rows');
-        lines.push(`⚠️ Found ${quality.duplicateRows.toLocaleString()} duplicate rows (${quality.duplicatePercentage.toFixed(1)}% of dataset)`);
-        lines.push('');
-      }
-
-      // High missing columns
-      if (quality.highMissingColumns.length > 0) {
-        lines.push('### High Missing Data');
-        lines.push('Columns with >50% missing values:');
-        quality.highMissingColumns.forEach(colName => {
-          const col = columns.find(c => c.name === colName);
-          if (col) {
-            const missing = col.analysis.stats.missing;
-            const missingPct = (missing / overview.rows) * 100;
-            lines.push(`- **${colName}**: ${missingPct.toFixed(1)}% missing`);
-          }
-        });
-        lines.push('');
-      }
-
-      // High cardinality
-      if (quality.highCardinalityColumns.length > 0) {
-        lines.push('### High Cardinality Columns');
-        lines.push(`ℹ️ ${quality.highCardinalityColumns.length} categorical columns with >100 unique values:`);
-        quality.highCardinalityColumns.forEach(colName => {
-          lines.push(`- ${colName}`);
-        });
-        lines.push('');
-        lines.push('*Note: High cardinality may indicate these should be treated as IDs, not categories.*');
-        lines.push('');
-      }
-    }
-
-    // Footer
-    lines.push('---');
-    lines.push('');
-    lines.push('*Report generated by [Glimpse](https://github.com/yourusername/glimpse) - Privacy-first data analysis*');
-
-    return lines.join('\n');
-  };
-
-  // Export analysis as markdown
-  const handleExportMarkdown = () => {
-    const markdown = formatMarkdownReport();
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${datasetName.replace(/\.[^/.]+$/, '')}_analysis.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  // Copy to clipboard with feedback
-  const copyToClipboard = async (text: string, id: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
 
   // Filter columns by type and search query
   const filteredColumns = columns.filter((col) => {
@@ -243,6 +73,25 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
     const matchesSearch = columnSearch === '' || col.name.toLowerCase().includes(columnSearch.toLowerCase());
     return matchesType && matchesSearch;
   });
+
+  // Handle column navigation (arrow keys in detail modal)
+  const handleColumnNavigation = useCallback((direction: 'prev' | 'next') => {
+    if (!selectedColumn) return;
+
+    const currentIndex = filteredColumns.findIndex((col) => col.name === selectedColumn);
+    if (currentIndex === -1) return;
+
+    let newIndex: number;
+    if (direction === 'prev') {
+      // Wrap to end if at start
+      newIndex = currentIndex === 0 ? filteredColumns.length - 1 : currentIndex - 1;
+    } else {
+      // Wrap to start if at end
+      newIndex = currentIndex === filteredColumns.length - 1 ? 0 : currentIndex + 1;
+    }
+
+    setSelectedColumn(filteredColumns[newIndex].name);
+  }, [selectedColumn, filteredColumns]);
 
   // Count quality issues
   const qualityIssueCount =
@@ -269,21 +118,19 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
-            onClick={handleExportMarkdown}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm bg-primary text-white hover:bg-primary-hover rounded-md transition-colors duration-150 font-medium shadow-sm whitespace-nowrap active:scale-95"
-            title="Download complete analysis report as markdown file"
+            onClick={() => setShowStory(true)}
+            className="group relative overflow-hidden flex items-center gap-1.5 px-5 py-2.5 text-sm bg-[linear-gradient(135deg,#0066CC_0%,#0D9488_100%)] text-white hover:shadow-lg rounded-full transition-all duration-300 font-medium shadow-sm whitespace-nowrap active:scale-95 animate-shine"
           >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Export Report</span>
-            <span className="sm:hidden">Export</span>
+            <BookOpen className="w-4 h-4 relative z-10 text-white" />
+            <span className="hidden sm:inline relative z-10 text-white font-semibold">Tell the Story</span>
+            <span className="sm:hidden relative z-10 text-white font-semibold">Story</span>
           </button>
           <button
             onClick={() => setShowClearModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-text-secondary hover:text-error hover:bg-error-bg border border-border-default rounded-md transition-colors duration-150 whitespace-nowrap active:scale-95"
-            title="Remove current analysis and start over"
+            className="p-2 text-text-tertiary hover:text-error hover:bg-error-bg rounded-full transition-colors duration-150"
+            title="Clear analysis and start over"
           >
-            <X className="w-4 h-4" />
-            Clear
+            <X className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -303,9 +150,6 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
             columns={columns}
             correlation={result.correlation}
             correlationSignificance={result.correlationSignificance}
-            datasetName={datasetName}
-            onCopy={copyToClipboard}
-            copiedId={copiedId}
             onColumnClick={setSelectedColumn}
           />
         )}
@@ -324,6 +168,17 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
           <QualityTab quality={quality} columns={columns} totalRows={overview.rows} onColumnClick={setSelectedColumn} />
         )}
       </div>
+
+      {/* Story Mode */}
+      {showStory && (
+        <StoryMode
+          slides={generateStory(result, datasetName)}
+          onClose={() => {
+            setShowStory(false);
+            setActiveTab('overview');
+          }}
+        />
+      )}
 
       {/* Clear Confirmation Modal */}
       <ConfirmModal
@@ -345,6 +200,9 @@ export function AnalysisView({ datasetName, result, onClear }: AnalysisViewProps
           columnName={selectedColumn}
           result={result}
           onClose={() => setSelectedColumn(null)}
+          columnIndex={filteredColumns.findIndex((col) => col.name === selectedColumn)}
+          totalColumns={filteredColumns.length}
+          onNavigate={handleColumnNavigation}
         />
       )}
     </div>
@@ -357,50 +215,13 @@ interface OverviewTabProps {
   columns: ColumnAnalysis[];
   correlation?: AnalysisResult['correlation'];
   correlationSignificance?: AnalysisResult['correlationSignificance'];
-  datasetName: string;
-  onCopy: (text: string, id: string) => void;
-  copiedId: string | null;
   onColumnClick: (columnName: string) => void;
 }
 
-function OverviewTab({ overview, columns, correlation, correlationSignificance, datasetName, onCopy, copiedId, onColumnClick }: OverviewTabProps) {
-  // Format overview as markdown
-  const formatOverviewMarkdown = () => {
-    return `# ${datasetName} - Dataset Overview
-
-## Statistics
-- **Rows:** ${overview.rows.toLocaleString()}
-- **Columns:** ${overview.columns}
-- **Memory:** ${(overview.memoryBytes / 1024 / 1024).toFixed(2)} MB
-- **Missing Values:** ${overview.missingPercentage.toFixed(1)}%
-
-## Column Types
-- **Numeric:** ${overview.columnTypes.numeric}
-- **Categorical:** ${overview.columnTypes.categorical}
-- **DateTime:** ${overview.columnTypes.datetime}`;
-  };
-
+function OverviewTab({ overview, columns, correlation, correlationSignificance, onColumnClick }: OverviewTabProps) {
   return (
     <div className="min-w-0">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-text-primary">Dataset Statistics</h2>
-        <button
-          onClick={() => onCopy(formatOverviewMarkdown(), 'overview')}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-md transition-colors duration-150"
-        >
-          {copiedId === 'overview' ? (
-            <>
-              <Check className="w-4 h-4 text-success" />
-              Copied!
-            </>
-          ) : (
-            <>
-              <Copy className="w-4 h-4" />
-              Copy Stats
-            </>
-          )}
-        </button>
-      </div>
+      <h2 className="text-lg font-semibold text-text-primary mb-4">Dataset Statistics</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard label="Rows" value={overview.rows.toLocaleString()} />
         <StatCard label="Columns" value={overview.columns} />
@@ -659,7 +480,7 @@ interface StatCardProps {
 
 function StatCard({ label, value, color = 'gray' }: StatCardProps) {
   return (
-    <div className="p-4 bg-bg-surface border border-border-default rounded-lg shadow-sm">
+    <div className="p-4 bg-bg-surface border border-border-default rounded-lg shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300 cursor-default">
       <p className="text-sm text-text-secondary mb-1">{label}</p>
       <p
         className={`text-2xl font-bold ${

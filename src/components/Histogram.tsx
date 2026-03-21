@@ -1,5 +1,7 @@
 import type { NumericColumnStats } from '../types/analysis';
 import { DistributionFitOverlay } from './DistributionFitOverlay';
+import { Tooltip } from './Tooltip';
+import { HelpCircle } from 'lucide-react';
 
 interface HistogramProps {
   bins: number[];
@@ -8,9 +10,10 @@ interface HistogramProps {
   width?: number;
   height?: number;
   shapeLabel?: string;
+  shapeTooltip?: { term: string; content: string; example?: string };
 }
 
-export function Histogram({ bins, counts, stats, width = 300, height = 200, shapeLabel }: HistogramProps) {
+export function Histogram({ bins, counts, stats, width = 300, height = 200, shapeLabel, shapeTooltip }: HistogramProps) {
   if (bins.length === 0 || counts.length === 0) {
     return (
       <div
@@ -43,47 +46,6 @@ export function Histogram({ bins, counts, stats, width = 300, height = 200, shap
   const yAxisMax = Math.ceil(maxCount / 10) * 10 || 10;
   const yAxisSteps = 4; // Number of grid lines
 
-  // Generate smooth curve using a simplified smoothing approach
-  const generateCurvePath = (): string => {
-    if (counts.length < 2) return '';
-
-    // Create points at bar tops
-    const points = counts.map((count, i) => {
-      const normalizedHeight = (count / yAxisMax) * chartHeight;
-      const x = leftPadding + i * barWidth + barWidth / 2;
-      const y = topPadding + chartHeight - normalizedHeight;
-      return { x, y };
-    });
-
-    // Add phantom points at the edges at baseline for smooth curve endpoints
-    const baselineY = topPadding + chartHeight;
-    const pStart = { x: leftPadding, y: baselineY };
-    const pEnd = { x: leftPadding + chartWidth, y: baselineY };
-    
-    const extendedPoints = [pStart, ...points, pEnd];
-
-    // Simple Catmull-Rom with tension to prevent overshooting baseline
-    let path = `M ${extendedPoints[0].x} ${extendedPoints[0].y}`;
-
-    for (let i = 0; i < extendedPoints.length - 1; i++) {
-      const p0 = extendedPoints[Math.max(i - 1, 0)];
-      const p1 = extendedPoints[i];
-      const p2 = extendedPoints[i + 1];
-      const p3 = extendedPoints[Math.min(i + 2, extendedPoints.length - 1)];
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = Math.min(baselineY, p1.y + (p2.y - p0.y) / 6);
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = Math.min(baselineY, p2.y - (p3.y - p1.y) / 6);
-
-      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
-    }
-
-    return path;
-  };
-
-  const curvePath = generateCurvePath();
-
   // Format axis labels
   const formatValue = (value: number): string => {
     if (Math.abs(value) >= 1000) {
@@ -108,10 +70,6 @@ export function Histogram({ bins, counts, stats, width = 300, height = 200, shap
           <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={fillColor} stopOpacity="0.8" />
             <stop offset="100%" stopColor={fillColor} stopOpacity="0.3" />
-          </linearGradient>
-          <linearGradient id="curveFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="currentColor" stopOpacity="0.1" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
           </linearGradient>
         </defs>
 
@@ -153,29 +111,6 @@ export function Histogram({ bins, counts, stats, width = 300, height = 200, shap
             />
           );
         })}
-
-        {/* Distribution curve glow/fill */}
-        {curvePath && (
-          <path
-            d={`${curvePath} L ${leftPadding + chartWidth} ${topPadding + chartHeight} L ${leftPadding} ${topPadding + chartHeight} Z`}
-            fill="url(#curveFill)"
-            className="text-secondary"
-          />
-        )}
-
-        {/* Distribution curve overlay */}
-        {curvePath && (
-          <path
-            d={curvePath}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            className="text-text-primary"
-            opacity="0.9"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        )}
 
         {/* Normal distribution fit overlay */}
         {stats && (
@@ -239,12 +174,48 @@ export function Histogram({ bins, counts, stats, width = 300, height = 200, shap
         />
       </svg>
 
-      {/* Shape label - enhanced badge */}
-      {shapeLabel && (
-        <div className="absolute top-3 right-3 px-2.5 py-1 bg-bg-surface/80 backdrop-blur shadow-sm border border-border-default rounded-full text-[10px] font-bold tracking-wider uppercase text-text-secondary">
-          {shapeLabel}
+      {/* Overlay controls layer */}
+      <div className="absolute top-3 right-3 flex flex-col items-end gap-2 pointer-events-none">
+        {/* Top Badges Row */}
+        <div className="flex items-center gap-2 relative z-10">
+          {/* P-value badge */}
+          {stats?.normalityTest && (
+            <div className={`px-2 py-1 rounded-md text-[10px] font-semibold border shadow-sm backdrop-blur pointer-events-auto ${
+              stats.normalityTest.isNormal 
+                ? 'bg-success-bg/90 text-success border-success-border/50' 
+                : 'bg-warning-bg/90 text-warning-text border-warning-border/50'
+            }`}>
+              p = {stats.normalityTest.pValue.toFixed(3)}
+            </div>
+          )}
+          
+          {/* Shape label - enhanced badge */}
+          {shapeLabel && (
+            <div className="px-2.5 py-1 bg-bg-surface/90 backdrop-blur shadow-sm border border-border-default rounded-full flex items-center gap-1.5 pointer-events-auto">
+              <span className="text-[10px] font-bold tracking-wider uppercase text-text-secondary">{shapeLabel}</span>
+              {shapeTooltip && (
+                <Tooltip {...shapeTooltip} align="right">
+                  <HelpCircle className="w-3 h-3 text-text-tertiary hover:text-text-primary cursor-help transition-colors" />
+                </Tooltip>
+              )}
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Legend (only if stats are present to show Normal Fit) */}
+        {stats && (
+          <div className="px-3 py-2 bg-bg-surface/90 backdrop-blur shadow-sm border border-border-default rounded-lg flex flex-col gap-1.5 pointer-events-auto relative z-0">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-sm bg-secondary/60" />
+              <span className="text-[10px] font-medium text-text-primary leading-none">Actual</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 border-t-2 border-dashed border-warning" />
+              <span className="text-[10px] font-medium text-text-primary leading-none">Normal Fit</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

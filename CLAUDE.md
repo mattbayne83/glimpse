@@ -27,7 +27,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - **ErrorDisplay** - Rich error UI with categorized messages, suggestions, and retry button
 - **ThemeToggle** - 3-state theme switcher (Light/Dark/System) with persistence
 - **KeyboardShortcutsModal** - Help modal showing all keyboard shortcuts (triggered by "?" key)
-- **AnalysisView** - Results container with 3-tab interface + export/copy features + clear confirmation modal + keyboard navigation (arrows/numbers)
+- **AnalysisView** - Results container with 3-tab interface + export/copy features + "Tell the Story" button + clear confirmation modal + keyboard navigation (arrows/numbers)
   - **OverviewTab** - Dataset summary + visual column map + correlation matrix (when 2+ numeric cols) + copy-to-clipboard
   - **ColumnsTab** - Responsive grid of snapshot cards (1-4 columns) with type filtering, search, and click-to-detail
   - **QualityTab** - Comprehensive missing data table + duplicate/cardinality warnings
@@ -107,10 +107,9 @@ Upload CSV files and get instant statistical insights — all processed locally 
 
 ### Components
 - `src/components/AnalysisView.tsx` (~540 lines) - 3-tab results view: Overview (with correlation)/Columns (grid layout)/Quality + export/copy + clear modal + keyboard navigation
-- `src/components/ColumnDetailModal.tsx` (~427 lines) - Full-screen side modal with comprehensive column analysis (stats, distribution, correlations, time series)
+- `src/components/ColumnDetailModal.tsx` (~415 lines) - Full-screen side modal with comprehensive column analysis (stats, distribution, correlations, time series)
 - `src/components/ColumnPreviewCard.tsx` (~205 lines) - Compact snapshot card for grid view (viz + key metrics)
 - `src/components/Histogram.tsx` (~235 lines) - Professional statistical histogram with axes, gridlines, smooth curve, and shape detection
-- `src/components/BoxPlotVisualization.tsx` (~280 lines) - Box-and-whisker plot showing quartiles, outliers, and distribution shape
 - `src/components/DistributionFitOverlay.tsx` (~150 lines) - Normal distribution curve overlay on histograms for distribution comparison
 - `src/components/TimeSeriesPlot.tsx` (~295 lines) - Time series visualization with trend lines and seasonality detection (FFT-powered)
 - `src/components/DateRangeViz.tsx` (~90 lines) - Timeline visualization for datetime columns (used in snapshot cards)
@@ -122,10 +121,28 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/components/ConfirmModal.tsx` (~60 lines) - Reusable confirmation dialog with backdrop
 - `src/components/KeyboardShortcutsModal.tsx` (~90 lines) - Help modal showing keyboard shortcuts (triggered by "?" key)
 - `src/components/MatrixBackground.tsx` (~90 lines) - Animated falling characters background (canvas-based, theme-aware via props)
-- `src/components/FileUpload.tsx` (~217 lines) - Drag-and-drop uploader with 10MB limit + 3 horizontal sample dataset cards (icon left, content right)
+- `src/components/FileUpload.tsx` (~217 lines) - Drag-and-drop uploader with 50MB limit (warns for files >10MB) + 3 horizontal sample dataset cards (icon left, content right)
+- `src/components/Tooltip.tsx` (~86 lines) - Educational tooltip component with term/content/example props (used for inline statistical help)
 - `src/components/ThemeToggle.tsx` (~30 lines) - 3-state theme switcher (Light/Dark/System) with icon and label
 - `src/components/ColumnMap.tsx` (~80 lines) - Visual column structure chart
 - `src/components/TabNavigation.tsx` (~50 lines) - Tab switcher with badge counts
+
+### Story Mode Components (~1,365 total lines) - **Theme-aware (March 21, 2026)**
+- `src/components/story/StoryMode.tsx` (~350 lines) - Full-screen cinematic presentation container, slide navigation, keyboard shortcuts (←/→/ESC), progress tracking, **respects light/dark theme**
+- `src/components/story/StorySlide.tsx` (~100 lines) - Individual slide wrapper with fade-in animations and centered layout
+- `src/components/story/StoryProgress.tsx` (~50 lines) - Progress dot indicator showing current slide position, **theme-aware colors**
+- `src/components/story/slides/SlideLayout.tsx` (~80 lines) - Reusable slide structure with title, insight text, and children content, **theme-aware**
+- `src/components/story/slides/NarrativeText.tsx` (~45 lines) - Formatted narrative text with highlighting and emphasis, **theme-aware**
+- `src/components/story/slides/TitleSlide.tsx` (~90 lines) - Opening slide with dataset name, dimensions, and insight count teaser, **theme-aware**
+- `src/components/story/slides/InsightsPreviewSlide.tsx` (~150 lines) - Grid of insight type cards showing what was auto-detected, **theme-aware**
+- `src/components/story/slides/CorrelationSlide.tsx` (~130 lines) - Correlation narrative with strength, direction, and significance, **SVG uses `currentColor` pattern**
+- `src/components/story/slides/DistributionSlide.tsx` (~140 lines) - Distribution characteristics narrative (range, spread, outliers), **theme-aware**
+- `src/components/story/slides/TimeSeriesSlide.tsx` (~120 lines) - Temporal pattern narrative with seasonality period detection, **SVG uses `currentColor` pattern**
+- `src/components/story/slides/OutlierSlide.tsx` (~110 lines) - Extreme value analysis with z-score and impact metrics, **theme-aware**
+- `src/components/story/slides/CategorySlide.tsx` (~100 lines) - Dominant category analysis with concentration insights, **theme-aware gradients**
+- `src/components/story/slides/QualitySlide.tsx` (~100 lines) - Data quality issues (duplicates, missing >50%, high cardinality >100), **uses semantic color tokens**
+- `src/components/story/slides/NextStepsSlide.tsx` (~90 lines) - Actionable recommendations based on detected patterns, **theme-aware**
+- `src/components/story/slides/MockInsightSlide.tsx` (~80 lines) - Phase 1 placeholder slide (deprecated)
 
 ### Hooks
 - `src/hooks/useThemeSync.ts` (~20 lines) - Syncs resolved theme with `<html>` class (adds/removes `.dark`)
@@ -134,8 +151,10 @@ Upload CSV files and get instant statistical insights — all processed locally 
 
 ### Data & Types
 - `src/types/analysis.ts` - TypeScript interfaces for analysis results (includes CorrelationMatrix)
+- `src/types/story.ts` (~80 lines) - Story Mode types: Slide, InsightType, SlideData variants (Correlation, Distribution, TimeTrend, Outlier, Category, Quality, Preview, Title, NextSteps)
 - `src/store/useAppStore.ts` - Zustand store with persist middleware (datasetName, rawCsvData, analysisResult, theme)
 - `src/utils/analyzeData.ts` (~180 lines) - Python analysis script with error handling (pandas-powered, includes correlation matrix, handles boolean columns)
+- `src/utils/generateStory.ts` (~280 lines) - Insight detection engine: analyzes analysisResult, detects patterns (correlations, outliers, distributions, quality issues), generates Slide[] array
 - `src/utils/pyodide.ts` (~70 lines) - Pyodide lazy loader with retry logic (3 attempts, exponential backoff)
 - `src/utils/errorHandler.ts` (~130 lines) - Error categorization engine with actionable suggestions
 - `src/data/sampleDatasets.ts` (~180 lines) - Sample dataset registry with lazy-loading support (4 production datasets + Iris)
@@ -157,6 +176,68 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `CHANGELOG.md` - Version history
 - `BACKLOG.md` - Feature roadmap
 - `tasks/todo.md` - Implementation plan
+
+## Story Mode Architecture (March 2026)
+
+### What It Is
+**Auto-generated cinematic presentation** that transforms raw analysis into a compelling visual narrative. One-click access to insights surfaced automatically from the dataset.
+
+### User Flow
+```
+AnalysisView (after dataset analyzed)
+  ↓
+[📖 Tell the Story] button (header, next to Export/Copy)
+  ↓
+StoryMode component (full-screen overlay)
+  ↓
+9 specialized slide types (Title → Insights Preview → Individual Insights → Quality → Next Steps)
+  ↓
+Navigation: ←/→ arrows, ESC to exit, progress dots
+```
+
+### Insight Detection Engine (`generateStory.ts`)
+**Analyzes existing `analysisResult` to detect noteworthy patterns:**
+- **Strong correlations**: |r| > 0.7 (very strong), > 0.5 (strong), > 0.3 (moderate)
+- **Unusual distributions**: Skewness > 1 or < -1, outlier percentage > 5%
+- **Time patterns**: FFT seasonality detection with confidence thresholds
+- **Category dominance**: Top value > 50% (high), > 30% (moderate)
+- **Quality issues**: Duplicates > 0, missing > 50%, cardinality > 100
+
+**Returns `Slide[]` array** with detected insights prioritized by interestingness.
+
+### Slide Components Pattern
+**All slides follow consistent structure:**
+1. Accept `slide: Slide` prop with generic `data: Record<string, unknown>`
+2. Cast to specific type: `const data = slide.data as unknown as SpecificSlideData`
+3. Use `SlideLayout` wrapper for title + insight text
+4. Render visualization or narrative content
+5. Animated fade-in via Tailwind `animate-fade-in`
+
+**Type Safety:**
+- `src/types/story.ts` defines all slide data interfaces
+- Double type assertion required: `as unknown as SpecificType` (bypasses base type mismatch)
+- Each slide has companion interface: `TitleSlideData`, `CorrelationInsightData`, etc.
+
+### Navigation & Interaction
+- **Keyboard shortcuts**: `←` previous, `→` next, `ESC` exit to analysis view
+- **Progress indicator**: Dot navigation shows current slide (e.g., slide 3 of 8)
+- **Slide transitions**: CSS fade-in animation on mount (300ms)
+- **Full-screen mode**: Fixed overlay (z-50) with theme-aware background (light or dark)
+
+### Current State (v0.12.0+)
+- ✅ **Phase 1-2 Complete**: All slide components implemented with text-based narratives
+- ✅ **Dark mode integration** (March 21, 2026): All slides respect light/dark theme selection
+- ✅ **Insight detection**: Smart pattern recognition from existing analysis data
+- ✅ **Navigation**: Full keyboard control + progress tracking
+- ⏸️ **Phase 3 Deferred**: Standalone HTML export (planned for v0.13.0)
+- ⏸️ **Phase 4 Deferred**: Interactive chart visualizations in slides (currently text narratives)
+
+### Key Gotchas
+- **JSX `>` escaping**: Use `&gt;` in text (e.g., ">50% missing" → "&gt;50% missing")
+- **Type casting pattern**: Always `as unknown as` for slide data (NOT direct `as`)
+- **No raw data access**: Story mode uses aggregated stats from `analysisResult` only
+- **Conditional rendering**: QualitySlide returns `null` if no issues detected
+- **Theme integration** (March 21, 2026): All slides use semantic Tailwind classes (`text-text-primary`, `bg-bg-elevated`, etc.) instead of hardcoded colors. SVG elements use `currentColor` pattern for automatic theme adaptation.
 
 ## Analysis Pipeline
 
@@ -206,10 +287,11 @@ Overview / Columns / Quality Tabs
 - Mismatch causes "indexURL parameter mismatch" errors
 
 ### File Validation
-- Max 10MB file size enforced in `FileUpload.tsx`
-- CSV-only validation (`.csv` extension check)
+- Max 50MB file size enforced in `FileUpload.tsx` (increased from 10MB in March 2026)
+- Warning shown for files >10MB about longer processing times
+- CSV and Excel file support (`.csv` and `.xlsx` extension check)
 - No backend means can't handle streaming for huge files
-- 10MB limit prevents browser memory issues with Pyodide
+- 50MB limit provides good balance between usability and browser performance
 
 ### State Persistence
 - Only `analysisResult`, `datasetName`, and `theme` persist to localStorage
@@ -221,15 +303,21 @@ Overview / Columns / Quality Tabs
 - Python script uses triple quotes for CSV data
 - Double quotes in CSV escaped with `replace(/"/g, '\\"')`
 
-### Deleted Components (March 2026)
-- `DataBlock3D.tsx` and `DataCube3D.tsx` removed (409 lines) - 3D visualizations were unused and had layout issues
+### Deleted Components & Cleanup (March 2026)
+- **Elon's Algorithm (March 20, 2026)**: Removed 900+ lines of dead code
+  - Glossary system (4 components): GlossaryModal, GlossaryTooltip, InfoIcon, glossary.ts data file
+  - Unused visualizations: ScatterPlotMatrix (never integrated), BoxPlot (duplicate)
+  - Web Worker files: pyodide.worker.ts, test.worker.ts, usePyodideWorker.ts
+  - IRIS_DATASET_DEPRECATED constant
+  - **Replacement**: Tooltip component used directly with inline term definitions (simpler, faster)
+- **Earlier cleanup**: `DataBlock3D.tsx` and `DataCube3D.tsx` removed (409 lines) - 3D visualizations were unused and had layout issues
 
 ### Web Workers Blocked (March 2026)
 - **Issue**: Web Workers completely blocked in browser environment (likely CSP or security policy)
 - **Symptom**: Worker object creates successfully but code never executes (even minimal inline Blob workers fail)
 - **Solution**: Reverted to main-thread Pyodide execution
 - **Trade-off**: Brief UI freeze during analysis (~1-2 seconds for small datasets) instead of background processing
-- **Unused files**: `src/workers/pyodide.worker.ts`, `src/workers/test.worker.ts`, `src/hooks/usePyodideWorker.ts` (kept for reference)
+- **Files deleted** (March 20, 2026): `src/workers/pyodide.worker.ts`, `src/workers/test.worker.ts`, `src/hooks/usePyodideWorker.ts` removed after Elon cleanup
 
 ### Dark Mode Architecture (March 2026)
 - **Critical lesson**: DO NOT read CSS variables from DOM via `getComputedStyle()` - creates race conditions
@@ -381,6 +469,7 @@ npm run lint   # Run ESLint
 See [BACKLOG.md](BACKLOG.md) for full roadmap.
 
 **Recently Completed:**
+- ✅ Immersive Story Mode with auto-generated narratives (March 21, 2026)
 - ✅ Advanced statistical analysis (normality tests, correlation significance, FFT seasonality) (March 20, 2026)
 - ✅ Advanced visualizations (box plots, distribution fit, time series plots) (March 20, 2026)
 - ✅ Responsive mobile design (March 20, 2026)
@@ -388,6 +477,7 @@ See [BACKLOG.md](BACKLOG.md) for full roadmap.
 - ✅ Keyboard shortcuts (March 17, 2026)
 
 **Next Priority:**
-- Scatter plot matrix (requires raw data pipeline - currently only aggregated stats)
+- Story Mode Phase 3: Standalone HTML export
+- Story Mode Phase 4: Interactive chart visualizations in slides
 - Multi-sheet Excel support
 - Custom column transformations

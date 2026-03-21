@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface KeyboardShortcutsModalProps {
   isOpen: boolean;
@@ -14,7 +15,7 @@ const shortcuts: { category: string; items: Shortcut[] }[] = [
   {
     category: 'Navigation',
     items: [
-      { keys: ['←', '→'], description: 'Navigate between tabs' },
+      { keys: ['←', '→'], description: 'Navigate between tabs (or columns in detail view)' },
       { keys: ['1'], description: 'Jump to Overview tab' },
       { keys: ['2'], description: 'Jump to Columns tab' },
       { keys: ['3'], description: 'Jump to Quality tab' },
@@ -23,13 +24,22 @@ const shortcuts: { category: string; items: Shortcut[] }[] = [
   {
     category: 'Actions',
     items: [
-      { keys: ['Esc'], description: 'Close modal or show clear confirmation' },
+      { keys: ['Esc'], description: 'Close active modal' },
       { keys: ['?'], description: 'Show this help' },
     ],
   },
 ];
 
 export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (

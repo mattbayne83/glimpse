@@ -128,7 +128,7 @@ function App() {
     }
   }, [lastFailedFile, runAnalysis]);
 
-  // Global keyboard shortcut for "?" to show help
+  // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is typing in an input field
@@ -141,6 +141,7 @@ function App() {
         e.preventDefault();
         setShowShortcutsModal(true);
       }
+
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -260,7 +261,7 @@ function App() {
         )}
       </main>
 
-      {/* Keyboard Shortcuts Modal */}
+      {/* Modals */}
       <KeyboardShortcutsModal
         isOpen={showShortcutsModal}
         onClose={() => setShowShortcutsModal(false)}
