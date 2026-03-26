@@ -9,6 +9,17 @@ _None - ready for next feature!_
 - [ ] **Pyodide CDN Fallback Chain** - Add fallback CDNs (cdnjs, unpkg) for 50% reduction in load failures
 
 ## Recently Added ✨
+- [x] **Multi-Sheet Excel Support** (March 26, 2026) - Choose which sheet to analyze
+  - **SheetSelectorModal**: Modal displays all sheets when 2+ detected in Excel file
+  - **getExcelSheetNames**: Pyodide utility extracts sheet names via pandas ExcelFile
+  - **analyzeData sheetName parameter**: Optional parameter targets specific sheet
+  - **App.tsx sheet detection**: Automatically checks sheet count, shows modal when needed
+  - First sheet marked "Default", sheet count shown in footer
+  - Single-sheet Excel files skip modal (backward compatible)
+  - Resolves v0.9.0 limitation: "Currently reads first sheet only"
+- [x] **Pre-Existing ESLint Fixes** (March 26, 2026) - Quality gate blockers resolved
+  - **DistributionFitOverlay**: Fixed React Hooks called conditionally (moved early return after hooks)
+  - **RangeIndicator**: Fixed component-in-render anti-pattern (extracted LabelWithConnector outside)
 - [x] **Performance Optimizations Phase 1-2** (March 21, 2026) - Sample dataset compression + bundle splitting
   - **Sample Dataset Compression**: Gzipped all CSV files (2.5 MB → 561 KB, 78% reduction)
   - **Bundle Splitting**: Lazy-loaded heavy components (ColumnDetailModal, StoryMode, KeyboardShortcutsModal)
@@ -111,7 +122,6 @@ _None - ready for next feature!_
 - [ ] Copy analysis as formatted text for Slack/Teams
 
 ### Data Processing
-- [ ] Multi-sheet Excel support (currently reads first sheet only)
 - [ ] Support JSON files (auto-flatten nested structures)
 - [ ] Support Parquet files via Pyodide pyarrow
 - [ ] Column transformation suggestions (normalize, bin, encode)

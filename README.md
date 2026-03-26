@@ -129,6 +129,7 @@ npm run lint
 See [BACKLOG.md](BACKLOG.md) for full feature list.
 
 **Recently Shipped:**
+- ✅ Multi-sheet Excel support - Choose which sheet to analyze from multi-sheet files
 - ✅ Story Mode dark theme - All slides respect light/dark theme selection
 - ✅ Immersive Story Mode - Auto-generated visual narratives with cinematic presentation
 - ✅ Advanced statistical analysis - Normality tests, correlation significance, FFT seasonality
@@ -137,9 +138,9 @@ See [BACKLOG.md](BACKLOG.md) for full feature list.
 - ✅ Keyboard shortcuts - Power user navigation
 
 **Coming Soon:**
-- Multi-sheet Excel support
 - Standalone HTML story export
 - Custom column transformations
+- Pyodide CDN fallback chain for improved reliability
 
 ## Contributing
 

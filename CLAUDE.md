@@ -123,6 +123,7 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/components/KeyboardShortcutsModal.tsx` (~90 lines) - Help modal showing keyboard shortcuts (triggered by "?" key)
 - `src/components/MatrixBackground.tsx` (~90 lines) - Animated falling characters background (canvas-based, theme-aware via props)
 - `src/components/FileUpload.tsx` (~217 lines) - Drag-and-drop uploader with 50MB limit (warns for files >10MB) + 3 horizontal sample dataset cards (icon left, content right)
+- `src/components/SheetSelectorModal.tsx` (~82 lines) - Multi-sheet Excel file sheet selection modal (shows when 2+ sheets detected)
 - `src/components/Tooltip.tsx` (~86 lines) - Educational tooltip component with term/content/example props (used for inline statistical help)
 - `src/components/ThemeToggle.tsx` (~30 lines) - 3-state theme switcher (Light/Dark/System) with icon and label
 - `src/components/ColumnMap.tsx` (~80 lines) - Visual column structure chart
@@ -154,7 +155,8 @@ Upload CSV files and get instant statistical insights — all processed locally 
 - `src/types/analysis.ts` - TypeScript interfaces for analysis results (includes CorrelationMatrix)
 - `src/types/story.ts` (~80 lines) - Story Mode types: Slide, InsightType, SlideData variants (Correlation, Distribution, TimeTrend, Outlier, Category, Quality, Preview, Title, NextSteps)
 - `src/store/useAppStore.ts` - Zustand store with persist middleware (datasetName, rawCsvData, analysisResult, theme)
-- `src/utils/analyzeData.ts` (~180 lines) - Python analysis script with error handling (pandas-powered, includes correlation matrix, handles boolean columns)
+- `src/utils/analyzeData.ts` (~439 lines) - Python analysis script with error handling (pandas-powered, includes correlation matrix, handles boolean columns, optional sheetName parameter for multi-sheet Excel files)
+- `src/utils/getExcelSheetNames.ts` (~32 lines) - Pyodide utility to extract sheet names from Excel files (uses pandas ExcelFile)
 - `src/utils/generateStory.ts` (~280 lines) - Insight detection engine: analyzes analysisResult, detects patterns (correlations, outliers, distributions, quality issues), generates Slide[] array
 - `src/utils/pyodide.ts` (~70 lines) - Pyodide lazy loader with retry logic (3 attempts, exponential backoff)
 - `src/utils/errorHandler.ts` (~130 lines) - Error categorization engine with actionable suggestions
@@ -346,7 +348,12 @@ Overview / Columns / Quality Tabs
 ### Excel File Support (March 2026)
 - **Implementation**: openpyxl installed via micropip during Pyodide initialization
 - **Detection**: File extension check (.xlsx) → use `pd.read_excel()` instead of `pd.read_csv()`
-- **Limitation**: Currently reads first sheet only (multi-sheet support planned)
+- **Multi-Sheet Support** (March 26, 2026): Sheet selection modal for files with 2+ sheets
+  - `getExcelSheetNames()` extracts sheet names via pandas ExcelFile without loading full data
+  - SheetSelectorModal displays all available sheets with "Default" badge on first sheet
+  - User clicks sheet name to analyze, or cancels to choose different file
+  - Single-sheet Excel files skip modal (seamless backward compatibility)
+  - `analyzeData()` accepts optional `sheetName` parameter for targeted sheet analysis
 - **Error Handling**: Excel-specific errors categorized with "try saving as CSV" suggestion
 - **Progress**: openpyxl installation shown at 80-90% in staged progress bar
 
@@ -471,6 +478,7 @@ npm run lint   # Run ESLint
 See [BACKLOG.md](BACKLOG.md) for full roadmap.
 
 **Recently Completed:**
+- ✅ **Multi-sheet Excel support**: Sheet selection modal for files with 2+ sheets (March 26, 2026)
 - ✅ **Story Mode Phase 4**: Interactive visualizations in slides (March 21, 2026)
 - ✅ Immersive Story Mode with auto-generated narratives (March 21, 2026)
 - ✅ Advanced statistical analysis (normality tests, correlation significance, FFT seasonality) (March 20, 2026)
@@ -481,6 +489,5 @@ See [BACKLOG.md](BACKLOG.md) for full roadmap.
 
 **Next Priority:**
 - Story Mode Phase 3: Standalone HTML export
-- Multi-sheet Excel support
-- Performance optimizations (sample dataset compression, CDN fallbacks, bundle splitting)
+- Performance optimizations (Pyodide CDN fallbacks, TypeScript strict mode)
 - Custom column transformations

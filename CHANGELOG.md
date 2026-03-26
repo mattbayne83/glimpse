@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-03-26
+
+### Added - Multi-Sheet Excel Support
+- **Sheet Selection Modal** - User can choose which sheet to analyze from multi-sheet Excel files
+  - Automatically detects when Excel file has multiple sheets
+  - Shows modal with list of available sheet names
+  - First sheet marked with "Default" badge for guidance
+  - Click sheet name to analyze, or cancel to upload different file
+  - Sheet count displayed in modal footer (e.g., "3 sheets available")
+- **getExcelSheetNames utility** - Pyodide-powered sheet name extraction
+  - Reads Excel file metadata without loading full data
+  - Uses pandas ExcelFile + openpyxl to list all sheet names
+  - Returns array of sheet names for modal display
+  - Integrated into App.tsx upload flow (checks sheet count before analysis)
+- **Enhanced analyzeData.ts** - Optional sheetName parameter
+  - Accepts `sheetName?: string` parameter for targeted sheet analysis
+  - Python code conditionally reads specific sheet or defaults to first
+  - Template literal handles sheet selection in pd.read_excel() call
+  - Backward compatible: omitting sheetName reads first sheet (original behavior)
+
+### Fixed - Pre-Existing ESLint Errors
+- **DistributionFitOverlay.tsx** - React Hooks called conditionally (fixed before sheet selection work)
+  - Moved early return from line 30 (before hooks) to end (after all hooks)
+  - Validation checks now inside useMemo hooks (hooks must always run)
+  - Prevents "Rendered fewer hooks than expected" React error
+- **RangeIndicator.tsx** - Component created during render (fixed before sheet selection work)
+  - Extracted LabelWithConnector component outside RangeIndicator function
+  - Passed lineY, labelY, staggeringOffset, colors as props instead of closure
+  - Prevents component re-creation on every render (performance + correctness)
+
+### Changed
+- **App.tsx** - Enhanced Excel upload flow with sheet detection (~376 lines, was ~370)
+  - Added state: `showSheetSelector`, `pendingExcelFile`, `availableSheets`
+  - Modified handleFileSelect: checks sheet count via getExcelSheetNames
+  - Added handlers: handleSheetSelect (analyzes chosen sheet), handleSheetCancel (clears pending file)
+  - Integrated SheetSelectorModal component before closing div
+  - Single-sheet Excel files skip modal (original behavior)
+
+### Technical
+- **New files:**
+  - `src/components/SheetSelectorModal.tsx` (~82 lines) - Sheet selection modal with theme-aware styling
+  - `src/utils/getExcelSheetNames.ts` (~32 lines) - Pyodide utility for sheet name extraction
+- **Updated files:**
+  - `src/utils/analyzeData.ts` (~439 lines, was ~435) - Added sheetName parameter with conditional Python template
+  - `src/App.tsx` (~376 lines, was ~370) - Sheet detection logic + modal integration
+  - `src/components/DistributionFitOverlay.tsx` - Fixed React hooks rules violation
+  - `src/components/RangeIndicator.tsx` - Fixed component-in-render anti-pattern
+- **Tailwind semantic classes used:** bg-bg-page, text-text-primary, text-text-secondary, border-border-default, bg-bg-surface, bg-bg-hover (follows Glimpse dark mode architecture)
+- **No new dependencies:** Uses existing Pyodide + pandas + openpyxl stack
+
+### Notes
+- Multi-sheet Excel files now fully supported (was limitation noted in v0.9.0)
+- Sheet selection only appears when 2+ sheets detected (seamless for single-sheet files)
+- ESLint fixes were blocking quality gate - resolved before feature implementation
+
 ### Added - Performance Optimizations (March 21, 2026)
 
 **Sample Dataset Compression:**
