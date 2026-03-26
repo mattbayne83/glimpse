@@ -9,10 +9,12 @@ import { useThemeSync } from './hooks/useThemeSync';
 import { useThemeColors } from './hooks/useThemeColors';
 import { getPyodide } from './utils/pyodide';
 import { analyzeData } from './utils/analyzeData';
+import { getExcelSheetNames } from './utils/getExcelSheetNames';
 import { SAMPLE_DATASETS, type SampleDataset } from './data/sampleDatasets';
 import { categorizeError } from './utils/errorHandler';
 import { HelpCircle } from 'lucide-react';
 import * as pako from 'pako';
+import { SheetSelectorModal } from './components/SheetSelectorModal';
 
 // Lazy-load keyboard shortcuts modal (not needed until "?" key pressed)
 const KeyboardShortcutsModal = lazy(() =>
@@ -43,11 +45,17 @@ function App() {
   const [lastFailedFile, setLastFailedFile] = useState<{ name: string; text: string } | null>(null);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
+  // Sheet selector state for multi-sheet Excel files
+  const [showSheetSelector, setShowSheetSelector] = useState(false);
+  const [pendingExcelFile, setPendingExcelFile] = useState<{ name: string; base64: string } | null>(null);
+  const [availableSheets, setAvailableSheets] = useState<string[]>([]);
+
   // Shared analysis logic (main thread fallback)
   const runAnalysis = useCallback(async (
     name: string,
     data: string,
-    fileType: 'csv' | 'xlsx' = 'csv'
+    fileType: 'csv' | 'xlsx' = 'csv',
+    sheetName?: string
   ) => {
     try {
       setError(null);
@@ -64,7 +72,7 @@ function App() {
 
       // Run analysis on main thread
       setIsAnalyzing(true);
-      const result = await analyzeData(data, fileType);
+      const result = await analyzeData(data, fileType, sheetName);
       setAnalysisResult(result);
       setIsAnalyzing(false);
     } catch (err) {
@@ -88,7 +96,22 @@ function App() {
           new Uint8Array(arrayBuffer)
             .reduce((data, byte) => data + String.fromCharCode(byte), '')
         );
-        await runAnalysis(file.name, base64, 'xlsx');
+
+        // Check for multiple sheets
+        setIsPyodideLoading(true);
+        await getPyodide(); // Ensure Pyodide is loaded
+        const sheetNames = await getExcelSheetNames(base64);
+        setIsPyodideLoading(false);
+
+        if (sheetNames.length > 1) {
+          // Multiple sheets - show selector
+          setPendingExcelFile({ name: file.name, base64 });
+          setAvailableSheets(sheetNames);
+          setShowSheetSelector(true);
+        } else {
+          // Single sheet - analyze directly
+          await runAnalysis(file.name, base64, 'xlsx');
+        }
       } else {
         // Read CSV as text
         const text = await file.text();
@@ -97,8 +120,26 @@ function App() {
     } catch (error) {
       console.error('File read failed:', error);
       setError(new Error('Failed to read file. The file may be corrupted or inaccessible.'));
+      setIsPyodideLoading(false);
     }
   }, [runAnalysis]);
+
+  // Handle sheet selection from modal
+  const handleSheetSelect = useCallback(async (sheetName: string) => {
+    if (!pendingExcelFile) return;
+
+    setShowSheetSelector(false);
+    await runAnalysis(pendingExcelFile.name, pendingExcelFile.base64, 'xlsx', sheetName);
+    setPendingExcelFile(null);
+    setAvailableSheets([]);
+  }, [pendingExcelFile, runAnalysis]);
+
+  // Handle sheet selector cancel
+  const handleSheetCancel = useCallback(() => {
+    setShowSheetSelector(false);
+    setPendingExcelFile(null);
+    setAvailableSheets([]);
+  }, []);
 
   // Handle example dataset selection
   const handleExampleSelect = useCallback(async (dataset: SampleDataset) => {
@@ -318,6 +359,16 @@ function App() {
           </p>
         </div>
       </footer>
+
+      {/* Sheet selector modal for multi-sheet Excel files */}
+      {showSheetSelector && pendingExcelFile && (
+        <SheetSelectorModal
+          fileName={pendingExcelFile.name}
+          sheetNames={availableSheets}
+          onSelectSheet={handleSheetSelect}
+          onCancel={handleSheetCancel}
+        />
+      )}
     </div>
   );
 }

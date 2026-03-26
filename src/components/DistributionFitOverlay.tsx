@@ -26,15 +26,16 @@ export function DistributionFitOverlay({
   const { bins, counts } = histogram;
   const { mean, std } = stats;
 
-  if (mean === undefined || std === undefined || std === 0) {
-    return null; // Can't fit distribution without mean/std
-  }
-
   const plotWidth = width - padding.left - padding.right;
   const plotHeight = height - padding.top - padding.bottom;
 
   // Calculate normal distribution curve points
   const normalCurve = useMemo(() => {
+    // Check validity inside useMemo (hooks must always run)
+    if (mean === undefined || std === undefined || std === 0) {
+      return [];
+    }
+
     const numPoints = 100;
     const minX = Math.min(...bins);
     const maxX = Math.max(...bins);
@@ -64,6 +65,14 @@ export function DistributionFitOverlay({
 
   // Calculate scales
   const { xScale, yScale } = useMemo(() => {
+    if (normalCurve.length === 0) {
+      // Return stub functions if no curve
+      return {
+        xScale: () => 0,
+        yScale: () => 0,
+      };
+    }
+
     const minX = Math.min(...bins);
     const maxX = Math.max(...bins);
     const maxCount = Math.max(...counts);
@@ -81,6 +90,10 @@ export function DistributionFitOverlay({
 
   // Generate SVG path for normal curve
   const normalPath = useMemo(() => {
+    if (normalCurve.length === 0) {
+      return '';
+    }
+
     return normalCurve
       .map((point, i) => {
         const x = padding.left + xScale(point.x);
@@ -89,6 +102,11 @@ export function DistributionFitOverlay({
       })
       .join(' ');
   }, [normalCurve, xScale, yScale, padding]);
+
+  // Early return after all hooks (React rules)
+  if (mean === undefined || std === undefined || std === 0 || normalPath === '') {
+    return null;
+  }
 
   return (
     <g>

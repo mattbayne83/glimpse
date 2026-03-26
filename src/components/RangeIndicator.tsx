@@ -11,6 +11,71 @@ interface RangeIndicatorProps {
   height?: number;
 }
 
+// Helper component for labels with connector lines (defined outside to avoid re-creation)
+const LabelWithConnector = ({
+  x,
+  value,
+  label,
+  level,
+  isPrimary = false,
+  lineY,
+  labelY,
+  staggeringOffset,
+  colors
+}: {
+  x: number;
+  value: string;
+  label: string;
+  level: number;
+  isPrimary?: boolean;
+  lineY: number;
+  labelY: number;
+  staggeringOffset: number;
+  colors: ReturnType<typeof useThemeColors>;
+}) => {
+  const yOffset = level * staggeringOffset;
+  const textY = labelY + yOffset;
+  const connectorYStart = lineY + (isPrimary ? 8 : 4);
+
+  return (
+    <g>
+      {/* Connector line */}
+      {level > 0 && (
+        <line
+          x1={x}
+          y1={connectorYStart}
+          x2={x}
+          y2={textY - 10}
+          stroke={isPrimary ? colors.primary : colors.borderDefault}
+          strokeWidth={1}
+          strokeDasharray="2 2"
+          opacity={0.4}
+        />
+      )}
+
+      {/* Value text */}
+      <text
+        x={x}
+        y={textY}
+        textAnchor="middle"
+        className={`text-[10px] ${isPrimary ? 'fill-text-primary font-bold' : 'fill-text-secondary font-medium'}`}
+      >
+        {value}
+      </text>
+
+      {/* Label name */}
+      <text
+        x={x}
+        y={textY + 10}
+        textAnchor="middle"
+        className="text-[8px] fill-text-tertiary font-medium opacity-70 uppercase tracking-tighter"
+      >
+        {label}
+      </text>
+    </g>
+  );
+};
+
 export function RangeIndicator({
   min,
   q25,
@@ -62,62 +127,6 @@ export function RangeIndicator({
 
   const labelY = lineY + 15;
   const staggeringOffset = 18;
-
-  const LabelWithConnector = ({ 
-    x, 
-    value, 
-    label, 
-    level, 
-    isPrimary = false 
-  }: { 
-    x: number, 
-    value: string, 
-    label: string, 
-    level: number, 
-    isPrimary?: boolean 
-  }) => {
-    const yOffset = level * staggeringOffset;
-    const textY = labelY + yOffset;
-    const connectorYStart = lineY + (isPrimary ? 8 : 4);
-    
-    return (
-      <g>
-        {/* Connector line */}
-        {level > 0 && (
-          <line
-            x1={x}
-            y1={connectorYStart}
-            x2={x}
-            y2={textY - 10}
-            stroke={isPrimary ? colors.primary : colors.borderDefault}
-            strokeWidth={1}
-            strokeDasharray="2 2"
-            opacity={0.4}
-          />
-        )}
-        
-        {/* Value text */}
-        <text
-          x={x}
-          y={textY}
-          textAnchor="middle"
-          className={`text-[10px] ${isPrimary ? 'fill-text-primary font-bold' : 'fill-text-secondary font-medium'}`}
-        >
-          {value}
-        </text>
-
-        {/* Label name */}
-        <text
-          x={x}
-          y={textY + 10}
-          textAnchor="middle"
-          className="text-[8px] fill-text-tertiary font-medium opacity-70 uppercase tracking-tighter"
-        >
-          {label}
-        </text>
-      </g>
-    );
-  };
 
   return (
     <div className="relative group">
@@ -208,13 +217,13 @@ export function RangeIndicator({
         )}
 
         {/* Staggered Labels */}
-        <LabelWithConnector x={q50X} value={formatNumber(q50)} label="Median" level={0} isPrimary={true} />
-        
-        <LabelWithConnector x={q25X} value={formatNumber(q25)} label="Q1" level={1} />
-        <LabelWithConnector x={q75X} value={formatNumber(q75)} label="Q3" level={1} />
-        
-        <LabelWithConnector x={minX} value={formatNumber(min)} label="Min" level={2} />
-        <LabelWithConnector x={maxX} value={formatNumber(max)} label="Max" level={2} />
+        <LabelWithConnector x={q50X} value={formatNumber(q50)} label="Median" level={0} isPrimary={true} lineY={lineY} labelY={labelY} staggeringOffset={staggeringOffset} colors={colors} />
+
+        <LabelWithConnector x={q25X} value={formatNumber(q25)} label="Q1" level={1} lineY={lineY} labelY={labelY} staggeringOffset={staggeringOffset} colors={colors} />
+        <LabelWithConnector x={q75X} value={formatNumber(q75)} label="Q3" level={1} lineY={lineY} labelY={labelY} staggeringOffset={staggeringOffset} colors={colors} />
+
+        <LabelWithConnector x={minX} value={formatNumber(min)} label="Min" level={2} lineY={lineY} labelY={labelY} staggeringOffset={staggeringOffset} colors={colors} />
+        <LabelWithConnector x={maxX} value={formatNumber(max)} label="Max" level={2} lineY={lineY} labelY={labelY} staggeringOffset={staggeringOffset} colors={colors} />
       </svg>
 
       {/* IQR info below - enhanced */}

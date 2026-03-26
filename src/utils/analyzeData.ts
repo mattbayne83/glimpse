@@ -4,10 +4,15 @@ import type { AnalysisResult } from '../types/analysis';
 /**
  * Analyze a CSV or Excel dataset using Python/pandas.
  * Returns comprehensive statistics and quality metrics.
+ *
+ * @param data - CSV text or base64-encoded Excel data
+ * @param fileType - File type ('csv' or 'xlsx')
+ * @param sheetName - Optional sheet name for multi-sheet Excel files (uses first sheet if omitted)
  */
 export async function analyzeData(
   data: string,
-  fileType: 'csv' | 'xlsx' = 'csv'
+  fileType: 'csv' | 'xlsx' = 'csv',
+  sheetName?: string
 ): Promise<AnalysisResult> {
   // Python analysis script
   const pythonCode = `
@@ -27,8 +32,9 @@ try:
         # Excel file - decode base64 and read with pandas
         excel_data = """${data}"""
         excel_bytes = base64.b64decode(excel_data)
-        df = pd.read_excel(BytesIO(excel_bytes), engine='openpyxl')
-        # Note: Uses first sheet by default
+        ${sheetName ? `# Read specific sheet: ${sheetName}
+        df = pd.read_excel(BytesIO(excel_bytes), sheet_name="${sheetName}", engine='openpyxl')` : `# Read first sheet (default)
+        df = pd.read_excel(BytesIO(excel_bytes), engine='openpyxl')`}
     else:
         # CSV file - read from string
         csv_data = """${data.replace(/"/g, '\\"')}"""
